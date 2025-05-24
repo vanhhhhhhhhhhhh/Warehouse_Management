@@ -21,10 +21,18 @@ const productSchema = mongoose.Schema({
         type: Number,
         min: 0
     },
-    attribute: {
-        type: mongoose.Schema.Types.Mixed,
-        default: {}
-    },
+    attribute: [
+        {
+            name: {
+                type: String,
+                required: true
+            },
+            value: {
+                type: String,
+                required: true
+            }
+        }
+    ],
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'
