@@ -10,6 +10,18 @@ import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
 import BuilderPageWrapper from '../pages/layout-builder/BuilderPageWrapper'
 
+const SuspensedView: FC<WithChildren> = ({children}) => {
+  const baseColor = getCSSVariableValue('--bs-primary')
+  TopBarProgress.config({
+    barColors: {
+      '0': baseColor,
+    },
+    barThickness: 1,
+    shadowBlur: 5,
+  })
+  return <Suspense fallback={<TopBarProgress />}>{children}</Suspense>
+}
+
 const PrivateRoutes = () => {
   const ProfilePage = lazy(() => import('../modules/profile/ProfilePage'))
   const WizardsPage = lazy(() => import('../modules/wizards/WizardsPage'))
@@ -18,6 +30,7 @@ const PrivateRoutes = () => {
   const ChatPage = lazy(() => import('../modules/apps/chat/ChatPage'))
   const UsersPage = lazy(() => import('../modules/apps/user-management/UsersPage'))
   const CategoriesPage = lazy(() => import('../modules/categories/categories'))
+
   return (
     <Routes>
       <Route element={<MasterLayout />}>
@@ -78,24 +91,19 @@ const PrivateRoutes = () => {
         />
 
         {/*categories*/}
-        <Route path='apps/categories/*' element={<CategoriesPage />} />
+        <Route
+          path='apps/categories/*'
+          element={
+            <SuspensedView>
+              <CategoriesPage />
+            </SuspensedView>
+          }
+        />
         {/* Page Not Found */}
         <Route path='*' element={<Navigate to='/error/404' />} />
       </Route>
     </Routes>
   )
-}
-
-const SuspensedView: FC<WithChildren> = ({children}) => {
-  const baseColor = getCSSVariableValue('--bs-primary')
-  TopBarProgress.config({
-    barColors: {
-      '0': baseColor,
-    },
-    barThickness: 1,
-    shadowBlur: 5,
-  })
-  return <Suspense fallback={<TopBarProgress />}>{children}</Suspense>
 }
 
 export {PrivateRoutes}

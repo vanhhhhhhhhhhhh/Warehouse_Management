@@ -26,15 +26,15 @@ const MasterLayout = () => {
               <div className='d-flex flex-column flex-column-fluid'>
                 <Outlet />
               </div>
-              <FooterWrapper />
+              {/* <FooterWrapper /> */}
             </div>
           </div>
         </div>
       </div>
 
-      {/* begin:: Drawers */}
+      {/* begin:: Drawers
       <ActivityDrawer />
-      <RightToolbar />
+      {/* <RightToolbar /> */}
       <DrawerMessenger />
       {/* end:: Drawers */}
 

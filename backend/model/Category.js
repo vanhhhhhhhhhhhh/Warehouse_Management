@@ -7,7 +7,7 @@ const categorySchema = mongoose.Schema({
     },
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'users'
+        ref: 'users'    
     },
     isDelete: {
         type: Boolean,
