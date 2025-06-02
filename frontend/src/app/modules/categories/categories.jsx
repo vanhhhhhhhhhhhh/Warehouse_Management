@@ -75,160 +75,155 @@ const CategoriesPage = () => {
 
   return (
     <>
-      <ToolbarWrapper />
-      <Content>
-        <div className='card'>
-          <div className='card-header border-0 pt-6 d-flex justify-content-between'>
-            <div className='card-title'>
-              <h3 className='fw-bold'>Danh sách danh mục</h3>
-            </div>
-          </div>
-
-          {/* Card Header */}
-          <div className='card-header border-0 pt-6'>
-            <div className='card-title'>
-              {/* Search */}
-              <div className='d-flex align-items-center position-relative my-1'>
-                <KTSVG
-                  path='/media/icons/duotune/general/gen021.svg'
-                  className='svg-icon-1 position-absolute ms-6'
-                />
-                <input
-                  type='text'
-                  className='form-control form-control-solid w-250px ps-14'
-                  placeholder='Tìm kiếm danh mục'
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+      <div className='d-flex flex-column gap-7'>
+        <div className='px-9'>
+          <div className='card'>
+            <div className='card-header border-0 pt-6 d-flex justify-content-between'>
+              <div className='card-title'>
+                <h3 className='fw-bold'>Danh sách danh mục</h3>
               </div>
             </div>
 
-            <div className='card-toolbar'>
-              {/* Add new button */}
-              <button type='button' className='btn btn-primary'>
-                <KTSVG
-                  path='/media/icons/duotune/arrows/arr075.svg'
-                  className='svg-icon-2'
-                />
-                Thêm danh mục
-              </button>
-            </div>
-          </div>
-
-          {/* Selected items actions */}
-          {selectedItems.length > 0 && (
+            {/* Card Header */}
             <div className='card-header border-0 pt-6'>
-              <div className='d-flex align-items-center'>
-                <KTSVG
-                  path='/media/icons/duotune/general/gen043.svg'
-                  className='svg-icon-2 me-2 text-primary'
-                />
-                <span className='text-gray-600 me-5'>{selectedMessage}</span>
-                <select
-                  className='form-select form-select-sm me-2'
-                  style={{ width: '180px' }}
-                  value={selectedAction}
-                  onChange={(e) => setSelectedAction(e.target.value)}
-                >
-                  <option value="">-- Chọn thao tác --</option>
-                  <option value="delete">Xóa các mục đã chọn</option>
-                </select>
+              <div className='card-title'>
+                {/* Search */}
+                <div className='d-flex align-items-center position-relative my-1'>
+                  <KTSVG
+                    path='/media/icons/duotune/general/gen021.svg'
+                    className='svg-icon-1 position-absolute ms-6'
+                  />
+                  <input
+                    type='text'
+                    className='form-control form-control-solid w-250px ps-14'
+                    placeholder='Tìm kiếm danh mục'
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className='card-toolbar'>
                 <button
-                  className='btn btn-sm btn-primary'
-                  onClick={() => handleSelectAction(selectedAction)}
-                  disabled={!selectedAction}
+                  type='button'
+                  className='btn btn-primary'
+                  onClick={() => navigate('/apps/staff/role/create')}
                 >
-                  Thực hiện
+                  <i className='ki-duotone ki-plus fs-2' />
+                  Thêm vai trò
                 </button>
               </div>
             </div>
-          )}
 
-          {/* Card Body */}
-          <div className='card-body py-4'>
-            {loading ? (
-              <div className='d-flex justify-content-center'>
-                <div className='spinner-border text-primary' role='status'>
-                  <span className='visually-hidden'>Loading...</span>
+            {/* Selected items actions */}
+            {selectedItems.length > 0 && (
+              <div className='card-header border-0 pt-6'>
+                <div className='d-flex align-items-center'>
+                  <KTSVG
+                    path='/media/icons/duotune/general/gen043.svg'
+                    className='svg-icon-2 me-2 text-primary'
+                  />
+                  <span className='text-gray-600 me-5'>{selectedMessage}</span>
+                  <select
+                    className='form-select form-select-sm me-2'
+                    style={{ width: '180px' }}
+                    value={selectedAction}
+                    onChange={(e) => setSelectedAction(e.target.value)}
+                  >
+                    <option value="">-- Chọn thao tác --</option>
+                    <option value="delete">Xóa các mục đã chọn</option>
+                  </select>
+                  <button
+                    className='btn btn-sm btn-primary'
+                    onClick={() => handleSelectAction(selectedAction)}
+                    disabled={!selectedAction}
+                  >
+                    Thực hiện
+                  </button>
                 </div>
               </div>
-            ) : (
-              <div className='table-responsive'>
-                <table className='table align-middle table-row-dashed fs-6 gy-5'>
-                  <thead>
-                    <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
-                      <th className='w-35px'>
-                        <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                          <input
-                            className='form-check-input'
-                            type='checkbox'
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            disabled={categories.length === 0}
-                          />
-                        </div>
-                      </th>
-                      <th className='min-w-125px'>Tên danh mục</th>
-                      <th className='text-end min-w-100px'>Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody className='text-gray-600 fw-semibold'>
-                    {categories.length === 0 ? (
-                      <tr>
-                        <td colSpan='3' className='text-center'>
-                          Không có dữ liệu
-                        </td>
-                      </tr>
-                    ) : (
-                      categories
-                        .filter((category) =>
-                          category.name.toLowerCase().includes(searchTerm.toLowerCase())
-                        )
-                        .map((category) => (
-                          <tr key={category.id}>
-                            <td>
-                              <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                                <input
-                                  className='form-check-input'
-                                  type='checkbox'
-                                  checked={selectedItems.includes(category.id)}
-                                  onChange={() => handleSelectItem(category.id)}
-                                />
-                              </div>
-                            </td>
-                            <td>
-                              <div className='d-flex align-items-center'>
-                                <div className='d-flex justify-content-start flex-column'>
-                                  <span className='text-dark fw-bold text-hover-primary fs-6'>
-                                    {category.name}
-                                  </span>
-                                </div>
-                              </div>
-                            </td>
-                            <td className='text-end'>
-                              <button className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1'>
-                                <KTSVG
-                                  path='/media/icons/duotune/art/art005.svg'
-                                  className='svg-icon-3'
-                                />
-                              </button>
-                              <button className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm'>
-                                <KTSVG
-                                  path='/media/icons/duotune/general/gen027.svg'
-                                  className='svg-icon-3'
-                                />
-                              </button>
-                            </td>
-                          </tr>
-                        ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
             )}
+
+            {/* Card Body */}
+            <div className='card-body py-4'>
+              {loading ? (
+                <div className='d-flex justify-content-center'>
+                  <div className='spinner-border text-primary' role='status'>
+                    <span className='visually-hidden'>Loading...</span>
+                  </div>
+                </div>
+              ) : (
+                <div className='table-responsive'>
+                  <table className='table align-middle table-row-dashed fs-6 gy-5'>
+                    <thead>
+                      <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
+                        <th className='w-35px'>
+                          <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                            <input
+                              className='form-check-input'
+                              type='checkbox'
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                              disabled={categories.length === 0}
+                            />
+                          </div>
+                        </th>
+                        <th className='min-w-125px'>Tên danh mục</th>
+                        <th className='text-end min-w-100px'>Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className='text-gray-600 fw-semibold'>
+                      {categories.length === 0 ? (
+                        <tr>
+                          <td colSpan='3' className='text-center'>
+                            Không có dữ liệu
+                          </td>
+                        </tr>
+                      ) : (
+                        categories
+                          .filter((category) =>
+                            category.name.toLowerCase().includes(searchTerm.toLowerCase())
+                          )
+                          .map((category) => (
+                            <tr key={category.id}>
+                              <td>
+                                <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                                  <input
+                                    className='form-check-input'
+                                    type='checkbox'
+                                    checked={selectedItems.includes(category.id)}
+                                    onChange={() => handleSelectItem(category.id)}
+                                  />
+                                </div>
+                              </td>
+                              <td>
+                                <div className='d-flex align-items-center'>
+                                  <div className='d-flex justify-content-start flex-column'>
+                                    <span className='fw-bold text-hover-primary fs-6'>
+                                      {category.name}
+                                    </span>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className='text-end'>
+                                <button
+                                  className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-4'
+                                  onClick={() => navigate(`/apps/role/edit/${role._id}`)}
+                                >
+                                  <i className='fas fa-edit'></i>
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </Content>
+      </div>
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && (

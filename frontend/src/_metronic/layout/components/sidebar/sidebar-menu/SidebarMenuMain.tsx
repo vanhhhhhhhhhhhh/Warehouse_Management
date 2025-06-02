@@ -16,57 +16,58 @@ const SidebarMenuMain = () => {
         title='Tổng Quan'
       />
 
+       {/* Staff */}
+       <SidebarMenuItem 
+        to='/apps/role' 
+        title='Vai trò nhân viên'
+      />
+      
+       <SidebarMenuItem 
+        to='/apps/staff' 
+        title='Danh sách nhân viên'
+      />
+
       {/* Products */}
       <SidebarMenuItem
         to='/apps/categories'
         title='Danh mục sản phẩm'
       />
       <SidebarMenuItem
-        to='/apps/products/productsPage'
-        title='sản phẩm'
+        to='/apps/products/'
+        title='Sản phẩm'
       />
       <SidebarMenuItem
-        to='/apps/products/defectiveProduct/list'
+        to='/apps/defectiveProduct'
         title='Khai báo sản phẩm hỏng lỗi'
-      />
-
-      {/* Staff */}
-      <SidebarMenuItem 
-        to='/apps/staff/list' 
-        title='Danh sách nhân viên'
-      />
-      <SidebarMenuItem 
-        to='/apps/staff/role' 
-        title='Vai trò nhân viên'
       />
 
       {/* Warehouse */}
       <SidebarMenuItem 
-        to='/apps/warehouse/list' 
+        to='/apps/warehouse' 
         title='Danh sách kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/stockIn' 
+        to='/apps/stockIn' 
         title='Nhập kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/stockOut' 
+        to='/apps/stockOut' 
         title='Xuất kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/stock-in-history' 
+        to='/apps/importHistory' 
         title='Lịch sử nhập kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/stock-release-history' 
+        to='/apps/exportHistory' 
         title='Lịch sử xuất kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/inventory' 
+        to='/apps/inventory' 
         title='Tồn kho'
       />
       <SidebarMenuItem 
-        to='/apps/warehouse/report' 
+        to='/apps/report' 
         title='Báo cáo xuất nhập kho'
       />
 

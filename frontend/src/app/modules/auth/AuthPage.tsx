@@ -15,4 +15,4 @@ const AuthPage = () => (
   </Routes>
 )
 
-export {AuthPage} 
+export {AuthPage}

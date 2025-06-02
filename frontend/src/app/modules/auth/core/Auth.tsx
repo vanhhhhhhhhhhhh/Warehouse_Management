@@ -1,8 +1,18 @@
 /* eslint-disable react-refresh/only-export-components */
-import {useState, useEffect, createContext, useContext} from 'react'
+import {FC, useState, useEffect, createContext, useContext, Dispatch, SetStateAction} from 'react'
 import {LayoutSplashScreen} from '../../../../_metronic/layout/core'
-import {getUserByToken} from './_requests'
+import {AuthModel, UserModel} from './_models'
 import * as authHelper from './AuthHelpers'
+import {getUserByToken} from './_requests'
+import {WithChildren} from '../../../../_metronic/helpers'
+
+type AuthContextProps = {
+  auth: AuthModel | undefined
+  saveAuth: (auth: AuthModel | undefined) => void
+  currentUser: UserModel | undefined
+  setCurrentUser: Dispatch<SetStateAction<UserModel | undefined>>
+  logout: () => void
+}
 
 const initAuthContextPropsState = {
   auth: authHelper.getAuth(),
@@ -12,17 +22,16 @@ const initAuthContextPropsState = {
   logout: () => {},
 }
 
-const AuthContext = createContext(initAuthContextPropsState)
+const AuthContext = createContext<AuthContextProps>(initAuthContextPropsState)
 
 const useAuth = () => {
   return useContext(AuthContext)
 }
 
-const AuthProvider = ({children}) => {
-  const [auth, setAuth] = useState(authHelper.getAuth())
-  const [currentUser, setCurrentUser] = useState()
-  
-  const saveAuth = (auth) => {
+const AuthProvider: FC<WithChildren> = ({children}) => {
+  const [auth, setAuth] = useState<AuthModel | undefined>(authHelper.getAuth())
+  const [currentUser, setCurrentUser] = useState<UserModel | undefined>()
+  const saveAuth = (auth: AuthModel | undefined) => {
     setAuth(auth)
     if (auth) {
       authHelper.setAuth(auth)
@@ -43,13 +52,13 @@ const AuthProvider = ({children}) => {
   )
 }
 
-const AuthInit = ({children}) => {
+const AuthInit: FC<WithChildren> = ({children}) => {
   const {auth, currentUser, logout, setCurrentUser} = useAuth()
   const [showSplashScreen, setShowSplashScreen] = useState(true)
 
   // We should request user by authToken (IN OUR EXAMPLE IT'S API_TOKEN) before rendering the application
   useEffect(() => {
-    const requestUser = async (apiToken) => {
+    const requestUser = async (apiToken: string) => {
       try {
         if (!currentUser) {
           const {data} = await getUserByToken(apiToken)
@@ -79,4 +88,4 @@ const AuthInit = ({children}) => {
   return showSplashScreen ? <LayoutSplashScreen /> : <>{children}</>
 }
 
-export {AuthProvider, AuthInit, useAuth} 
+export {AuthProvider, AuthInit, useAuth}

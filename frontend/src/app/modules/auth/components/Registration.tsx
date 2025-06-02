@@ -1,18 +1,16 @@
-
-
-import {useState, useEffect} from 'react'
-import {useFormik} from 'formik'
+import { useState } from 'react'
+import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import clsx from 'clsx'
-import {getUserByToken, register} from '../core/_requests'
-import {Link} from 'react-router-dom'
-import {toAbsoluteUrl} from '../../../../_metronic/helpers'
-import {PasswordMeterComponent} from '../../../../_metronic/assets/ts/components'
-import {useAuth} from '../core/Auth'
+import { Link, useNavigate } from 'react-router-dom'
+import { toAbsoluteUrl } from '../../../../_metronic/helpers'
+import axios from 'axios'
 
 const initialValues = {
-  firstname: '',
-  lastname: '',
+  fullname: '',
+  phone: '',
+  storeName: '',
+  city: 'Hà Nội',
   email: '',
   password: '',
   changepassword: '',
@@ -20,349 +18,410 @@ const initialValues = {
 }
 
 const registrationSchema = Yup.object().shape({
-  firstname: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('First name is required'),
+  fullname: Yup.string()
+    .min(3, 'Tối thiểu 3 ký tự')
+    .max(50, 'Tối đa 50 ký tự')
+    .required('Vui lòng nhập họ tên'),
+  phone: Yup.string()
+    .matches(/^[0-9]+$/, 'Số điện thoại không hợp lệ')
+    .min(9, 'Tối thiểu 9 số')
+    .max(11, 'Tối đa 11 số')
+    .required('Vui lòng nhập số điện thoại'),
+  storeName: Yup.string()
+    .min(3, 'Tối thiểu 3 ký tự')
+    .max(50, 'Tối đa 50 ký tự')
+    .required('Vui lòng nhập tên quán'),
+  city: Yup.string()
+    .required('Vui lòng chọn thành phố'),
   email: Yup.string()
-    .email('Wrong email format')
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Email is required'),
-  lastname: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Last name is required'),
+    .email('Email không hợp lệ')
+    .required('Vui lòng nhập email'),
   password: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Password is required'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .required('Vui lòng nhập mật khẩu'),
   changepassword: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Password confirmation is required')
-    .oneOf([Yup.ref('password')], "Password and Confirm Password didn't match"),
-  acceptTerms: Yup.bool().required('You must accept the terms and conditions'),
+    .required('Vui lòng xác nhận mật khẩu')
+    .oneOf([Yup.ref('password')], 'Mật khẩu không khớp'),
+  acceptTerms: Yup.bool()
+    .oneOf([true], 'Bạn phải đồng ý với điều khoản sử dụng')
+    .required('Bạn phải đồng ý với điều khoản sử dụng'),
 })
+
+const register = async (
+  fullname: string,
+  phone: string,
+  storeName: string,
+  city: string,
+  email: string,
+  password: string
+) => {
+  return await axios.post('http://localhost:5000/api/auth/register', {
+    fullname,
+    phone,
+    storeName,
+    city,
+    email,
+    password
+  })
+}
 
 export function Registration() {
   const [loading, setLoading] = useState(false)
-  const {saveAuth, setCurrentUser} = useAuth()
+  const navigate = useNavigate()
+
   const formik = useFormik({
     initialValues,
     validationSchema: registrationSchema,
-    onSubmit: async (values, {setStatus, setSubmitting}) => {
+    onSubmit: async (values, { setStatus, setSubmitting }) => {
       setLoading(true)
       try {
-        const {data: auth} = await register(
+        await register(
+          values.fullname,
+          values.phone,
+          values.storeName,
+          values.city,
           values.email,
-          values.firstname,
-          values.lastname,
-          values.password,
-          values.changepassword
+          values.password
         )
-        saveAuth(auth)
-        const {data: user} = await getUserByToken(auth.api_token)
-        setCurrentUser(user)
+        navigate('/auth/login')
       } catch (error) {
-        console.error(error)
-        saveAuth(undefined)
-        setStatus('The registration details is incorrect')
+        console.error('Lỗi đăng ký:', error)
+        setStatus('Đăng ký thất bại. Vui lòng thử lại.')
         setSubmitting(false)
         setLoading(false)
       }
     },
   })
 
-  useEffect(() => {
-    PasswordMeterComponent.bootstrap()
-  }, [])
-
   return (
-    <form
-      className='form w-100 fv-plugins-bootstrap5 fv-plugins-framework'
-      noValidate
-      id='kt_login_signup_form'
-      onSubmit={formik.handleSubmit}
-    >
-      {/* begin::Heading */}
-      <div className='text-center mb-11'>
-        {/* begin::Title */}
-        <h1 className='text-gray-900 fw-bolder mb-3'>Sign Up</h1>
-        {/* end::Title */}
-
-        <div className='text-gray-500 fw-semibold fs-6'>Your Social Campaigns</div>
-      </div>
-      {/* end::Heading */}
-
-      {/* begin::Login options */}
-      <div className='row g-3 mb-9'>
-        {/* begin::Col */}
-        <div className='col-md-6'>
-          {/* begin::Google link */}
-          <a
-            href='#'
-            className='btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100'
-          >
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/google-icon.svg')}
-              className='h-15px me-3'
-            />
-            Sign in with Google
-          </a>
-          {/* end::Google link */}
-        </div>
-        {/* end::Col */}
-
-        {/* begin::Col */}
-        <div className='col-md-6'>
-          {/* begin::Google link */}
-          <a
-            href='#'
-            className='btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100'
-          >
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/apple-black.svg')}
-              className='theme-light-show h-15px me-3'
-            />
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/apple-black-dark.svg')}
-              className='theme-dark-show h-15px me-3'
-            />
-            Sign in with Apple
-          </a>
-          {/* end::Google link */}
-        </div>
-        {/* end::Col */}
-      </div>
-      {/* end::Login options */}
-
-      <div className='separator separator-content my-14'>
-        <span className='w-125px text-gray-500 fw-semibold fs-7'>Or with email</span>
-      </div>
-
-      {formik.status && (
-        <div className='mb-lg-15 alert alert-danger'>
-          <div className='alert-text font-weight-bold'>{formik.status}</div>
-        </div>
-      )}
-
-      {/* begin::Form group Firstname */}
-      <div className='fv-row mb-8'>
-        <label className='form-label fw-bolder text-gray-900 fs-6'>First name</label>
-        <input
-          placeholder='First name'
-          type='text'
-          autoComplete='off'
-          {...formik.getFieldProps('firstname')}
-          className={clsx(
-            'form-control bg-transparent',
-            {
-              'is-invalid': formik.touched.firstname && formik.errors.firstname,
-            },
-            {
-              'is-valid': formik.touched.firstname && !formik.errors.firstname,
-            }
-          )}
-        />
-        {formik.touched.firstname && formik.errors.firstname && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.firstname}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-      <div className='fv-row mb-8'>
-        {/* begin::Form group Lastname */}
-        <label className='form-label fw-bolder text-gray-900 fs-6'>Last name</label>
-        <input
-          placeholder='Last name'
-          type='text'
-          autoComplete='off'
-          {...formik.getFieldProps('lastname')}
-          className={clsx(
-            'form-control bg-transparent',
-            {
-              'is-invalid': formik.touched.lastname && formik.errors.lastname,
-            },
-            {
-              'is-valid': formik.touched.lastname && !formik.errors.lastname,
-            }
-          )}
-        />
-        {formik.touched.lastname && formik.errors.lastname && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.lastname}</span>
-            </div>
-          </div>
-        )}
-        {/* end::Form group */}
-      </div>
-
-      {/* begin::Form group Email */}
-      <div className='fv-row mb-8'>
-        <label className='form-label fw-bolder text-gray-900 fs-6'>Email</label>
-        <input
-          placeholder='Email'
-          type='email'
-          autoComplete='off'
-          {...formik.getFieldProps('email')}
-          className={clsx(
-            'form-control bg-transparent',
-            {'is-invalid': formik.touched.email && formik.errors.email},
-            {
-              'is-valid': formik.touched.email && !formik.errors.email,
-            }
-          )}
-        />
-        {formik.touched.email && formik.errors.email && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.email}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group Password */}
-      <div className='fv-row mb-8' data-kt-password-meter='true'>
-        <div className='mb-1'>
-          <label className='form-label fw-bolder text-gray-900 fs-6'>Password</label>
-          <div className='position-relative mb-3'>
-            <input
-              type='password'
-              placeholder='Password'
-              autoComplete='off'
-              {...formik.getFieldProps('password')}
-              className={clsx(
-                'form-control bg-transparent',
-                {
-                  'is-invalid': formik.touched.password && formik.errors.password,
-                },
-                {
-                  'is-valid': formik.touched.password && !formik.errors.password,
-                }
-              )}
-            />
-            {formik.touched.password && formik.errors.password && (
-              <div className='fv-plugins-message-container'>
-                <div className='fv-help-block'>
-                  <span role='alert'>{formik.errors.password}</span>
-                </div>
-              </div>
-            )}
-          </div>
-          {/* begin::Meter */}
-          <div
-            className='d-flex align-items-center mb-3'
-            data-kt-password-meter-control='highlight'
-          >
-            <div className='flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2'></div>
-            <div className='flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2'></div>
-            <div className='flex-grow-1 bg-secondary bg-active-success rounded h-5px me-2'></div>
-            <div className='flex-grow-1 bg-secondary bg-active-success rounded h-5px'></div>
-          </div>
-          {/* end::Meter */}
-        </div>
-        <div className='text-muted'>
-          Use 8 or more characters with a mix of letters, numbers & symbols.
-        </div>
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group Confirm password */}
-      <div className='fv-row mb-5'>
-        <label className='form-label fw-bolder text-gray-900 fs-6'>Confirm Password</label>
-        <input
-          type='password'
-          placeholder='Password confirmation'
-          autoComplete='off'
-          {...formik.getFieldProps('changepassword')}
-          className={clsx(
-            'form-control bg-transparent',
-            {
-              'is-invalid': formik.touched.changepassword && formik.errors.changepassword,
-            },
-            {
-              'is-valid': formik.touched.changepassword && !formik.errors.changepassword,
-            }
-          )}
-        />
-        {formik.touched.changepassword && formik.errors.changepassword && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.changepassword}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group */}
-      <div className='fv-row mb-8'>
-        <label className='form-check form-check-inline' htmlFor='kt_login_toc_agree'>
-          <input
-            className='form-check-input'
-            type='checkbox'
-            id='kt_login_toc_agree'
-            {...formik.getFieldProps('acceptTerms')}
-          />
-          <span>
-            I Accept the{' '}
-            <a
-              href='https://keenthemes.com/metronic/?page=faq'
-              target='_blank'
-              className='ms-1 link-primary'
-            >
-              Terms
-            </a>
-            .
-          </span>
-        </label>
-        {formik.touched.acceptTerms && formik.errors.acceptTerms && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.acceptTerms}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group */}
-      <div className='text-center'>
-        <button
-          type='submit'
-          id='kt_sign_up_submit'
-          className='btn btn-lg btn-primary w-100 mb-5'
-          disabled={formik.isSubmitting || !formik.isValid || !formik.values.acceptTerms}
+    <div className='d-flex flex-column flex-column-fluid align-items-center justify-content-center min-vh-100 bg-light-blue p-5'>
+      {/* Back button */}
+      <div className='position-fixed top-0 start-0 p-5'>
+        <Link
+          to='/auth/login'
+          className='btn btn-link text-primary fw-bold d-flex align-items-center'
         >
-          {!loading && <span className='indicator-label'>Submit</span>}
-          {loading && (
-            <span className='indicator-progress' style={{display: 'block'}}>
-              Please wait...{' '}
-              <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
-            </span>
-          )}
-        </button>
-        <Link to='/auth/login'>
-          <button
-            type='button'
-            id='kt_login_signup_form_cancel_button'
-            className='btn btn-lg btn-light-primary w-100 mb-5'
-          >
-            Cancel
-          </button>
+          <i className='fas fa-arrow-left me-2'></i>
+          <span className='fs-4'>Quay lại</span>
         </Link>
       </div>
-      {/* end::Form group */}
-    </form>
+
+      <div className='card shadow-sm w-100 rounded-4' style={{ maxWidth: '700px', minHeight: '500px' }}>
+        <div className='card-body p-8'>
+          {/* Logo & Heading */}
+          <div className='text-center mb-5'>
+            <img
+              alt='Logo'
+              src={toAbsoluteUrl('/media/logos/default.svg')}
+              className='h-35px mb-3'
+            />
+          </div>
+
+          <form className='form w-100' onSubmit={formik.handleSubmit} noValidate>
+            {/* Form Fields */}
+            <div className='row g-4'>
+              <div className='col-12'>
+                <label className='form-label fw-bold text-dark'>Họ và tên</label>
+                <input
+                  placeholder='Họ tên của bạn'
+                  type='text'
+                  autoComplete='off'
+                  {...formik.getFieldProps('fullname')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.fullname && formik.errors.fullname }
+                  )}
+                />
+                {formik.touched.fullname && formik.errors.fullname && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.fullname}</div>
+                )}
+              </div>
+
+              <div className='col-12'>
+                <label className='form-label fw-bold text-dark'>Số điện thoại</label>
+                <input
+                  placeholder='Nhập số điện thoại'
+                  type='text'
+                  autoComplete='off'
+                  {...formik.getFieldProps('phone')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.phone && formik.errors.phone }
+                  )}
+                />
+                {formik.touched.phone && formik.errors.phone && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.phone}</div>
+                )}
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label fw-bold text-dark'>Tên quán</label>
+                <input
+                  placeholder='Tên quán của bạn'
+                  type='text'
+                  autoComplete='off'
+                  {...formik.getFieldProps('storeName')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.storeName && formik.errors.storeName }
+                  )}
+                />
+                {formik.touched.storeName && formik.errors.storeName && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.storeName}</div>
+                )}
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label fw-bold text-dark'>Địa điểm</label>
+                <select
+                  {...formik.getFieldProps('city')}
+                  className={clsx(
+                    'form-select',
+                    { 'is-invalid': formik.touched.city && formik.errors.city }
+                  )}
+                >
+                  <option value=''>Chọn địa điểm</option>
+                  <option value='Hà Nội'>Hà Nội</option>
+                  <option value='Hồ Chí Minh'>Hồ Chí Minh</option>
+                  <option value='Đà Nẵng'>Đà Nẵng</option>
+                  <option value='Khác'>Tỉnh/thành phố khác</option>
+                </select>
+                {formik.touched.city && formik.errors.city && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.city}</div>
+                )}
+              </div>
+
+              <div className='col-12'>
+                <label className='form-label fw-bold text-dark'>Email</label>
+                <input
+                  placeholder='Email của bạn'
+                  type='email'
+                  autoComplete='off'
+                  {...formik.getFieldProps('email')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.email && formik.errors.email }
+                  )}
+                />
+                {formik.touched.email && formik.errors.email && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.email}</div>
+                )}
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label fw-bold text-dark'>Mật khẩu</label>
+                <input
+                  placeholder='Mật khẩu'
+                  type='password'
+                  autoComplete='off'
+                  {...formik.getFieldProps('password')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.password && formik.errors.password }
+                  )}
+                />
+                {formik.touched.password && formik.errors.password && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.password}</div>
+                )}
+              </div>
+
+              <div className='col-md-6'>
+                <label className='form-label fw-bold text-dark'>Nhập lại mật khẩu</label>
+                <input
+                  placeholder='Nhập lại mật khẩu'
+                  type='password'
+                  autoComplete='off'
+                  {...formik.getFieldProps('changepassword')}
+                  className={clsx(
+                    'form-control',
+                    { 'is-invalid': formik.touched.changepassword && formik.errors.changepassword }
+                  )}
+                />
+                {formik.touched.changepassword && formik.errors.changepassword && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.changepassword}</div>
+                )}
+              </div>
+
+              {/* Terms */}
+              <div className='col-12'>
+                <div className='form-check'>
+                  <input
+                    className={clsx(
+                      'form-check-input',
+                      { 'is-invalid': formik.touched.acceptTerms && formik.errors.acceptTerms }
+                    )}
+                    type='checkbox'
+                    id='kt_login_toc_agree'
+                    {...formik.getFieldProps('acceptTerms')}
+                  />
+                  <label className='form-check-label fs-8 text-gray-700' htmlFor='kt_login_toc_agree'>
+                    Tôi đã đọc, đồng ý với <Link to="#" className='text-primary'>Chính sách bảo vệ dữ liệu cá nhân</Link> & <Link to="#" className='text-primary'>Quy định sử dụng</Link> của Group3
+                  </label>
+                </div>
+                {formik.touched.acceptTerms && formik.errors.acceptTerms && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.acceptTerms}</div>
+                )}
+              </div>
+
+              {/* Submit */}
+              <div className='col-12 mt-2'>
+                <button
+                  type='submit'
+                  className='btn w-50 d-flex align-items-center justify-content-center register-btn'
+                >
+                  {!loading && (
+                    <>
+                      <span>Đăng ký</span>
+                      <i className='fas fa-arrow-right ms-2'></i>
+                    </>
+                  )}
+                  {loading && (
+                    <span className='indicator-progress'>
+                      Vui lòng đợi...{' '}
+                      <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
+                    </span>
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <style>
+        {`
+          .bg-light-blue {
+            background-color: #f0f8ff;
+            background-image: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
+          }
+          
+          .form-control, .form-select {
+            height: 45px;
+            font-size: 0.95rem;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 1px solid #e4e6ef;
+            background-color: #f5f8fa;
+            transition: all 0.2s ease;
+          }
+          
+          .form-control::placeholder {
+            color: #a1a5b7;
+            font-size: 0.95rem;
+          }
+          
+          .form-control:focus, .form-select:focus {
+            border-color: #009ef7;
+            background-color: #ffffff;
+            box-shadow: none;
+          }
+          
+          .register-btn {
+            background-color: #a9a9a9;
+            border-color: #a9a9a9;
+            color: #ffffff;
+            font-weight: 500;
+            height: 45px;
+            border-radius: 22.5px;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            margin-left: auto;
+            margin-right: auto;
+          }
+          
+          .register-btn:not(:disabled) {
+            background-color: #009ef7;
+            border-color: #009ef7;
+          }
+          
+          .register-btn:not(:disabled):hover {
+            background-color: #0095e8;
+            border-color: #0095e8;
+          }
+          
+          .card {
+            border: none;
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.05) !important;
+          }
+          
+          .is-invalid {
+            border-color: #f1416c !important;
+          }
+          
+          .text-danger {
+            color: #f1416c !important;
+            font-size: 0.85rem;
+          }
+          
+          .form-check-input {
+            width: 1.1rem;
+            height: 1.1rem;
+            margin-top: 0.2rem;
+          }
+          
+          .form-check-input:checked {
+            background-color: #009ef7;
+            border-color: #009ef7;
+          }
+          
+          .form-check-label {
+            font-size: 0.9rem !important;
+            margin-left: -10px;
+          }
+          
+          .col-12, .col-md-6 {
+            margin-bottom: 0.5rem;
+          }
+          
+          .btn-link {
+            text-decoration: none;
+            font-size: 1rem;
+            padding: 0.4rem 0.8rem;
+            transition: all 0.2s ease;
+          }
+          
+          .btn-link:hover {
+            transform: translateX(-5px);
+          }
+
+          .form-label {
+            font-size: 0.95rem;
+            margin-bottom: 0.3rem;
+          }
+
+          .fs-8 {
+            font-size: 0.85rem !important;
+          }
+
+          .btn {
+            transition: all 0.2s ease-in-out;
+          }
+
+          .btn-primary {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+            color: #ffffff;
+            height: 44px;
+            transition: all 0.2s ease;
+          }
+
+          .btn-primary:not(:disabled) {
+            cursor: pointer;
+          }
+
+          .btn-primary:hover:not(:disabled) {
+            background-color: #0095e8;
+            border-color: #0095e8;
+          }
+
+          .btn-primary:disabled {
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+            opacity: 0.5;
+            cursor: not-allowed;
+          }
+        `}
+      </style>
+    </div>
   )
 }

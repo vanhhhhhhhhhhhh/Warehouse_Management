@@ -30,6 +30,24 @@ const PrivateRoutes = () => {
   const ChatPage = lazy(() => import('../modules/apps/chat/ChatPage'))
   const UsersPage = lazy(() => import('../modules/apps/user-management/UsersPage'))
   const CategoriesPage = lazy(() => import('../modules/categories/categories'))
+  const RolePage = lazy(() => import('../modules/role/rolePage'))
+  const CreateRolePage = lazy(() => import('../modules/role/createRole'))
+  const StaffPage = lazy(() => import('../modules/staff/staffPage'))
+  const ProductPage = lazy(() => import('../modules/product/productPage'))
+  const CreateProduct = lazy(() => import('../modules/product/createProduct'))
+  const CreateStaff = lazy(() => import('../modules/staff/createStaff'))
+  const WarehousePage = lazy(() => import('../modules/warehouse/warehousePage'))
+  const CreateWarehouse = lazy(() => import('../modules/warehouse/createWarehouse'))
+  const DefectiveProductPage = lazy(() => import('../modules/productError/defectiveProduct'))
+  const DeclareProduct = lazy(() => import('../modules/productError/declareProduct'))
+  const StockInPage = lazy(() => import('../modules/warehouse/stock-in'))
+  const StockOutPage = lazy(() => import('../modules/warehouse/stock-out'))
+  const CreateStockInPage = lazy(() => import('../modules/warehouse/createStockIn'))
+  const CreateStockOutPage = lazy(() => import('../modules/warehouse/createStockOut'))
+  const StockInHistory = lazy(() => import('../modules/warehouse/stockInHistory'))
+  const StockOutHistory = lazy(() => import('../modules/warehouse/stockOutHistory'))  
+  const StockOverview = lazy(() => import('../modules/warehouse/inventory'))
+  const InventoryReport = lazy(() => import('../modules/warehouse/report'))
 
   return (
     <Routes>
@@ -96,6 +114,173 @@ const PrivateRoutes = () => {
           element={
             <SuspensedView>
               <CategoriesPage />
+            </SuspensedView>
+          }
+        />
+
+        {/*role*/}
+        <Route
+          path='apps/role/*'
+          element={
+            <SuspensedView>
+              <RolePage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/role/create'
+          element={
+            <SuspensedView>
+              <CreateRolePage />
+            </SuspensedView>
+          }
+        />
+
+        {/*staff*/}
+        <Route
+          path='apps/staff/*'
+          element={
+            <SuspensedView>
+              <StaffPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/staff/create'
+          element={
+            <SuspensedView>
+              <CreateStaff />
+            </SuspensedView>
+          }
+        />      
+
+        {/*product*/}
+        <Route
+          path='apps/products/*'
+          element={
+            <SuspensedView>
+              <ProductPage /> 
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/products/create'
+          element={
+            <SuspensedView>
+              <CreateProduct />
+            </SuspensedView>
+          }
+        />
+
+        {/*warehouse*/}
+        <Route
+          path='apps/warehouse/*'
+          element={
+            <SuspensedView>
+              <WarehousePage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/warehouse/create'
+          element={
+            <SuspensedView>
+              <CreateWarehouse />
+            </SuspensedView>
+          }
+        />
+
+        {/*defective product*/}
+        <Route
+          path='apps/defectiveProduct/*'
+          element={
+            <SuspensedView>
+              <DefectiveProductPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/declareProduct/*'
+          element={
+            <SuspensedView>
+              <DeclareProduct />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/stockIn/*'
+          element={
+            <SuspensedView>
+              <StockInPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/stockOut/*'
+          element={
+            <SuspensedView>
+              <StockOutPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/stockIn/create'
+          element={
+            <SuspensedView>
+              <CreateStockInPage />
+            </SuspensedView>
+          }
+        />     
+
+        <Route
+          path='apps/stockOut/create'
+          element={
+            <SuspensedView>
+              <CreateStockOutPage />
+            </SuspensedView>
+          }
+        />     
+
+        <Route
+          path='apps/importHistory/*'
+          element={
+            <SuspensedView>
+              <StockInHistory />
+            </SuspensedView>
+          }
+        />    
+
+        <Route
+          path='apps/exportHistory/*'
+          element={
+            <SuspensedView>
+              <StockOutHistory />
+            </SuspensedView>
+          }     
+        />   
+        
+        <Route
+          path='apps/inventory/*'
+          element={
+            <SuspensedView>
+              <StockOverview />
+            </SuspensedView>
+          }
+        />
+        
+        <Route
+          path='apps/report/*'
+          element={
+            <SuspensedView>
+              <InventoryReport />
             </SuspensedView>
           }
         />

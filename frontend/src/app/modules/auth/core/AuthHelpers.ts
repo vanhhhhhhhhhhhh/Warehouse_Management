@@ -1,18 +1,19 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const AUTH_LOCAL_STORAGE_KEY = 'kt-auth-react-v'
+import {AuthModel} from './_models'
 
-const getAuth = () => {
+const AUTH_LOCAL_STORAGE_KEY = 'kt-auth-react-v'
+const getAuth = (): AuthModel | undefined => {
   if (!localStorage) {
     return
   }
 
-  const lsValue = localStorage.getItem(AUTH_LOCAL_STORAGE_KEY)
+  const lsValue: string | null = localStorage.getItem(AUTH_LOCAL_STORAGE_KEY)
   if (!lsValue) {
     return
   }
 
   try {
-    const auth = JSON.parse(lsValue)
+    const auth: AuthModel = JSON.parse(lsValue) as AuthModel
     if (auth) {
       // You can easily check auth_token expiration also
       return auth
@@ -22,7 +23,7 @@ const getAuth = () => {
   }
 }
 
-const setAuth = (auth) => {
+const setAuth = (auth: AuthModel) => {
   if (!localStorage) {
     return
   }
@@ -47,10 +48,10 @@ const removeAuth = () => {
   }
 }
 
-export function setupAxios(axios) {
+export function setupAxios(axios: any) {
   axios.defaults.headers.Accept = 'application/json'
   axios.interceptors.request.use(
-    (config) => {
+    (config: {headers: {Authorization: string}}) => {
       const auth = getAuth()
       if (auth && auth.api_token) {
         config.headers.Authorization = `Bearer ${auth.api_token}`
@@ -58,8 +59,8 @@ export function setupAxios(axios) {
 
       return config
     },
-    (err) => Promise.reject(err)
+    (err: any) => Promise.reject(err)
   )
 }
 
-export {getAuth, setAuth, removeAuth, AUTH_LOCAL_STORAGE_KEY} 
+export {getAuth, setAuth, removeAuth, AUTH_LOCAL_STORAGE_KEY}

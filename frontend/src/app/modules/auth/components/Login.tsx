@@ -1,4 +1,3 @@
-
 import {useState} from 'react'
 import * as Yup from 'yup'
 import clsx from 'clsx'
@@ -10,19 +9,22 @@ import {useAuth} from '../core/Auth'
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
-    .email('Wrong email format')
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Email is required'),
+    .email('Email không hợp lệ')
+    .required('Vui lòng nhập email'),
+  username: Yup.string()
+    .when('activeTab', {
+      is: (activeTab: string) => activeTab === 'employee',
+      then: () => Yup.string().required('Vui lòng nhập tên đăng nhập'),
+    }),
   password: Yup.string()
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Password is required'),
+    .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
+    .required('Vui lòng nhập mật khẩu'),
 })
 
 const initialValues = {
-  email: 'admin@demo.com',
-  password: 'demo',
+  email: '',
+  username: '',
+  password: '',
 }
 
 /*
@@ -33,6 +35,7 @@ const initialValues = {
 
 export function Login() {
   const [loading, setLoading] = useState(false)
+  const [activeTab, setActiveTab] = useState('owner')
   const {saveAuth, setCurrentUser} = useAuth()
 
   const formik = useFormik({
@@ -41,187 +44,245 @@ export function Login() {
     onSubmit: async (values, {setStatus, setSubmitting}) => {
       setLoading(true)
       try {
-        const {data: auth} = await login(values.email, values.password)
-        saveAuth(auth)
-        const {data: user} = await getUserByToken(auth.api_token)
-        setCurrentUser(user)
-      } catch (error) {
-        console.error(error)
+        // Mock login process for now
+        await new Promise((resolve) => setTimeout(resolve, 1000))
+        
+        // Mock successful login
+        if (values.email === 'admin@demo.com' && values.password === '123456') {
+          const mockAuth = {
+            api_token: 'mock-token-123',
+          }
+          saveAuth(mockAuth)
+          
+          const mockUser = {
+            id: 1,
+            username: 'admin',
+            password: undefined,
+            email: values.email,
+            first_name: 'Admin',
+            last_name: 'Demo',
+          }
+          setCurrentUser(mockUser)
+        } else {
+          throw new Error('Email hoặc mật khẩu không đúng')
+        }
+      } catch (error: any) {
+        console.error('Login error:', error)
+        setStatus(error.message)
         saveAuth(undefined)
-        setStatus('The login details are incorrect')
         setSubmitting(false)
+      } finally {
         setLoading(false)
       }
     },
   })
 
   return (
-    <form
-      className='form w-100'
-      onSubmit={formik.handleSubmit}
-      noValidate
-      id='kt_login_signin_form'
-    >
-      {/* begin::Heading */}
-      <div className='text-center mb-11'>
-        <h1 className='text-gray-900 fw-bolder mb-3'>Sign In</h1>
-        <div className='text-gray-500 fw-semibold fs-6'>Your Social Campaigns</div>
-      </div>
-      {/* begin::Heading */}
-
-      {/* begin::Login options */}
-      <div className='row g-3 mb-9'>
-        {/* begin::Col */}
-        <div className='col-md-6'>
-          {/* begin::Google link */}
-          <a
-            href='#'
-            className='btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100'
-          >
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/google-icon.svg')}
-              className='h-15px me-3'
-            />
-            Sign in with Google
-          </a>
-          {/* end::Google link */}
+    <div className='d-flex flex-column flex-column-fluid align-items-center justify-content-center min-vh-100 bg-light-blue p-5'>
+      <div className='card shadow-sm w-100 rounded-4' style={{maxWidth: '500px', minHeight: '600px'}}>
+        {/* Logo */}
+        <div className='text-center p-10 pb-0'>
+          <img 
+            alt='Logo' 
+            src={toAbsoluteUrl('/media/logos/default.svg')} 
+            className='h-40px mb-5'
+          />
         </div>
-        {/* end::Col */}
 
-        {/* begin::Col */}
-        <div className='col-md-6'>
-          {/* begin::Google link */}
-          <a
-            href='#'
-            className='btn btn-flex btn-outline btn-text-gray-700 btn-active-color-primary bg-state-light flex-center text-nowrap w-100'
-          >
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/apple-black.svg')}
-              className='theme-light-show h-15px me-3'
-            />
-            <img
-              alt='Logo'
-              src={toAbsoluteUrl('media/svg/brand-logos/apple-black-dark.svg')}
-              className='theme-dark-show h-15px me-3'
-            />
-            Sign in with Apple
-          </a>
-          {/* end::Google link */}
-        </div>
-        {/* end::Col */}
-      </div>
-      {/* end::Login options */}
-
-      {/* begin::Separator */}
-      <div className='separator separator-content my-14'>
-        <span className='w-125px text-gray-500 fw-semibold fs-7'>Or with email</span>
-      </div>
-      {/* end::Separator */}
-
-      {formik.status ? (
-        <div className='mb-lg-15 alert alert-danger'>
-          <div className='alert-text font-weight-bold'>{formik.status}</div>
-        </div>
-      ) : (
-        <div className='mb-10 bg-light-info p-8 rounded'>
-          <div className='text-info'>
-            Use account <strong>admin@demo.com</strong> and password <strong>demo</strong> to
-            continue.
-          </div>
-        </div>
-      )}
-
-      {/* begin::Form group */}
-      <div className='fv-row mb-8'>
-        <label className='form-label fs-6 fw-bolder text-gray-900'>Email</label>
-        <input
-          placeholder='Email'
-          {...formik.getFieldProps('email')}
-          className={clsx(
-            'form-control bg-transparent',
-            {'is-invalid': formik.touched.email && formik.errors.email},
-            {
-              'is-valid': formik.touched.email && !formik.errors.email,
-            }
-          )}
-          type='email'
-          name='email'
-          autoComplete='off'
-        />
-        {formik.touched.email && formik.errors.email && (
-          <div className='fv-plugins-message-container'>
-            <span role='alert'>{formik.errors.email}</span>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group */}
-      <div className='fv-row mb-3'>
-        <label className='form-label fw-bolder text-gray-900 fs-6 mb-0'>Password</label>
-        <input
-          type='password'
-          autoComplete='off'
-          {...formik.getFieldProps('password')}
-          className={clsx(
-            'form-control bg-transparent',
-            {
-              'is-invalid': formik.touched.password && formik.errors.password,
-            },
-            {
-              'is-valid': formik.touched.password && !formik.errors.password,
-            }
-          )}
-        />
-        {formik.touched.password && formik.errors.password && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.password}</span>
+        {/* Tabs */}
+        <div className='card-header border-0 p-0'>
+          <div className='d-flex w-100'>
+            <div
+              onClick={() => setActiveTab('owner')}
+              className={`tab-item flex-fill text-center cursor-pointer ${
+                activeTab === 'owner' ? 'active-tab' : ''
+              }`}
+            >
+              Chủ nhà hàng / Quản lý
+            </div>
+            <div
+              onClick={() => setActiveTab('employee')}
+              className={`tab-item flex-fill text-center cursor-pointer ${
+                activeTab === 'employee' ? 'active-tab' : ''
+              }`}
+            >
+              Nhân viên
             </div>
           </div>
-        )}
-      </div>
-      {/* end::Form group */}
+        </div>
 
-      {/* begin::Wrapper */}
-      <div className='d-flex flex-stack flex-wrap gap-3 fs-base fw-semibold mb-8'>
-        <div />
+        <div className='card-body p-10 pt-5'>
+          <form 
+            className='form-container' 
+            onSubmit={formik.handleSubmit} 
+            noValidate
+          >
+            {formik.status && (
+              <div className='alert alert-danger d-flex align-items-center p-3 mb-4'>
+                <i className='bi bi-exclamation-circle fs-5 text-danger me-2'></i>
+                <div className='d-flex flex-column'>
+                  <span>{formik.status}</span>
+                </div>
+              </div>
+            )}
 
-        {/* begin::Link */}
-        <Link to='/auth/forgot-password' className='link-primary'>
-          Forgot Password ?
-        </Link>
-        {/* end::Link */}
-      </div>
-      {/* end::Wrapper */}
+            {/* Email Input */}
+            <div className='mb-4'>
+              <label className='form-label fw-bold text-dark'>Email</label>
+              <input
+                type='email'
+                className={clsx(
+                  'form-control bg-light',
+                  {'is-invalid': formik.touched.email && formik.errors.email}
+                )}
+                placeholder={activeTab === 'employee' ? 'Email chủ cửa hàng' : 'Nhập địa chỉ email'}
+                {...formik.getFieldProps('email')}
+              />
+              {formik.touched.email && formik.errors.email && (
+                <div className='text-danger fs-7 mt-1'>{formik.errors.email}</div>
+              )}
+            </div>
 
-      {/* begin::Action */}
-      <div className='d-grid mb-10'>
-        <button
-          type='submit'
-          id='kt_sign_in_submit'
-          className='btn btn-primary'
-          disabled={formik.isSubmitting || !formik.isValid}
-        >
-          {!loading && <span className='indicator-label'>Continue</span>}
-          {loading && (
-            <span className='indicator-progress' style={{display: 'block'}}>
-              Please wait...
-              <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
-            </span>
-          )}
-        </button>
-      </div>
-      {/* end::Action */}
+            {/* Username - Only for Employee */}
+            {activeTab === 'employee' && (
+              <div className='mb-4'>
+                <label className='form-label fw-bold text-dark'>Tên đăng nhập</label>
+                <input
+                  type='text'
+                  className={clsx(
+                    'form-control bg-light',
+                    {'is-invalid': formik.touched.username && formik.errors.username}
+                  )}
+                  placeholder='Nhập tên đăng nhập'
+                  {...formik.getFieldProps('username')}
+                />
+                {formik.touched.username && formik.errors.username && (
+                  <div className='text-danger fs-7 mt-1'>{formik.errors.username}</div>
+                )}
+              </div>
+            )}
 
-      <div className='text-gray-500 text-center fw-semibold fs-6'>
-        Not a Member yet?{' '}
-        <Link to='/auth/registration' className='link-primary'>
-          Sign up
-        </Link>
+            {/* Password Input */}
+            <div className='mb-4'>
+              <div className='d-flex justify-content-between align-items-center'>
+                <label className='form-label fw-bold text-dark'>Mật khẩu</label>
+                <Link to='/auth/forgot-password' className='text-primary fs-7'>
+                  Quên mật khẩu?
+                </Link>
+              </div>
+              <input
+                type='password'
+                className={clsx(
+                  'form-control bg-light',
+                  {'is-invalid': formik.touched.password && formik.errors.password}
+                )}
+                placeholder='Nhập mật khẩu'
+                {...formik.getFieldProps('password')}
+              />
+              {formik.touched.password && formik.errors.password && (
+                <div className='text-danger fs-7 mt-1'>{formik.errors.password}</div>
+              )}
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type='submit'
+              className='btn btn-primary w-100 mb-4'
+              disabled={formik.isSubmitting || !formik.isValid}
+            >
+              {!loading && <span>Đăng nhập</span>}
+              {loading && (
+                <span className='d-flex align-items-center justify-content-center'>
+                  <span className='spinner-border spinner-border-sm me-2'></span>
+                  Đang xử lý...
+                </span>
+              )}
+            </button>
+
+            {/* Alternative Login */}
+            <div className='text-center mb-4'>
+              <button type='button' className='btn btn-light-primary w-100'>
+                Đăng nhập bằng phương thức khác
+              </button>
+            </div>
+
+            {/* Trial Registration */}
+            <div className='text-center'>
+              <span className='text-gray-500'>Chưa có tài khoản? </span>
+              <Link to='/auth/registration' className='text-primary fw-bold'>
+                Đăng ký dùng thử
+              </Link>
+            </div>
+          </form>
+        </div>
       </div>
-    </form>
+      <style>
+        {`
+        .bg-light-blue {
+          background-color: #f0f8ff;
+          background-image: linear-gradient(135deg, #f0f8ff 0%, #e6f2ff 100%);
+        }
+
+        .border-danger {
+          border-color: #dc3545 !important;
+        }
+
+        .bg-danger-light {
+          background-color: #fff5f5 !important;
+        }
+
+        .is-invalid .input-group-text,
+        .is-invalid .form-control {
+          border-color: #dc3545;
+        }
+
+        .tab-item {
+          padding: 10px 0;
+          position: relative;
+          transition: all 0.3s ease;
+        }
+
+        .active-tab {
+          color: var(--bs-primary);
+          font-weight: bold;
+        }
+
+        .active-tab::after {
+          content: '';
+          position: absolute;
+          top: 35px;
+          left: 0;
+          width: 100%;
+          height: 2px;
+          background-color: var(--bs-primary);
+          transition: all 0.3s ease;
+        }
+
+        .card-header {
+          border-bottom: 1px solid #eee;
+        }
+
+        .form-container {
+          min-height: 450px;
+          transition: all 0.3s ease;
+        }
+
+        .card {
+          transition: all 0.3s ease;
+        }
+        
+        .card-body {
+          margin-top: -30px;
+        }
+
+        /* Animation cho các elements trong form */
+        .form-control,
+        .input-group,
+        .btn {
+          transition: all 0.2s ease-in-out;
+        }
+      `}
+      </style>
+    </div>
   )
 }

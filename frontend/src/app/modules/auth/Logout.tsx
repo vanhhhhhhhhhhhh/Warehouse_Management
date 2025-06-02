@@ -14,4 +14,4 @@ export function Logout() {
       <Navigate to='/auth/login' />
     </Routes>
   )
-} 
+}
