@@ -9,12 +9,9 @@ import axios from 'axios'
 const initialValues = {
   fullname: '',
   phone: '',
-  storeName: '',
-  city: 'Hà Nội',
   email: '',
   password: '',
-  changepassword: '',
-  acceptTerms: false,
+  confirmPassword: '',
 }
 
 const registrationSchema = Yup.object().shape({
@@ -27,41 +24,30 @@ const registrationSchema = Yup.object().shape({
     .min(9, 'Tối thiểu 9 số')
     .max(11, 'Tối đa 11 số')
     .required('Vui lòng nhập số điện thoại'),
-  storeName: Yup.string()
-    .min(3, 'Tối thiểu 3 ký tự')
-    .max(50, 'Tối đa 50 ký tự')
-    .required('Vui lòng nhập tên quán'),
-  city: Yup.string()
-    .required('Vui lòng chọn thành phố'),
   email: Yup.string()
     .email('Email không hợp lệ')
     .required('Vui lòng nhập email'),
   password: Yup.string()
     .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
     .required('Vui lòng nhập mật khẩu'),
-  changepassword: Yup.string()
-    .required('Vui lòng xác nhận mật khẩu')
-    .oneOf([Yup.ref('password')], 'Mật khẩu không khớp'),
-  acceptTerms: Yup.bool()
-    .oneOf([true], 'Bạn phải đồng ý với điều khoản sử dụng')
-    .required('Bạn phải đồng ý với điều khoản sử dụng'),
+  confirmPassword: Yup.string()
+    .oneOf([Yup.ref('password')], 'Mật khẩu không khớp')
+    .required('Vui lòng xác nhận mật khẩu'),
 })
 
 const register = async (
   fullname: string,
   phone: string,
-  storeName: string,
-  city: string,
   email: string,
-  password: string
+  password: string,
+  confirmPassword: string
 ) => {
-  return await axios.post('http://localhost:5000/api/auth/register', {
+  return await axios.post('http://localhost:9999/auth/register', {
     fullname,
     phone,
-    storeName,
-    city,
     email,
-    password
+    password,
+    confirmPassword,
   })
 }
 
@@ -72,35 +58,35 @@ export function Registration() {
   const formik = useFormik({
     initialValues,
     validationSchema: registrationSchema,
-    onSubmit: async (values, { setStatus, setSubmitting }) => {
+    onSubmit: async (values, { setStatus }) => {
       setLoading(true)
       try {
         await register(
           values.fullname,
           values.phone,
-          values.storeName,
-          values.city,
           values.email,
-          values.password
+          values.password,
+          values.confirmPassword
         )
         navigate('/auth/login')
       } catch (error) {
-        console.error('Lỗi đăng ký:', error)
-        setStatus('Đăng ký thất bại. Vui lòng thử lại.')
-        setSubmitting(false)
+        let msg = 'Đăng ký thất bại. Vui lòng thử lại.'
+        if (axios.isAxiosError(error)) {
+          const responseMsg = error.response?.data?.message
+          msg = typeof responseMsg === 'string' ? responseMsg : msg
+        }
+        setStatus(msg) 
+      } finally {
         setLoading(false)
       }
-    },
+    }
+    ,
   })
 
   return (
     <div className='d-flex flex-column flex-column-fluid align-items-center justify-content-center min-vh-100 bg-light-blue p-5'>
-      {/* Back button */}
       <div className='position-fixed top-0 start-0 p-5'>
-        <Link
-          to='/auth/login'
-          className='btn btn-link text-primary fw-bold d-flex align-items-center'
-        >
+        <Link to='/auth/login' className='btn btn-link text-primary fw-bold d-flex align-items-center'>
           <i className='fas fa-arrow-left me-2'></i>
           <span className='fs-4'>Quay lại</span>
         </Link>
@@ -108,7 +94,6 @@ export function Registration() {
 
       <div className='card shadow-sm w-100 rounded-4' style={{ maxWidth: '700px', minHeight: '500px' }}>
         <div className='card-body p-8'>
-          {/* Logo & Heading */}
           <div className='text-center mb-5'>
             <img
               alt='Logo'
@@ -118,164 +103,107 @@ export function Registration() {
           </div>
 
           <form className='form w-100' onSubmit={formik.handleSubmit} noValidate>
-            {/* Form Fields */}
             <div className='row g-4'>
+
+              {/* Fullname */}
               <div className='col-12'>
                 <label className='form-label fw-bold text-dark'>Họ và tên</label>
                 <input
-                  placeholder='Họ tên của bạn'
                   type='text'
-                  autoComplete='off'
+                  placeholder='Họ tên của bạn'
                   {...formik.getFieldProps('fullname')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.fullname && formik.errors.fullname }
-                  )}
+                  className={clsx('form-control', {
+                    'is-invalid': formik.touched.fullname && formik.errors.fullname,
+                  })}
                 />
                 {formik.touched.fullname && formik.errors.fullname && (
                   <div className='text-danger fs-8 mt-1'>{formik.errors.fullname}</div>
                 )}
               </div>
 
+              {/* Phone */}
               <div className='col-12'>
                 <label className='form-label fw-bold text-dark'>Số điện thoại</label>
                 <input
-                  placeholder='Nhập số điện thoại'
                   type='text'
-                  autoComplete='off'
+                  placeholder='Nhập số điện thoại'
                   {...formik.getFieldProps('phone')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.phone && formik.errors.phone }
-                  )}
+                  className={clsx('form-control', {
+                    'is-invalid': formik.touched.phone && formik.errors.phone,
+                  })}
                 />
                 {formik.touched.phone && formik.errors.phone && (
                   <div className='text-danger fs-8 mt-1'>{formik.errors.phone}</div>
                 )}
               </div>
 
-              <div className='col-md-6'>
-                <label className='form-label fw-bold text-dark'>Tên quán</label>
-                <input
-                  placeholder='Tên quán của bạn'
-                  type='text'
-                  autoComplete='off'
-                  {...formik.getFieldProps('storeName')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.storeName && formik.errors.storeName }
-                  )}
-                />
-                {formik.touched.storeName && formik.errors.storeName && (
-                  <div className='text-danger fs-8 mt-1'>{formik.errors.storeName}</div>
-                )}
-              </div>
-
-              <div className='col-md-6'>
-                <label className='form-label fw-bold text-dark'>Địa điểm</label>
-                <select
-                  {...formik.getFieldProps('city')}
-                  className={clsx(
-                    'form-select',
-                    { 'is-invalid': formik.touched.city && formik.errors.city }
-                  )}
-                >
-                  <option value=''>Chọn địa điểm</option>
-                  <option value='Hà Nội'>Hà Nội</option>
-                  <option value='Hồ Chí Minh'>Hồ Chí Minh</option>
-                  <option value='Đà Nẵng'>Đà Nẵng</option>
-                  <option value='Khác'>Tỉnh/thành phố khác</option>
-                </select>
-                {formik.touched.city && formik.errors.city && (
-                  <div className='text-danger fs-8 mt-1'>{formik.errors.city}</div>
-                )}
-              </div>
-
+              {/* Email */}
               <div className='col-12'>
                 <label className='form-label fw-bold text-dark'>Email</label>
                 <input
-                  placeholder='Email của bạn'
                   type='email'
-                  autoComplete='off'
+                  placeholder='Email của bạn'
                   {...formik.getFieldProps('email')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.email && formik.errors.email }
-                  )}
+                  className={clsx('form-control', {
+                    'is-invalid': formik.touched.email && formik.errors.email,
+                  })}
                 />
                 {formik.touched.email && formik.errors.email && (
                   <div className='text-danger fs-8 mt-1'>{formik.errors.email}</div>
                 )}
               </div>
 
+              {/* Password */}
               <div className='col-md-6'>
                 <label className='form-label fw-bold text-dark'>Mật khẩu</label>
                 <input
-                  placeholder='Mật khẩu'
                   type='password'
-                  autoComplete='off'
+                  placeholder='Mật khẩu'
                   {...formik.getFieldProps('password')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.password && formik.errors.password }
-                  )}
+                  className={clsx('form-control', {
+                    'is-invalid': formik.touched.password && formik.errors.password,
+                  })}
                 />
                 {formik.touched.password && formik.errors.password && (
                   <div className='text-danger fs-8 mt-1'>{formik.errors.password}</div>
                 )}
               </div>
 
+              {/* Confirm Password */}
               <div className='col-md-6'>
                 <label className='form-label fw-bold text-dark'>Nhập lại mật khẩu</label>
                 <input
-                  placeholder='Nhập lại mật khẩu'
                   type='password'
-                  autoComplete='off'
-                  {...formik.getFieldProps('changepassword')}
-                  className={clsx(
-                    'form-control',
-                    { 'is-invalid': formik.touched.changepassword && formik.errors.changepassword }
-                  )}
+                  placeholder='Nhập lại mật khẩu'
+                  {...formik.getFieldProps('confirmPassword')}
+                  className={clsx('form-control', {
+                    'is-invalid': formik.touched.confirmPassword && formik.errors.confirmPassword,
+                  })}
                 />
-                {formik.touched.changepassword && formik.errors.changepassword && (
-                  <div className='text-danger fs-8 mt-1'>{formik.errors.changepassword}</div>
+                {formik.touched.confirmPassword && formik.errors.confirmPassword && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.confirmPassword}</div>
                 )}
               </div>
 
-              {/* Terms */}
-              <div className='col-12'>
-                <div className='form-check'>
-                  <input
-                    className={clsx(
-                      'form-check-input',
-                      { 'is-invalid': formik.touched.acceptTerms && formik.errors.acceptTerms }
-                    )}
-                    type='checkbox'
-                    id='kt_login_toc_agree'
-                    {...formik.getFieldProps('acceptTerms')}
-                  />
-                  <label className='form-check-label fs-8 text-gray-700' htmlFor='kt_login_toc_agree'>
-                    Tôi đã đọc, đồng ý với <Link to="#" className='text-primary'>Chính sách bảo vệ dữ liệu cá nhân</Link> & <Link to="#" className='text-primary'>Quy định sử dụng</Link> của Group3
-                  </label>
+              {/* Status Message */}
+              {formik.status && (
+                <div className='col-12'>
+                  <div className='alert alert-danger text-center py-2'>{formik.status}</div>
                 </div>
-                {formik.touched.acceptTerms && formik.errors.acceptTerms && (
-                  <div className='text-danger fs-8 mt-1'>{formik.errors.acceptTerms}</div>
-                )}
-              </div>
+              )}
 
-              {/* Submit */}
+              {/* Submit Button */}
               <div className='col-12 mt-2'>
                 <button
                   type='submit'
                   className='btn w-50 d-flex align-items-center justify-content-center register-btn'
                 >
-                  {!loading && (
+                  {!loading ? (
                     <>
                       <span>Đăng ký</span>
                       <i className='fas fa-arrow-right ms-2'></i>
                     </>
-                  )}
-                  {loading && (
+                  ) : (
                     <span className='indicator-progress'>
                       Vui lòng đợi...{' '}
                       <span className='spinner-border spinner-border-sm align-middle ms-2'></span>

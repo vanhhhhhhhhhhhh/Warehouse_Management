@@ -1,11 +1,10 @@
-import {useState} from 'react'
+import { useState } from 'react'
 import * as Yup from 'yup'
 import clsx from 'clsx'
-import {Link} from 'react-router-dom'
-import {useFormik} from 'formik'
-import {getUserByToken, login} from '../core/_requests'
-import {toAbsoluteUrl} from '../../../../_metronic/helpers'
-import {useAuth} from '../core/Auth'
+import { Link, useNavigate } from 'react-router-dom'
+import { useFormik } from 'formik'
+import { toAbsoluteUrl } from '../../../../_metronic/helpers'
+import { useAuth } from '../core/Auth'
 
 const loginSchema = Yup.object().shape({
   email: Yup.string()
@@ -36,39 +35,39 @@ const initialValues = {
 export function Login() {
   const [loading, setLoading] = useState(false)
   const [activeTab, setActiveTab] = useState('owner')
-  const {saveAuth, setCurrentUser} = useAuth()
+  const { saveAuth, setCurrentUser } = useAuth()
 
-  const formik = useFormik({
+  const navigate = useNavigate()
+
+   const formik = useFormik({
     initialValues,
     validationSchema: loginSchema,
     onSubmit: async (values, {setStatus, setSubmitting}) => {
       setLoading(true)
       try {
-        // Mock login process for now
-        await new Promise((resolve) => setTimeout(resolve, 1000))
-        
-        // Mock successful login
-        if (values.email === 'admin@demo.com' && values.password === '123456') {
-          const mockAuth = {
-            api_token: 'mock-token-123',
-          }
-          saveAuth(mockAuth)
-          
-          const mockUser = {
-            id: 1,
-            username: 'admin',
-            password: undefined,
-            email: values.email,
-            first_name: 'Admin',
-            last_name: 'Demo',
-          }
-          setCurrentUser(mockUser)
-        } else {
-          throw new Error('Email hoặc mật khẩu không đúng')
+        const response = await fetch('http://localhost:9999/auth/login', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(values),
+        })
+
+        const data = await response.json()
+
+        if (!response.ok) {
+          throw new Error(data.message || 'Đăng nhập thất bại')
         }
-      } catch (error: any) {
-        console.error('Login error:', error)
-        setStatus(error.message)
+
+        saveAuth({api_token: data.accessToken})
+        setCurrentUser(data.user)
+        navigate('/dashboard')
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : typeof error === 'string'
+            ? error
+            : 'Đã xảy ra lỗi khi đăng nhập'
+        setStatus(errorMessage)
         saveAuth(undefined)
         setSubmitting(false)
       } finally {
@@ -79,12 +78,12 @@ export function Login() {
 
   return (
     <div className='d-flex flex-column flex-column-fluid align-items-center justify-content-center min-vh-100 bg-light-blue p-5'>
-      <div className='card shadow-sm w-100 rounded-4' style={{maxWidth: '500px', minHeight: '600px'}}>
+      <div className='card shadow-sm w-100 rounded-4' style={{ maxWidth: '500px', minHeight: '600px' }}>
         {/* Logo */}
         <div className='text-center p-10 pb-0'>
-          <img 
-            alt='Logo' 
-            src={toAbsoluteUrl('/media/logos/default.svg')} 
+          <img
+            alt='Logo'
+            src={toAbsoluteUrl('/media/logos/default.svg')}
             className='h-40px mb-5'
           />
         </div>
@@ -94,17 +93,15 @@ export function Login() {
           <div className='d-flex w-100'>
             <div
               onClick={() => setActiveTab('owner')}
-              className={`tab-item flex-fill text-center cursor-pointer ${
-                activeTab === 'owner' ? 'active-tab' : ''
-              }`}
+              className={`tab-item flex-fill text-center cursor-pointer ${activeTab === 'owner' ? 'active-tab' : ''
+                }`}
             >
               Chủ nhà hàng / Quản lý
             </div>
             <div
               onClick={() => setActiveTab('employee')}
-              className={`tab-item flex-fill text-center cursor-pointer ${
-                activeTab === 'employee' ? 'active-tab' : ''
-              }`}
+              className={`tab-item flex-fill text-center cursor-pointer ${activeTab === 'employee' ? 'active-tab' : ''
+                }`}
             >
               Nhân viên
             </div>
@@ -112,9 +109,9 @@ export function Login() {
         </div>
 
         <div className='card-body p-10 pt-5'>
-          <form 
-            className='form-container' 
-            onSubmit={formik.handleSubmit} 
+          <form
+            className='form-container'
+            onSubmit={formik.handleSubmit}
             noValidate
           >
             {formik.status && (
@@ -133,7 +130,7 @@ export function Login() {
                 type='email'
                 className={clsx(
                   'form-control bg-light',
-                  {'is-invalid': formik.touched.email && formik.errors.email}
+                  { 'is-invalid': formik.touched.email && formik.errors.email }
                 )}
                 placeholder={activeTab === 'employee' ? 'Email chủ cửa hàng' : 'Nhập địa chỉ email'}
                 {...formik.getFieldProps('email')}
@@ -151,7 +148,7 @@ export function Login() {
                   type='text'
                   className={clsx(
                     'form-control bg-light',
-                    {'is-invalid': formik.touched.username && formik.errors.username}
+                    { 'is-invalid': formik.touched.username && formik.errors.username }
                   )}
                   placeholder='Nhập tên đăng nhập'
                   {...formik.getFieldProps('username')}
@@ -174,7 +171,7 @@ export function Login() {
                 type='password'
                 className={clsx(
                   'form-control bg-light',
-                  {'is-invalid': formik.touched.password && formik.errors.password}
+                  { 'is-invalid': formik.touched.password && formik.errors.password }
                 )}
                 placeholder='Nhập mật khẩu'
                 {...formik.getFieldProps('password')}
