@@ -33,8 +33,8 @@ const PrivateRoutes = () => {
   const RolePage = lazy(() => import('../modules/role/rolePage'))
   const CreateRolePage = lazy(() => import('../modules/role/createRole'))
   const StaffPage = lazy(() => import('../modules/staff/staffPage'))
-  const ProductPage = lazy(() => import('../modules/product/productPage'))
-  const CreateProduct = lazy(() => import('../modules/product/createProduct'))
+  const ProductPage = lazy(() => import('../modules/product/ProductPage'))
+  const CreateProduct = lazy(() => import('../modules/product/CreateProduct'))
   const CreateStaff = lazy(() => import('../modules/staff/createStaff'))
   const WarehousePage = lazy(() => import('../modules/warehouse/warehousePage'))
   const CreateWarehouse = lazy(() => import('../modules/warehouse/createWarehouse'))
@@ -45,7 +45,7 @@ const PrivateRoutes = () => {
   const CreateStockInPage = lazy(() => import('../modules/warehouse/createStockIn'))
   const CreateStockOutPage = lazy(() => import('../modules/warehouse/createStockOut'))
   const StockInHistory = lazy(() => import('../modules/warehouse/stockInHistory'))
-  const StockOutHistory = lazy(() => import('../modules/warehouse/stockOutHistory'))  
+  const StockOutHistory = lazy(() => import('../modules/warehouse/stockOutHistory'))
   const StockOverview = lazy(() => import('../modules/warehouse/inventory'))
   const InventoryReport = lazy(() => import('../modules/warehouse/report'))
 
@@ -159,14 +159,14 @@ const PrivateRoutes = () => {
               <CreateStaff />
             </SuspensedView>
           }
-        />      
+        />
 
         {/*product*/}
         <Route
           path='apps/products/*'
           element={
             <SuspensedView>
-              <ProductPage /> 
+              <ProductPage />
             </SuspensedView>
           }
         />
@@ -243,7 +243,7 @@ const PrivateRoutes = () => {
               <CreateStockInPage />
             </SuspensedView>
           }
-        />     
+        />
 
         <Route
           path='apps/stockOut/create'
@@ -252,7 +252,7 @@ const PrivateRoutes = () => {
               <CreateStockOutPage />
             </SuspensedView>
           }
-        />     
+        />
 
         <Route
           path='apps/importHistory/*'
@@ -261,7 +261,7 @@ const PrivateRoutes = () => {
               <StockInHistory />
             </SuspensedView>
           }
-        />    
+        />
 
         <Route
           path='apps/exportHistory/*'
@@ -269,9 +269,9 @@ const PrivateRoutes = () => {
             <SuspensedView>
               <StockOutHistory />
             </SuspensedView>
-          }     
-        />   
-        
+          }
+        />
+
         <Route
           path='apps/inventory/*'
           element={
@@ -280,7 +280,7 @@ const PrivateRoutes = () => {
             </SuspensedView>
           }
         />
-        
+
         <Route
           path='apps/report/*'
           element={

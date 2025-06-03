@@ -11,6 +11,7 @@
   "MENU.PRODUCTS_PAGE.PRODUCTS_LIST": "Danh sách sản phẩm",
   "TABLE.PAGINATION_INFO": "Hiển thị {from} đến {to} của {total} bản ghi",
   "TABLE.PAGE_INFO": "Trang {page} của {total}",
+  "TABLE.ACTIONS": "Thao tác",
   "AUTH.GENERAL.OR": "Hoặc",
   "AUTH.GENERAL.SUBMIT_BUTTON": "Gửi",
   "AUTH.GENERAL.NO_ACCOUNT": "Không có tài khoản?",

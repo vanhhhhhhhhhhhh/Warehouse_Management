@@ -11,6 +11,7 @@
   "MENU.PRODUCTS_PAGE.PRODUCTS_LIST": "Products List",
   "TABLE.PAGINATION_INFO": "Showing {from} to {to} of {total} entries",
   "TABLE.PAGE_INFO": "Page {page} of {total}",
+  "TABLE.ACTIONS": "Actions",
   "AUTH.GENERAL.OR": "Or",
   "AUTH.GENERAL.SUBMIT_BUTTON": "Submit",
   "AUTH.GENERAL.NO_ACCOUNT": "Don't have an account?",

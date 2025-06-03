@@ -1,17 +1,18 @@
-import { Badge, BadgeProps } from 'react-bootstrap'
+import { Variant } from "react-bootstrap/esm/types";
 
-interface ProperBadgeProps extends BadgeProps {
+interface ProperBadgeProps {
   children: React.ReactNode;
   capitalize?: boolean;
+  variant: Variant
 }
 
 type ProperBadgeComponent = (props: ProperBadgeProps) => React.ReactNode
 
 const ProperBadge: ProperBadgeComponent = ({ children, capitalize = true, ...props }) => {
   return (
-    <Badge pill={props.pill ?? true} bg={props.bg} style={{ color: 'white' }} {...props}>
+    <span className={`badge badge-light-${props.variant}`}>
       {capitalize && typeof children === 'string' ? children.charAt(0).toUpperCase() + children.slice(1) : children}
-    </Badge>
+    </span>
   )
 }
 
