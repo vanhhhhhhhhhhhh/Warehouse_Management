@@ -9,10 +9,9 @@ const btnClass =
 const userAvatarClass = 'symbol-35px'
 const btnIconClass = 'fs-2'
 
-const Navbar = () => {
-  const {config} = useLayout()
+function OtherMenus() {
   return (
-    <div className='app-navbar flex-shrink-0'>
+    <>
       <div className={clsx('app-navbar-item align-items-stretch', itemClass)}>
         <Search />
       </div>
@@ -41,7 +40,14 @@ const Navbar = () => {
           <span className='bullet bullet-dot bg-success h-6px w-6px position-absolute translate-middle top-0 start-50 animation-blink' />
         </div>
       </div>
+    </>
+  )
+}
 
+const Navbar = () => {
+  const {config} = useLayout()
+  return (
+    <div className='app-navbar flex-shrink-0'>
       <div className={clsx('app-navbar-item', itemClass)}>
         <ThemeModeSwitcher toggleBtnClass={clsx('btn-active-light-primary btn-custom')} />
       </div>
