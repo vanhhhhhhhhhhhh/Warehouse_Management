@@ -14,29 +14,34 @@ import {
   Table,
   useReactTable,
 } from '@tanstack/react-table';
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useIntl } from 'react-intl';
 import { KTSVG } from '../../../helpers';
 import clsx from 'clsx';
+import { SelectedItemsActions, SelectedItemsActionsProps } from './SelectedItemsActions';
 
 interface CRUDTableProps<TData extends RowData> {
   data: TData[];
   columns: ColumnDef<TData, any>[];
   onEdit: (item: TData) => void;
   onDelete: (item: TData) => void;
+  onSelectedItemsChange?: (items: TData[]) => void;
   showEdit?: boolean;
   showDelete?: boolean;
 }
 
-type CRUDTableComponent = <TData extends RowData>(
+type CRUDTableComponent = (<TData extends RowData>(
   props: CRUDTableProps<TData>
-) => React.ReactNode;
+) => React.ReactNode) & {
+  SelectedItemsActions: React.FC<SelectedItemsActionsProps>
+};
 
 const CRUDTable: CRUDTableComponent = ({
   data,
   columns,
   onEdit,
   onDelete,
+  onSelectedItemsChange,
   showEdit = true,
   showDelete = true,
 }) => {
@@ -49,6 +54,10 @@ const CRUDTable: CRUDTableComponent = ({
     () => createColumnHelper<(typeof data)[number]>(),
     []
   );
+
+  useEffect(() => {
+    onSelectedItemsChange?.(data.filter((item, index) => rowSelection[index]));
+  }, [rowSelection]);
 
   const colDefs = useMemo(
     () => [
@@ -268,5 +277,7 @@ const CRUDTable: CRUDTableComponent = ({
     </div>
   );
 };
+
+CRUDTable.SelectedItemsActions = SelectedItemsActions;
 
 export default CRUDTable;

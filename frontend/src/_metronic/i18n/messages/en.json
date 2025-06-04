@@ -12,6 +12,8 @@
   "TABLE.PAGINATION_INFO": "Showing {from} to {to} of {total} entries",
   "TABLE.PAGE_INFO": "Page {page} of {total}",
   "TABLE.ACTIONS": "Actions",
+  "SELECTED_ITEMS_ACTIONS.EXECUTE": "Execute",
+  "SELECTED_ITEMS_ACTIONS.SELECT_ACTION": "--- Select Action ---",
   "AUTH.GENERAL.OR": "Or",
   "AUTH.GENERAL.SUBMIT_BUTTON": "Submit",
   "AUTH.GENERAL.NO_ACCOUNT": "Don't have an account?",
