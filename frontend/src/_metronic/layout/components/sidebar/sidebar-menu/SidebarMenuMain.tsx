@@ -3,10 +3,22 @@ import { KTIcon } from '../../../../helpers'
 import { SidebarMenuItemWithSub } from './SidebarMenuItemWithSub'
 import { SidebarMenuItem } from './SidebarMenuItem'
 import { useLocation } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+
+const ADMIN_ROLE_ID = '682f5579f87dcf5d413d22d3';
 
 const SidebarMenuMain = () => {
   const intl = useIntl();
   const location = useLocation();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Lấy thông tin user từ localStorage
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+  
+    // Kiểm tra roleId có phải là admin không
+    setIsAdmin(user.roleId === ADMIN_ROLE_ID);
+  }, []);
 
   return (
     <>
@@ -16,16 +28,20 @@ const SidebarMenuMain = () => {
         title='Tổng Quan'
       />
 
-       {/* Staff */}
-       <SidebarMenuItem 
-        to='/apps/role' 
-        title='Vai trò nhân viên'
-      />
-      
-       <SidebarMenuItem 
-        to='/apps/staff' 
-        title='Danh sách nhân viên'
-      />
+      {/* Staff - Chỉ hiển thị khi là admin */}
+      {isAdmin && (
+        <>
+          <SidebarMenuItem 
+            to='/apps/role' 
+            title='Vai trò nhân viên'
+          />
+          
+          <SidebarMenuItem 
+            to='/apps/staff' 
+            title='Danh sách nhân viên'
+          />
+        </>
+      )}
 
       {/* Products */}
       <SidebarMenuItem

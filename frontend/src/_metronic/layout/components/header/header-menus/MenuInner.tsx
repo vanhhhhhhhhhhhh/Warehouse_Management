@@ -29,7 +29,7 @@ export function MenuInner() {
 
   return (
     <>
-      <h3 style={{'paddingTop':'28px'}}>{userData?.storeName || 'My Shop'}</h3>
+      <h3 style={{'paddingTop':'28px'}}>Hệ thống quản lý kho</h3>
     </>
   )
 }

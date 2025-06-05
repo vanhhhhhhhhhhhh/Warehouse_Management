@@ -1,4 +1,5 @@
-const BASE_URL = import.meta.env.VITE_APP_API_URL || 'http://localhost:9999';
+const BASE_URL = (import.meta.env.VITE_APP_API_URL || 'http://localhost:9999').replace(/\/$/, '');
+
 
 export const API_URL = {
   // Auth endpoints
@@ -7,6 +8,14 @@ export const API_URL = {
     REGISTER: `${BASE_URL}/auth/register`,
     LOGOUT: `${BASE_URL}/auth/logout`,
     VERIFY_TOKEN: `${BASE_URL}/auth/verify-token`,
+  },
+
+  // Role endpoints
+  ROLES: {
+    LIST: `${BASE_URL}/roles`,
+    CREATE: `${BASE_URL}/roles`,
+    UPDATE: (id) => `${BASE_URL}/roles/${id}`,
+    DELETE: (id) => `${BASE_URL}/roles/${id}`,
   },
 
   // Products endpoints
@@ -75,6 +84,21 @@ export const AXIOS_CONFIG = {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
   }
+};
+
+// Function to get axios config with auth token
+export const getAxiosConfig = () => {
+  const token = localStorage.getItem('token');
+
+  const config = {
+    ...AXIOS_CONFIG,
+    headers: {
+      ...AXIOS_CONFIG.headers,
+      'Authorization': token ? `Bearer ${token}` : '',
+    }
+  };
+  
+  return config;
 };
 
 // API response status codes

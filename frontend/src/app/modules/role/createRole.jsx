@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { Link, useNavigate } from 'react-router-dom'
+import axios from 'axios'
+import Swal from 'sweetalert2'
 import { KTSVG } from '../../../_metronic/helpers'
+import { API_URL, getAxiosConfig } from '../../config/api.config'
 
 // Validation schema
 const createRoleSchema = Yup.object().shape({
@@ -10,9 +13,6 @@ const createRoleSchema = Yup.object().shape({
     .required('Vui lòng nhập tên vai trò')
     .min(3, 'Tên vai trò phải có ít nhất 3 ký tự')
     .max(50, 'Tên vai trò không được vượt quá 50 ký tự'),
-  description: Yup.string()
-    .required('Vui lòng nhập mô tả')
-    .min(10, 'Mô tả phải có ít nhất 10 ký tự'),
   permissions: Yup.object().test(
     'not-empty',
     'Vui lòng chọn ít nhất một quyền',
@@ -25,16 +25,6 @@ const permissionGroups = [
     title: 'Sản phẩm',
     groups: [
       {
-        name: 'Sản phẩm',
-        module: 'PRODUCTS',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách sản phẩm' },
-          { action: 'CREATE', name: 'Thêm sản phẩm mới' },
-          { action: 'UPDATE', name: 'Sửa thông tin sản phẩm' },
-          { action: 'DELETE', name: 'Xóa sản phẩm' }
-        ]
-      },
-      {
         name: 'Danh mục',
         module: 'CATEGORIES',
         permissions: [
@@ -44,16 +34,18 @@ const permissionGroups = [
           { action: 'DELETE', name: 'Xóa danh mục' }
         ]
       },
+
       {
-        name: 'Combo',
-        module: 'COMBOS',
+        name: 'Sản phẩm',
+        module: 'PRODUCTS',
         permissions: [
-          { action: 'VIEW', name: 'Xem danh sách combo' },
-          { action: 'CREATE', name: 'Tạo combo mới' },
-          { action: 'UPDATE', name: 'Sửa thông tin combo' },
-          { action: 'DELETE', name: 'Xóa combo' }
+          { action: 'VIEW', name: 'Xem danh sách sản phẩm' },
+          { action: 'CREATE', name: 'Thêm sản phẩm mới (import excel)' },
+          { action: 'UPDATE', name: 'Sửa thông tin sản phẩm' },
+          { action: 'DELETE', name: 'Xóa sản phẩm' }
         ]
       },
+
       {
         name: 'Khai báo sản phẩm',
         module: 'DEFECT_PRODUCTS',
@@ -65,19 +57,10 @@ const permissionGroups = [
       }
     ]
   },
+  
   {
     title: 'Kho',
     groups: [
-      {
-        name: 'Kho',
-        module: 'WAREHOUSE',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách kho' },
-          { action: 'CREATE', name: 'Thêm kho mới' },
-          { action: 'UPDATE', name: 'Sửa thông tin kho' },
-          { action: 'DELETE', name: 'Xóa kho' }
-        ]
-      },
       {
         name: 'Quản lý kho',
         module: 'STOCK',
@@ -91,124 +74,6 @@ const permissionGroups = [
         ]
       }
     ]
-  },
-  {
-    title: 'Marketing',
-    groups: [
-      {
-        name: 'Landing Page',
-        module: 'LANDING_PAGE',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách Landing Page' },
-          { action: 'CREATE', name: 'Thêm Landing Page mới' },
-          { action: 'UPDATE', name: 'Sửa thông tin Landing Page' },
-          { action: 'DELETE', name: 'Xóa Landing Page' }
-        ]
-      },
-      {
-        name: 'Fanpage',
-        module: 'FANPAGE',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách Fanpage' },
-          { action: 'CREATE', name: 'Thêm Fanpage mới' },
-          { action: 'UPDATE', name: 'Sửa thông tin Fanpage' },
-          { action: 'DELETE', name: 'Xóa Fanpage' }
-        ]
-      },
-      {
-        name: 'Báo cáo Marketing',
-        module: 'MARKETING_REPORT',
-        permissions: [
-          { action: 'VIEW', name: 'Xem báo cáo tổng quan' },
-          { action: 'CREATE', name: 'Tạo báo cáo mới' },
-          { action: 'UPDATE', name: 'Sửa báo cáo' },
-          { action: 'DELETE', name: 'Xóa báo cáo' }
-        ]
-      },
-      {
-        name: 'Chi phí Marketing',
-        module: 'MARKETING_COST',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách chi phí' },
-          { action: 'CREATE', name: 'Khai báo chi phí mới' },
-          { action: 'UPDATE', name: 'Sửa khai báo chi phí' },
-          { action: 'DELETE', name: 'Xóa khai báo chi phí' }
-        ]
-      }
-    ]
-  },
-  {
-    title: 'Khách hàng',
-    groups: [
-      {
-        name: 'Danh sách khách hàng',
-        module: 'CUSTOMERS',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách khách hàng' },
-          { action: 'IMPORT', name: 'Nhập file khách hàng' },
-          { action: 'CREATE', name: 'Thêm khách hàng mới' },
-          { action: 'ASSIGN', name: 'Phân bổ khách hàng' }
-        ]
-      },
-      {
-        name: 'Quản lý nhân viên CSKH',
-        module: 'CSKH_STAFF',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách nhân viên CSKH' },
-          { action: 'UPDATE_STATUS', name: 'Cập nhật trạng thái nhân viên CSKH' },
-          { action: 'VIEW_DETAILS', name: 'Xem chi tiết nhân viên CSKH' }
-        ]
-      },
-      {
-        name: 'Phân bổ khách hàng',
-        module: 'CUSTOMER_ASSIGNMENT',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách phân bổ khách hàng' },
-          { action: 'UPDATE_RESULTS', name: 'Cập nhật kết quả tác nghiệp' },
-          { action: 'VIEW_INFO', name: 'Xem thông tin khách hàng' }
-        ]
-      }
-    ]
-  },
-  {
-    title: 'Đơn hàng',
-    groups: [
-      {
-        name: 'Đơn hàng',
-        module: 'ORDERS',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách đơn hàng' },
-          { action: 'CREATE', name: 'Tạo đơn hàng mới' },
-          { action: 'UPDATE', name: 'Sửa đơn hàng' },
-          { action: 'VIEW_DETAILS', name: 'Xem chi tiết đơn hàng' }
-        ]
-      },
-      {
-        name: 'Tổng quan vận chuyển',
-        module: 'SHIPPING_OVERVIEW',
-        permissions: [
-          { action: 'VIEW', name: 'Xem báo cáo tổng quan' }
-        ]
-      },
-      {
-        name: 'Vận đơn',
-        module: 'SHIPPING_ORDERS',
-        permissions: [
-          { action: 'VIEW', name: 'Xem danh sách vận đơn' },
-          { action: 'APPROVE', name: 'Duyệt đơn' },
-          { action: 'CANCEL', name: 'Hủy duyệt đơn' },
-          { action: 'UPDATE_STATUS', name: 'Cập nhật trạng thái' },
-          { action: 'UPDATE_CODE', name: 'Cập nhật mã vận đơn' }
-        ]
-      },
-      {
-        name: 'Đối soát',
-        module: 'RECONCILIATION',
-        permissions: [
-          { action: 'EXECUTE', name: 'Thực hiện đối soát' }
-        ]
-      }
-    ]
   }
 ]
 
@@ -219,7 +84,6 @@ const CreateEmployeeRole = () => {
   const formik = useFormik({
     initialValues: {
       roleName: '',
-      description: '',
       permissions: {},
       status: 'Active',
     },
@@ -227,34 +91,43 @@ const CreateEmployeeRole = () => {
     onSubmit: async (values) => {
       setLoading(true)
       try {
-        const response = await roleService.createRole({
-          roleName: values.roleName,
-          description: values.description,
-          permissions: values.permissions,
-          status: values.status
-        })
+        // Format permissions data
+        const formattedPermissions = {};
+        Object.entries(values.permissions).forEach(([module, actions]) => {
+          formattedPermissions[module] = actions;
+        });
 
-        if (response.success) {
-          toast.success('Tạo vai trò mới thành công!', {
-            position: 'top-right',
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          })
-          
-          navigate('/apps/staff/role')
+        const response = await axios.post(
+          API_URL.ROLES.CREATE,
+          {
+            name: values.roleName,
+            status: values.status === 'Active' ? "true" : "false",
+            permissions: formattedPermissions
+          },
+          getAxiosConfig()
+        )
+
+        if (response.data.success) {
+          await Swal.fire({
+            icon: 'success',
+            title: 'Thành công!',
+            text: 'Tạo vai trò mới thành công',
+            showConfirmButton: false,
+            timer: 1500
+          });
+          navigate('/apps/role');
         }
       } catch (error) {
-        toast.error(error.message, {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        })
+        console.error('Error:', error);
+        const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo vai trò'
+        
+        await Swal.fire({
+          icon: 'error',
+          title: 'Lỗi!',
+          text: errorMessage,
+          confirmButtonText: 'Đóng',
+          confirmButtonColor: '#3085d6'
+        });
       } finally {
         setLoading(false)
       }
@@ -287,7 +160,10 @@ const CreateEmployeeRole = () => {
       </div>
 
       <div className='px-9'>
-        <form onSubmit={formik.handleSubmit} noValidate>
+        <form 
+          onSubmit={formik.handleSubmit}
+          noValidate
+        >
           {/* Thông tin vai trò */}
           <div className='card mb-5 mb-xl-10'>
             <div className='card-header border-0'>
@@ -303,8 +179,9 @@ const CreateEmployeeRole = () => {
                 <div className='col-lg-8'>
                   <input
                     type='text'
-                    className={`form-control form-control-lg form-control-solid ${formik.touched.roleName && formik.errors.roleName ? 'is-invalid' : ''
-                      }`}
+                    className={`form-control form-control-lg form-control-solid ${
+                      formik.touched.roleName && formik.errors.roleName ? 'is-invalid' : ''
+                    }`}
                     placeholder='Nhập tên vai trò'
                     {...formik.getFieldProps('roleName')}
                   />

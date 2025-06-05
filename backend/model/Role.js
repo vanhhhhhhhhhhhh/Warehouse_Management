@@ -11,6 +11,10 @@ const roleSchema = mongoose.Schema({
         of: [String],
         required: true
     },
+    status: {
+        type: Boolean,
+        default: true
+    },
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'

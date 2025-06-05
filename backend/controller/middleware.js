@@ -1,9 +1,7 @@
 const jwt = require('jsonwebtoken')
 const User = require('../model/User')
 
-
 const middlewareController = {
-
     verifyToken: async (req, res, next) => {
             const authHeader = req.header('Authorization')
             const token = authHeader && authHeader.split(' ')[1]
@@ -25,3 +23,5 @@ const middlewareController = {
             }
     }
 }
+
+module.exports = middlewareController

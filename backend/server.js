@@ -4,8 +4,7 @@ const cors = require('cors')
 const exp = require('constants')
 require('dotenv').config()
 const apiAuth = require('./router/apiAuth')
-
-
+const apiRole = require('./router/apiRole')
 
 const hostname = process.env.HOSTNAME
 const port = process.env.PORT
@@ -14,8 +13,14 @@ const dbName = process.env.DBNAME
 
 const app = express()
 app.use(express.json())
-app.use(cors())
 
+// Cấu hình CORS chi tiết
+app.use(cors({
+    origin: 'http://localhost:5173',
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
 
 mongoose.connect(`${url}${dbName}`, {
     useNewUrlParser: true,
@@ -26,6 +31,9 @@ mongoose.connect(`${url}${dbName}`, {
 
 // AUTHENTICATION
 app.use('/auth', apiAuth)
+
+// ROLES
+app.use('/roles', apiRole)
 
 app.listen(port, () => {
     console.log(`Server is running on http://${hostname}:${port}`);
