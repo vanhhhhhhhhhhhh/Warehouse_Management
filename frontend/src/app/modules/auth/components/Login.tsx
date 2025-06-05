@@ -59,8 +59,6 @@ export function Login() {
 
         saveAuth({api_token: data.accessToken})
         setCurrentUser(data.user)
-        localStorage.setItem('user', JSON.stringify(data.user))
-        localStorage.setItem('token', data.accessToken)
         navigate('/dashboard')
       } catch (error) {
         const errorMessage =
@@ -269,7 +267,7 @@ export function Login() {
         .card {
           transition: all 0.3s ease;
         }
-        
+
         .card-body {
           margin-top: -30px;
         }

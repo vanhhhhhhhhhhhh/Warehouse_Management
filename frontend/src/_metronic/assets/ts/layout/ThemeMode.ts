@@ -13,6 +13,7 @@ class ThemeMode {
   }
 
   public getMode = (): Mode => {
+    return 'light'
     const modeParam: string = this.getParamName('value')
     const themeMode: Mode | '' = this.getMenuMode()
     const defaultMode = 'light'

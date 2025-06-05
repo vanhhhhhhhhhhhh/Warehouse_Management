@@ -45,6 +45,44 @@ const authController = {
     },
 
 
+    verifyToken: async (req, res) => {
+        try {
+          const api_token = req.body?.api_token
+          if (!api_token) {
+            return res.status(400).json({ message: 'Token không hợp lệ' })
+          }
+
+          let decoded
+          try {
+            decoded = jwt.verify(api_token, process.env.ACCESS_TOKEN_SECRET)
+            if (!decoded) {
+              return res.status(400).json({ message: 'Token không hợp lệ' })
+            }
+          } catch (error) {
+            return res.status(400).json({ message: 'Token không hợp lệ' })
+          }
+
+          const user = await User.findOne({ _id: decoded.userId })
+
+          if (!user) {
+            return res.status(400).json({ message: 'User không tồn tại' })
+          }
+
+          return res.status(200).json({
+            message: 'Token hợp lệ',
+            user: {
+                id: user._id,
+                fullname: user.fullname,
+                email: user.email,
+                roleId: user.roleId
+            }
+          })
+        } catch (error) {
+          return res.status(500).json({ message: error.message || 'Internal server error' })
+        }
+    },
+
+
     login: async (req, res) => {
         try {
             const { email, password } = req.body
