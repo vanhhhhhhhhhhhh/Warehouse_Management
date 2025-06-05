@@ -40,8 +40,9 @@ export function requestPassword(email: string) {
   });
 }
 
-export function getUserByToken(token: string) {
-  return axios.post<UserModel>(GET_USER_BY_ACCESSTOKEN_URL, {
+export async function getUserByToken(token: string) {
+  const { data } = await axios.post<{ message: string, user: UserModel }>('http://localhost:9999/auth/verify-token', {
     api_token: token,
   });
+  return data
 }

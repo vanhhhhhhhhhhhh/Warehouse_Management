@@ -1,0 +1,53 @@
+sequenceDiagram
+    actor S as Warehouse Staff
+    participant IPV as :ImportProductView
+    participant IPC as :ImportProductController
+    participant PC as :ProductController
+    participant SIM as :StockImportModel
+    participant P as :ProductModel
+
+    activate S
+
+    loop until no more products to import
+        S->>IPV: Find product by name
+        activate IPV
+        IPV->>PC: Find product by name
+        activate PC
+        PC-->>IPV: Return product list
+        deactivate PC
+        IPV-->>S: Return product list
+        deactivate IPV
+
+        S->>IPV: Select product
+        activate IPV
+        IPV->>IPV: Add to selected products
+        IPV-->>S: Confirm added
+        deactivate IPV
+    end
+
+    S->>IPV: Submit import request button click
+    activate IPV
+    IPV->>IPC: Submit import request
+    activate IPC
+    IPC->>P: Add to quantity
+
+    activate P
+    P-->>IPC: Return status
+    deactivate P
+
+    IPC->>SIM: Insert new stock import card
+    activate SIM
+    SIM-->>IPC: Return status
+    deactivate SIM
+
+    IPC-->>IPV: Return status
+    deactivate IPC
+    IPV->>IPV: Check return status
+    alt success
+        IPV->>S: Show success message
+    else error
+        IPV->>S: Show error message
+    end
+    deactivate IPV
+
+    deactivate S

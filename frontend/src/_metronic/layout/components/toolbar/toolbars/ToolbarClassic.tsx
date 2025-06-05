@@ -7,7 +7,6 @@ import {useLayout} from '../../../core'
 
 const ToolbarClassic = () => {
   const {config} = useLayout()
-  const [showCreateAppModal, setShowCreateAppModal] = useState<boolean>(false)
   const daterangepickerButtonClass = config.app?.toolbar?.fixed?.desktop
     ? 'btn-light'
     : 'bg-body btn-color-gray-700 btn-active-color-primary'
@@ -52,13 +51,11 @@ const ToolbarClassic = () => {
       {config.app?.toolbar?.primaryButton && (
         <a
           href='#'
-          onClick={() => setShowCreateAppModal(true)}
           className='btn btn-sm fw-bold btn-primary'
         >
           Create
         </a>
       )}
-      <CreateAppModal show={showCreateAppModal} handleClose={() => setShowCreateAppModal(false)} />
     </div>
   )
 }

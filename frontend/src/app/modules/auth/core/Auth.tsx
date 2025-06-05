@@ -61,9 +61,9 @@ const AuthInit: FC<WithChildren> = ({children}) => {
     const requestUser = async (apiToken: string) => {
       try {
         if (!currentUser) {
-          const {data} = await getUserByToken(apiToken)
-          if (data) {
-            setCurrentUser(data)
+          const { user } = await getUserByToken(apiToken)
+          if (user) {
+            setCurrentUser(user)
           }
         }
       } catch (error) {
