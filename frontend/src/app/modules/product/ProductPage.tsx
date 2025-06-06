@@ -1,49 +1,32 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { createColumnHelper, CellContext, ColumnDef } from '@tanstack/react-table';
-import CRUDTable from '../../../_metronic/partials/widgets/tables/CRUDTable';
+import CRUDTable from '../../reusableWidgets/CRUDTable';
 import { DeleteModal, ProductToolbar } from './components';
-import ProperBadge from '../../../_metronic/partials/widgets/ProperBadge';
+import ProperBadge from '../../reusableWidgets/ProperBadge';
 import { useNavigate } from 'react-router-dom';
+import { useQuery } from 'react-query';
+import { getProducts } from '../../apiClient/products';
+import { ProductListing } from '../../apiClient/products';
 
-interface Product {
-  _id: string;
-  code: string;
-  name: string;
-  category: { name: string };
-  status: 'Active' | 'Inactive';
-}
+const columnHelper = createColumnHelper<ProductListing>();
 
-const mockProducts: Product[] = [
-  {
-    _id: '1',
-    code: '1234567890',
-    name: 'Sản phẩm 1',
-    category: { name: 'Danh mục 1' },
-    status: 'Active',
-  },
-];
-
-const columnHelper = createColumnHelper<Product>();
-
-const columns: ColumnDef<Product, any>[] = [
+const columns: ColumnDef<ProductListing, any>[] = [
   columnHelper.accessor('code', {
     header: 'Mã sản phẩm',
-    cell: (info: CellContext<Product, string>) => info.getValue(),
+    cell: (info: CellContext<ProductListing, string>) => info.getValue(),
   }),
   columnHelper.accessor('name', {
     header: 'Tên sản phẩm',
-    cell: (info: CellContext<Product, string>) => info.getValue(),
+    cell: (info: CellContext<ProductListing, string>) => info.getValue(),
   }),
-  columnHelper.accessor('category.name', {
+  columnHelper.accessor('category', {
     header: 'Danh mục',
-    cell: (info: CellContext<Product, string>) => info.getValue(),
+    cell: (info: CellContext<ProductListing, string>) => info.getValue(),
   }),
-  columnHelper.accessor('status', {
-    header: 'Trạng thái',
-    cell: (info: CellContext<Product, 'Active' | 'Inactive'>) => (
-      <ProperBadge variant={info.getValue() === 'Active' ? 'success' : 'danger'}>{info.getValue()}</ProperBadge>
-    ),
-  }),
+  columnHelper.accessor('price', {
+    header: 'Giá',
+    cell: (info: CellContext<ProductListing, number>) => info.getValue(),
+  })
 ];
 
 const noop = () => {};
@@ -53,8 +36,17 @@ async function wait(ms: number) {
 }
 
 const ProductsPage: React.FC = () => {
+  const [pageIndex, setPageIndex] = useState(0);
+  const { data: products, isLoading, isError } = useQuery({
+    queryKey: ['products', pageIndex],
+    queryFn: () => getProducts({
+      page: pageIndex + 1,
+      limit: 5
+    }),
+  });
+
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedItems, setSelectedItems] = useState<Product[]>([]);
+  const [selectedItems, setSelectedItems] = useState<ProductListing[]>([]);
   const navigate = useNavigate();
 
   const actions = useMemo(() => [
@@ -73,6 +65,10 @@ const ProductsPage: React.FC = () => {
       }),
     },
   ], [selectedItems]);
+
+  useEffect(() => {
+    console.log('pageIndex', pageIndex + 1);
+  }, [pageIndex]);
 
   return (
     <>
@@ -101,9 +97,18 @@ const ProductsPage: React.FC = () => {
               />
 
               <CRUDTable
-                data={mockProducts}
+                data={products?.data ?? []}
+                isLoading={isLoading}
                 columns={columns}
                 onSelectedItemsChange={setSelectedItems}
+                pagination={
+                  {
+                    pageIndex,
+                    totalPages: products?.totalPages ?? 0,
+                    pageSize: 5
+                  }
+                }
+                onPageChange={setPageIndex}
                 onEdit={noop}
                 onDelete={noop}
               />

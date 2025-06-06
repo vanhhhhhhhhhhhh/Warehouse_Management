@@ -1,5 +1,5 @@
 import React, { ChangeEvent, useState } from 'react';
-import { KTSVG } from '../../../helpers';
+import { KTSVG } from '../../_metronic/helpers';
 import { useIntl } from 'react-intl';
 
 interface Action {

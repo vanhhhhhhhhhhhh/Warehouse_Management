@@ -5,6 +5,7 @@ const exp = require('constants')
 require('dotenv').config()
 const apiAuth = require('./router/apiAuth')
 const apiRole = require('./router/apiRole')
+const apiProduct = require('./router/apiProduct')
 
 const hostname = process.env.HOSTNAME
 const port = process.env.PORT
@@ -34,6 +35,8 @@ app.use('/auth', apiAuth)
 
 // ROLES
 app.use('/roles', apiRole)
+
+app.use('/products', apiProduct)
 
 app.listen(port, () => {
     console.log(`Server is running on http://${hostname}:${port}`);

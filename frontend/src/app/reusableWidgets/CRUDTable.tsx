@@ -1,5 +1,3 @@
-import { Card, Form } from 'react-bootstrap';
-
 import {
   ColumnDef,
   createColumnHelper,
@@ -8,17 +6,25 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationState,
   RowData,
   RowSelectionState,
   SortingState,
   Table,
+  Updater,
   useReactTable,
 } from '@tanstack/react-table';
 import { useState, useMemo, useEffect } from 'react';
 import { useIntl } from 'react-intl';
-import { KTSVG } from '../../../helpers';
+import { KTSVG } from '../../_metronic/helpers';
 import clsx from 'clsx';
 import { SelectedItemsActions, SelectedItemsActionsProps } from './SelectedItemsActions';
+
+interface Pagination {
+  pageIndex: number;
+  pageSize: number;
+  totalPages: number;
+}
 
 interface CRUDTableProps<TData extends RowData> {
   data: TData[];
@@ -26,8 +32,11 @@ interface CRUDTableProps<TData extends RowData> {
   onEdit: (item: TData) => void;
   onDelete: (item: TData) => void;
   onSelectedItemsChange?: (items: TData[]) => void;
+  onPageChange?: (page: number) => void;
   showEdit?: boolean;
   showDelete?: boolean;
+  isLoading?: boolean;
+  pagination?: Partial<Pagination>;
 }
 
 type CRUDTableComponent = (<TData extends RowData>(
@@ -35,6 +44,44 @@ type CRUDTableComponent = (<TData extends RowData>(
 ) => React.ReactNode) & {
   SelectedItemsActions: React.FC<SelectedItemsActionsProps>
 };
+
+const getTableBody = <TData extends RowData>(table: Table<TData>) => {
+  return table.getRowModel().rows.map((row) => (
+    <tr key={row.id}>
+      {row.getVisibleCells().map((cell) => (
+        <td
+          className={clsx([
+            cell.column.getIsLastColumn() ||
+            cell.column.getIsFirstColumn()
+              ? 'width-min'
+              : '',
+            'py-4 align-middle px-0',
+            cell.column.getIsFirstColumn() ? 'pe-7' : ''
+          ])}
+          key={cell.id}
+        >
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </td>
+      ))}
+    </tr>
+  ))
+}
+
+function withPaginationDefaults(pagination: Partial<Pagination> | undefined): Pagination {
+  if (!pagination) {
+    return {
+      pageIndex: 0,
+      pageSize: 10,
+      totalPages: 0,
+    }
+  }
+
+  return {
+    pageIndex: pagination.pageIndex ?? 0,
+    pageSize: pagination.pageSize ?? 10,
+    totalPages: pagination.totalPages ?? 0,
+  }
+}
 
 const CRUDTable: CRUDTableComponent = ({
   data,
@@ -44,11 +91,15 @@ const CRUDTable: CRUDTableComponent = ({
   onSelectedItemsChange,
   showEdit = true,
   showDelete = true,
+  isLoading = false,
+  pagination,
+  onPageChange,
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const intl = useIntl();
+  const paginationWithDefaults = withPaginationDefaults(pagination);
 
   const columnHelper = useMemo(
     () => createColumnHelper<(typeof data)[number]>(),
@@ -129,6 +180,10 @@ const CRUDTable: CRUDTableComponent = ({
       sorting,
       globalFilter,
       rowSelection,
+      pagination: {
+        pageIndex: paginationWithDefaults.pageIndex,
+        pageSize: paginationWithDefaults.pageSize,
+      },
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
@@ -137,17 +192,18 @@ const CRUDTable: CRUDTableComponent = ({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: setRowSelection,
+    pageCount: paginationWithDefaults.totalPages,
+    manualPagination: true,
     enableRowSelection: true,
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
-    },
+    onPaginationChange: (updaterOrValue: Updater<PaginationState>) => {
+      const state = typeof updaterOrValue === 'function' ? updaterOrValue(table.getState().pagination) : updaterOrValue;
+      onPageChange?.(state.pageIndex);
+    }
   });
 
   return (
     <div>
-      <div className="table-responsive">
+      <div className="table-responsive" style={{ minHeight: 400 }}>
         <table className="table gy-7 gs-7">
           <thead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -192,48 +248,20 @@ const CRUDTable: CRUDTableComponent = ({
             ))}
           </thead>
           <tbody>
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id}>
-                {row.getVisibleCells().map((cell) => (
-                  <td
-                    className={clsx([
-                      cell.column.getIsLastColumn() ||
-                      cell.column.getIsFirstColumn()
-                        ? 'width-min'
-                        : '',
-                      'py-4 align-middle px-0',
-                      cell.column.getIsFirstColumn() ? 'pe-7' : ''
-                    ])}
-                    key={cell.id}
-                  >
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
+            {isLoading && (
+              <tr>
+                <td colSpan={table.getAllColumns().length} className="text-center py-5">
+                  <div className="spinner-border text-primary" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                </td>
               </tr>
-            ))}
+            )}
+            {!isLoading && getTableBody(table)}
           </tbody>
         </table>
       </div>
-      <div className="d-flex justify-content-between align-items-center">
-        <div className="d-flex align-items-center">
-          <span className="text-muted">
-            {intl.formatMessage(
-              { id: 'TABLE.PAGINATION_INFO' },
-              {
-                from:
-                  table.getState().pagination.pageIndex *
-                    table.getState().pagination.pageSize +
-                  1,
-                to: Math.min(
-                  (table.getState().pagination.pageIndex + 1) *
-                    table.getState().pagination.pageSize,
-                  table.getFilteredRowModel().rows.length
-                ),
-                total: table.getFilteredRowModel().rows.length,
-              }
-            )}
-          </span>
-        </div>
+      <div className="d-flex justify-content-end align-items-center">
         <div className="d-flex align-items-center">
           <button
             className="btn btn-sm btn-light me-2"

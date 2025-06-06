@@ -1,5 +1,6 @@
 const BASE_URL = (import.meta.env.VITE_APP_API_URL || 'http://localhost:9999').replace(/\/$/, '');
 
+import * as authHelper from '../modules/auth/core/AuthHelpers';
 
 export const API_URL = {
   // Auth endpoints
@@ -88,7 +89,7 @@ export const AXIOS_CONFIG = {
 
 // Function to get axios config with auth token
 export const getAxiosConfig = () => {
-  const token = localStorage.getItem('token');
+  const token = authHelper.getAuth()?.api_token;
 
   const config = {
     ...AXIOS_CONFIG,
@@ -97,7 +98,7 @@ export const getAxiosConfig = () => {
       'Authorization': token ? `Bearer ${token}` : '',
     }
   };
-  
+
   return config;
 };
 
@@ -120,4 +121,4 @@ export const API_ERROR_MESSAGES = {
   FORBIDDEN: 'Bạn không có quyền truy cập tài nguyên này.',
   NOT_FOUND: 'Không tìm thấy tài nguyên yêu cầu.',
   VALIDATION_ERROR: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
-}; 
+};
