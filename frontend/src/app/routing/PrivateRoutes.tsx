@@ -34,7 +34,8 @@ const PrivateRoutes = () => {
   const CreateRolePage = lazy(() => import('../modules/role/createRole'))
   const StaffPage = lazy(() => import('../modules/staff/staffPage'))
   const ProductPage = lazy(() => import('../modules/product/ProductPage'))
-  const CreateProduct = lazy(() => import('../modules/product/CreateProduct'))
+  const CreateProduct = lazy(() => import('../modules/product/CreateProductPage'))
+  const EditProduct = lazy(() => import('../modules/product/EditProductPage'))
   const CreateStaff = lazy(() => import('../modules/staff/createStaff'))
   const WarehousePage = lazy(() => import('../modules/warehouse/warehousePage'))
   const CreateWarehouse = lazy(() => import('../modules/warehouse/createWarehouse'))
@@ -158,10 +159,19 @@ const PrivateRoutes = () => {
 
         {/*product*/}
         <Route
-          path='apps/products/*'
+          path='apps/products'
           element={
             <SuspensedView>
               <ProductPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/products/:id'
+          element={
+            <SuspensedView>
+              <EditProduct />
             </SuspensedView>
           }
         />

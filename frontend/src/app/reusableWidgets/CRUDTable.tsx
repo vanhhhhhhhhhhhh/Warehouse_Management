@@ -29,9 +29,11 @@ interface Pagination {
 interface CRUDTableProps<TData extends RowData> {
   data: TData[];
   columns: ColumnDef<TData, any>[];
-  onEdit: (item: TData) => void;
-  onDelete: (item: TData) => void;
-  onSelectedItemsChange?: (items: TData[]) => void;
+  getRowId: (row: TData) => string;
+  onEdit?: (item: TData) => void;
+  onDelete?: (item: TData) => void;
+  onSelectedItemsChange?: (items: string[]) => void;
+  selectedItems?: string[];
   onPageChange?: (page: number) => void;
   showEdit?: boolean;
   showDelete?: boolean;
@@ -83,9 +85,17 @@ function withPaginationDefaults(pagination: Partial<Pagination> | undefined): Pa
   }
 }
 
+const convertToRowSelection = (selectedItems: string[]): RowSelectionState => {
+  return selectedItems.reduce((acc, item) => {
+    acc[item] = true;
+    return acc;
+  }, {} as RowSelectionState);
+}
+
 const CRUDTable: CRUDTableComponent = ({
   data,
   columns,
+  getRowId,
   onEdit,
   onDelete,
   onSelectedItemsChange,
@@ -94,9 +104,9 @@ const CRUDTable: CRUDTableComponent = ({
   isLoading = false,
   pagination,
   onPageChange,
+  selectedItems,
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [globalFilter, setGlobalFilter] = useState('');
   const intl = useIntl();
   const paginationWithDefaults = withPaginationDefaults(pagination);
@@ -105,10 +115,6 @@ const CRUDTable: CRUDTableComponent = ({
     () => createColumnHelper<(typeof data)[number]>(),
     []
   );
-
-  useEffect(() => {
-    onSelectedItemsChange?.(data.filter((item, index) => rowSelection[index]));
-  }, [rowSelection]);
 
   const colDefs = useMemo(
     () => [
@@ -145,7 +151,7 @@ const CRUDTable: CRUDTableComponent = ({
             {showEdit && (
               <button
                 className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                onClick={() => onEdit(info.row.original)}
+                onClick={() => onEdit?.(info.row.original)}
                 title="Edit Product"
               >
                 <KTSVG
@@ -157,7 +163,7 @@ const CRUDTable: CRUDTableComponent = ({
             {showDelete && (
               <button
                 className="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
-                onClick={() => onDelete(info.row.original)}
+                onClick={() => onDelete?.(info.row.original)}
                 title="Remove Product"
               >
                 <KTSVG
@@ -179,7 +185,7 @@ const CRUDTable: CRUDTableComponent = ({
     state: {
       sorting,
       globalFilter,
-      rowSelection,
+      rowSelection: convertToRowSelection(selectedItems ?? []),
       pagination: {
         pageIndex: paginationWithDefaults.pageIndex,
         pageSize: paginationWithDefaults.pageSize,
@@ -191,8 +197,12 @@ const CRUDTable: CRUDTableComponent = ({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updaterOrValue: Updater<RowSelectionState>) => {
+      const state = typeof updaterOrValue === 'function' ? updaterOrValue(table.getState().rowSelection) : updaterOrValue;
+      onSelectedItemsChange?.(Object.keys(state));
+    },
     pageCount: paginationWithDefaults.totalPages,
+    getRowId,
     manualPagination: true,
     enableRowSelection: true,
     onPaginationChange: (updaterOrValue: Updater<PaginationState>) => {

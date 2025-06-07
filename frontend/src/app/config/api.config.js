@@ -26,7 +26,8 @@ export const API_URL = {
     DETAIL: (id) => `${BASE_URL}/products/${id}`,
     CREATE: `${BASE_URL}/products`,
     UPDATE: (id) => `${BASE_URL}/products/${id}`,
-    DELETE: (id) => `${BASE_URL}/products/${id}`,
+    DEACTIVATE: `${BASE_URL}/products/deactivate`,
+    ACTIVATE: `${BASE_URL}/products/activate`,
     DEFECTIVE: {
       LIST: `${BASE_URL}/products/defective`,
       CREATE: `${BASE_URL}/products/defective`,

@@ -2,11 +2,12 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { createColumnHelper, CellContext, ColumnDef } from '@tanstack/react-table';
 import CRUDTable from '../../reusableWidgets/CRUDTable';
 import { DeleteModal, ProductToolbar } from './components';
-import ProperBadge from '../../reusableWidgets/ProperBadge';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from 'react-query';
-import { getProducts } from '../../apiClient/products';
-import { ProductListing } from '../../apiClient/products';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { activateProducts, deactivateProducts, getProducts } from '../../apiClient/products';
+import { ProductListing } from '../../schemas/productSchema';
+import Swal from 'sweetalert2';
+import ProperBadge from '../../reusableWidgets/ProperBadge';
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -26,6 +27,14 @@ const columns: ColumnDef<ProductListing, any>[] = [
   columnHelper.accessor('price', {
     header: 'Giá',
     cell: (info: CellContext<ProductListing, number>) => info.getValue(),
+  }),
+  columnHelper.accessor('isDelete', {
+    header: 'Trạng thái',
+    cell: (info: CellContext<ProductListing, boolean>) => {
+      return <ProperBadge variant={info.getValue() ? 'danger' : 'success'}>
+        {info.getValue() ? 'Inactive' : 'Active'}
+      </ProperBadge>
+    }
   })
 ];
 
@@ -37,25 +46,75 @@ async function wait(ms: number) {
 
 const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
+
+  const queryClient = useQueryClient();
   const { data: products, isLoading, isError } = useQuery({
     queryKey: ['products', pageIndex],
     queryFn: () => getProducts({
       page: pageIndex + 1,
       limit: 5
     }),
+    keepPreviousData: true
   });
 
+  const { mutateAsync: deactivateProductMutation } = useMutation({
+    mutationFn: () => deactivateProducts(selectedItems),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Hủy kích hoạt sản phẩm thành công',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      setSelectedItems([]);
+    },
+    onError: (error: any) => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: error.message,
+      });
+    }
+  })
+
+  const { mutateAsync: activateProductMutation } = useMutation({
+    mutationFn: () => activateProducts(selectedItems),
+    onSuccess: async () => {
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Kích hoạt sản phẩm thành công',
+        showConfirmButton: false,
+        timer: 1500
+      });
+      setSelectedItems([]);
+    },
+    onError: (error: any) => {
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: error.message,
+      });
+    }
+  })
+
   const [searchTerm, setSearchTerm] = useState<string>('');
-  const [selectedItems, setSelectedItems] = useState<ProductListing[]>([]);
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const navigate = useNavigate();
 
   const actions = useMemo(() => [
     {
-      key: 'delete',
-      label: 'Xóa',
-      onExecute: () => wait(1000).then(() => {
-        console.log('Xóa sản phẩm', selectedItems);
-      }),
+      key: 'deactivate',
+      label: 'Hủy kích hoạt',
+      onExecute: () => deactivateProductMutation()
+    },
+    {
+      key: 'activate',
+      label: 'Kích hoạt',
+      onExecute: () => activateProductMutation()
     },
     {
       key: 'import_to_warehouse',
@@ -64,7 +123,7 @@ const ProductsPage: React.FC = () => {
         console.log('Nhập kho sản phẩm', selectedItems);
       }),
     },
-  ], [selectedItems]);
+  ], [selectedItems, deactivateProductMutation, activateProductMutation]);
 
   useEffect(() => {
     console.log('pageIndex', pageIndex + 1);
@@ -98,19 +157,21 @@ const ProductsPage: React.FC = () => {
 
               <CRUDTable
                 data={products?.data ?? []}
+                getRowId={(row) => row._id}
                 isLoading={isLoading}
                 columns={columns}
+                selectedItems={selectedItems}
                 onSelectedItemsChange={setSelectedItems}
                 pagination={
                   {
                     pageIndex,
-                    totalPages: products?.totalPages ?? 0,
+                    totalPages: products?.totalPages,
                     pageSize: 5
                   }
                 }
                 onPageChange={setPageIndex}
-                onEdit={noop}
-                onDelete={noop}
+                onEdit={(product) => navigate(`/apps/products/${product._id}`)}
+                showDelete={false}
               />
             </div>
           </div>

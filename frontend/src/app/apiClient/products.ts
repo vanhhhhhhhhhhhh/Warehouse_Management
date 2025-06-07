@@ -1,14 +1,6 @@
-import { Product } from '../schemas/productSchema'
+import { Product, ProductListing, ProductRequest } from '../schemas/productSchema'
 import client, { GetParams, PaginatedResponse, withDefaults } from './client'
 import { API_URL } from '../config/api.config'
-
-interface ProductListing {
-  _id: string
-  code: string
-  name: string
-  category: string
-  price: number
-}
 
 export async function getProducts(params?: GetParams): Promise<PaginatedResponse<ProductListing>> {
   const paramsWithDefaults = withDefaults(params)
@@ -17,20 +9,32 @@ export async function getProducts(params?: GetParams): Promise<PaginatedResponse
 }
 
 export async function getProduct(id: string): Promise<Product> {
-  const response = await client.get<Product>(API_URL.PRODUCTS.GET(id))
+  const response = await client.get<Product>(API_URL.PRODUCTS.DETAIL(id))
   return response.data
 }
 
-export async function createProduct(product: Product): Promise<Product> {
-  const response = await client.post<Product>(API_URL.PRODUCTS.CREATE, product)
+export async function createProduct(product: ProductRequest): Promise<Product> {
+  const response = await client.post<Product>(API_URL.PRODUCTS.CREATE, product, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
   return response.data
 }
 
-export async function updateProduct(id: string, product: Product): Promise<Product> {
-  const response = await client.put<Product>(API_URL.PRODUCTS.UPDATE(id), product)
+export async function updateProduct(id: string, product: ProductRequest): Promise<Product> {
+  const response = await client.put<Product>(API_URL.PRODUCTS.UPDATE(id), product, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
   return response.data
 }
 
-export async function deleteProduct(id: string): Promise<void> {
-  await client.delete(API_URL.PRODUCTS.DELETE(id))
+export async function deactivateProducts(ids: string[]): Promise<void> {
+  await client.post(API_URL.PRODUCTS.DEACTIVATE, { ids })
+}
+
+export async function activateProducts(ids: string[]): Promise<void> {
+  await client.post(API_URL.PRODUCTS.ACTIVATE, { ids })
 }
