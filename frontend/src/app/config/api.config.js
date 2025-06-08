@@ -19,6 +19,16 @@ export const API_URL = {
     DELETE: (id) => `${BASE_URL}/roles/${id}`,
   },
 
+  // Categories endpoints
+  CATEGORIES: {
+    LIST: `${BASE_URL}/categories`,
+    DETAIL: (id) => `${BASE_URL}/categories/${id}`,
+    CREATE: `${BASE_URL}/categories`,
+    UPDATE: (id) => `${BASE_URL}/categories/${id}`,
+    DEACTIVATE: `${BASE_URL}/categories/deactivate`,
+    ACTIVATE: `${BASE_URL}/categories/activate`,
+  },
+
   // Products endpoints
   PRODUCTS: {
     LIST: `${BASE_URL}/products`,

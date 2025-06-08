@@ -200,8 +200,8 @@ const renderForm = (formikOptions: FormikProps<ProductRequest>, isEdit: boolean)
             value={formikOptions.values.isDelete ? 'true' : 'false'}
             className="form-select"
           >
-            <option value="true">Active</option>
-            <option value="false">Inactive</option>
+            <option value="true">Inactive</option>
+            <option value="false">Active</option>
           </select>
           {formikOptions.touched.isDelete && formikOptions.errors.isDelete && (
             <div className="text-danger">{formikOptions.errors.isDelete}</div>

@@ -29,7 +29,9 @@ const PrivateRoutes = () => {
   const WidgetsPage = lazy(() => import('../modules/widgets/WidgetsPage'))
   const ChatPage = lazy(() => import('../modules/apps/chat/ChatPage'))
   const UsersPage = lazy(() => import('../modules/apps/user-management/UsersPage'))
-  const CategoriesPage = lazy(() => import('../modules/categories/categories'))
+  const CategoriesPage = lazy(() => import('../modules/categories/CategoriesPage'))
+  const CreateCategoryPage = lazy(() => import('../modules/categories/CreateCategoryPage'))
+  const EditCategoryPage = lazy(() => import('../modules/categories/EditCategoryPage'))
   const RolePage = lazy(() => import('../modules/role/rolePage'))
   const CreateRolePage = lazy(() => import('../modules/role/createRole'))
   const StaffPage = lazy(() => import('../modules/staff/staffPage'))
@@ -111,10 +113,28 @@ const PrivateRoutes = () => {
 
         {/*categories*/}
         <Route
-          path='apps/categories/*'
+          path='apps/categories'
           element={
             <SuspensedView>
               <CategoriesPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/categories/create'
+          element={
+            <SuspensedView>
+              <CreateCategoryPage />
+            </SuspensedView>
+          }
+        />
+
+        <Route
+          path='apps/categories/:id'
+          element={
+            <SuspensedView>
+              <EditCategoryPage />
             </SuspensedView>
           }
         />

@@ -4,7 +4,9 @@ import { API_URL } from '../config/api.config'
 
 export async function getProducts(params?: GetParams): Promise<PaginatedResponse<ProductListing>> {
   const paramsWithDefaults = withDefaults(params)
-  const response = await client.get<PaginatedResponse<ProductListing>>(API_URL.PRODUCTS.LIST, { params: paramsWithDefaults })
+  const response = await client.get<PaginatedResponse<ProductListing>>(API_URL.PRODUCTS.LIST, {
+    params: paramsWithDefaults,
+  });
   return response.data
 }
 

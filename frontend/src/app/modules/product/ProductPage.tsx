@@ -1,13 +1,13 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { createColumnHelper, CellContext, ColumnDef } from '@tanstack/react-table';
 import CRUDTable from '../../reusableWidgets/CRUDTable';
-import { DeleteModal, ProductToolbar } from './components';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { activateProducts, deactivateProducts, getProducts } from '../../apiClient/products';
 import { ProductListing } from '../../schemas/productSchema';
 import Swal from 'sweetalert2';
 import ProperBadge from '../../reusableWidgets/ProperBadge';
+import { ProductToolbar } from './components';
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -48,7 +48,7 @@ const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
 
   const queryClient = useQueryClient();
-  const { data: products, isLoading, isError } = useQuery({
+  const { data: products, isLoading } = useQuery({
     queryKey: ['products', pageIndex],
     queryFn: () => getProducts({
       page: pageIndex + 1,
@@ -58,7 +58,7 @@ const ProductsPage: React.FC = () => {
   });
 
   const { mutateAsync: deactivateProductMutation } = useMutation({
-    mutationFn: () => deactivateProducts(selectedItems),
+    mutationFn: (selectedItems: string[]) => deactivateProducts(selectedItems),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       Swal.fire({
@@ -80,7 +80,7 @@ const ProductsPage: React.FC = () => {
   })
 
   const { mutateAsync: activateProductMutation } = useMutation({
-    mutationFn: () => activateProducts(selectedItems),
+    mutationFn: (selectedItems: string[]) => activateProducts(selectedItems),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: ['products'] });
       Swal.fire({
@@ -109,12 +109,12 @@ const ProductsPage: React.FC = () => {
     {
       key: 'deactivate',
       label: 'Hủy kích hoạt',
-      onExecute: () => deactivateProductMutation()
+      onExecute: () => deactivateProductMutation(selectedItems)
     },
     {
       key: 'activate',
       label: 'Kích hoạt',
-      onExecute: () => activateProductMutation()
+      onExecute: () => activateProductMutation(selectedItems)
     },
     {
       key: 'import_to_warehouse',
@@ -123,7 +123,7 @@ const ProductsPage: React.FC = () => {
         console.log('Nhập kho sản phẩm', selectedItems);
       }),
     },
-  ], [selectedItems, deactivateProductMutation, activateProductMutation]);
+  ], [selectedItems]);
 
   useEffect(() => {
     console.log('pageIndex', pageIndex + 1);
@@ -177,8 +177,6 @@ const ProductsPage: React.FC = () => {
           </div>
         </div>
       </div>
-
-      <DeleteModal show={false} onClose={noop} onConfirm={noop} loading={false} />
     </>
   );
 };
