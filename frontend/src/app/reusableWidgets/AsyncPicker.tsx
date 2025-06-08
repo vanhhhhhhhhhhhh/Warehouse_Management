@@ -67,7 +67,7 @@ const Picker = <T,>({
         style={{
           minHeight: 300,
         }}
-        className="position-absolute d-flex flex-column top-100 w-100 start-0 dropdown-menu mt-2"
+        className={`position-absolute d-flex flex-column top-100 w-100 start-0 dropdown-menu mt-2 ${props.isOpen ? '' : 'd-none'}`}
       >
         {props.isOpen && (
           <>
@@ -141,7 +141,7 @@ const Picker = <T,>({
       <div className="form-select user-select-none cursor-pointer" {...props.getToggleButtonProps()}>
         <span>{props.selectedItem ? itemToString(props.selectedItem) : placeholder}</span>
       </div>
-      {props.isOpen && renderItems()}
+      {renderItems()}
     </div>
   );
 };

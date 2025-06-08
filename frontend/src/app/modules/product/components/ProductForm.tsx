@@ -91,7 +91,7 @@ const renderForm = (formikOptions: FormikProps<ProductRequest>, isEdit: boolean)
   const [selectedCategory, setSelectedCategory] = useState<{ _id: string, name: string } | null>(null)
 
   useQuery({
-    queryKey: ['categories', formikOptions.values.categoryId],
+    queryKey: ['categories', 'detail'],
     queryFn: () => getCategory(formikOptions.values.categoryId),
     enabled: !!formikOptions.values.categoryId,
     cacheTime: 0,
