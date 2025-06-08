@@ -1,6 +1,7 @@
 import { FieldArray, Formik, FormikProps } from 'formik';
 import { ProductRequest, productSchemaRequest } from '../../../schemas/productSchema';
 import React from 'react';
+import { Category } from '../../../schemas/categorySchema';
 
 interface ProductFormProps {
   initialValues: ProductRequest;
@@ -236,7 +237,7 @@ const getLabel = (isLoading: boolean, isEdit: boolean): string => {
   }
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit, categories }) => {
   return (
     <Formik initialValues={initialValues} onSubmit={onSubmit} validationSchema={productSchemaRequest}>
       {(formikOptions) => renderForm(formikOptions, isEdit ?? false)}

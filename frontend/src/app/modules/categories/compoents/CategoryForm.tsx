@@ -25,9 +25,11 @@ const renderForm = (formikOptions: FormikProps<CategoryRequest>, isEdit: boolean
           <div className="text-danger">{formikOptions.errors.name}</div>
         )}
       </div>
-      <button type="submit" className="btn btn-primary">
-        {getLabel(formikOptions.isSubmitting, isEdit)}
-      </button>
+      <div className="d-flex justify-content-end mt-3">
+        <button type="submit" className="btn btn-primary">
+          {getLabel(formikOptions.isSubmitting, isEdit)}
+        </button>
+      </div>
     </form>
   )
 }

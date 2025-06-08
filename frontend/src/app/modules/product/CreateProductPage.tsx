@@ -25,7 +25,7 @@ const CreateProduct = () => {
       return createProduct(product);
     },
     onSuccess: async () => {
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'Thành công!',
         text: 'Tạo sản phẩm thành công',

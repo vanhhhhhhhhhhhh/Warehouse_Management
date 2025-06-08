@@ -38,7 +38,7 @@ const EditProduct = () => {
       return updateProduct(id, product);
     },
     onSuccess: async () => {
-      await Swal.fire({
+      Swal.fire({
         icon: 'success',
         title: 'Thành công!',
         text: 'Cập nhật sản phẩm thành công',

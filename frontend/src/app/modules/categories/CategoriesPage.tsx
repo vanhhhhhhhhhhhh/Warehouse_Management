@@ -95,12 +95,12 @@ const CategoriesPage: React.FC = () => {
   const actions = useMemo(() => [
     {
       key: 'deactivate',
-      label: 'Vô hiệu hóa danh mục',
+      label: 'Hủy kích hoạt',
       onExecute: () => deleteCategoriesMutation(selectedItems)
     },
     {
       key: 'activate',
-      label: 'Kích hoạt danh mục',
+      label: 'Kích hoạt',
       onExecute: () => activateCategoriesMutation(selectedItems)
     }
   ], [selectedItems, deleteCategoriesMutation, activateCategoriesMutation])

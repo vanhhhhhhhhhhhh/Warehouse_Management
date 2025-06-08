@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { getCategory, updateCategory } from '../../apiClient/categories'
 import { CategoryRequest } from '../../schemas/categorySchema'
@@ -52,24 +52,18 @@ const EditCategoryPage: React.FC = () => {
   return (
     <>
       <div className='d-flex flex-column gap-7'>
+        <div className="px-9">
+          <Link to="/apps/categories" className="fs-5 fw-bold text-gray-500 text-hover-dark d-flex align-items-center">
+            <i className="bi bi-arrow-left fs-2 me-2"></i>
+            Quay lại danh sách danh mục
+          </Link>
+        </div>
+
         <div className='px-9'>
           <div className='card'>
             <div className='card-header border-0 pt-6'>
               <div className='card-title'>
                 <h3 className='fw-bold'>Chỉnh sửa danh mục</h3>
-              </div>
-              <div className='card-toolbar'>
-                <button
-                  type='button'
-                  className='btn btn-light me-3'
-                  onClick={() => navigate('/apps/categories')}
-                >
-                  <KTSVG
-                    path='/media/icons/duotune/arrows/arr063.svg'
-                    className='svg-icon-2 me-1'
-                  />
-                  Quay lại
-                </button>
               </div>
             </div>
 
