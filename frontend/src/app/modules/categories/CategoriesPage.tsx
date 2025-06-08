@@ -40,10 +40,15 @@ const CategoriesPage: React.FC = () => {
   const navigate = useNavigate()
 
   const { data: categories, isLoading } = useQuery({
-    queryKey: ['categories', pageIndex],
+    queryKey: ['categories', pageIndex, searchTerm],
     queryFn: () => getCategories({
-      page: pageIndex + 1,
-      limit: 5
+      pagination: {
+        page: pageIndex + 1,
+        limit: 5
+      },
+      search: {
+        name: searchTerm
+      }
     }),
     keepPreviousData: true
   })

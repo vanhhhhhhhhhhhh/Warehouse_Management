@@ -46,13 +46,19 @@ async function wait(ms: number) {
 
 const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
+  const [searchTerm, setSearchTerm] = useState<string>('');
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({
-    queryKey: ['products', pageIndex],
+    queryKey: ['products', pageIndex, searchTerm],
     queryFn: () => getProducts({
-      page: pageIndex + 1,
-      limit: 5
+      pagination: {
+        page: pageIndex + 1,
+        limit: 5
+      },
+      search: {
+        name: searchTerm
+      }
     }),
     keepPreviousData: true
   });
@@ -101,7 +107,6 @@ const ProductsPage: React.FC = () => {
     }
   })
 
-  const [searchTerm, setSearchTerm] = useState<string>('');
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const navigate = useNavigate();
 
@@ -124,10 +129,6 @@ const ProductsPage: React.FC = () => {
       }),
     },
   ], [selectedItems]);
-
-  useEffect(() => {
-    console.log('pageIndex', pageIndex + 1);
-  }, [pageIndex]);
 
   return (
     <>

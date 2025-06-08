@@ -1,11 +1,14 @@
 import { Product, ProductListing, ProductRequest } from '../schemas/productSchema'
-import client, { GetParams, PaginatedResponse, withDefaults } from './client'
+import client, { GetParams, PaginatedResponse, withPaginationDefaults } from './client'
 import { API_URL } from '../config/api.config'
 
 export async function getProducts(params?: GetParams): Promise<PaginatedResponse<ProductListing>> {
-  const paramsWithDefaults = withDefaults(params)
+  const paginationParamsWithDefaults = withPaginationDefaults(params?.pagination)
   const response = await client.get<PaginatedResponse<ProductListing>>(API_URL.PRODUCTS.LIST, {
-    params: paramsWithDefaults,
+    params: {
+      ...paginationParamsWithDefaults,
+      ...params?.search
+    }
   });
   return response.data
 }

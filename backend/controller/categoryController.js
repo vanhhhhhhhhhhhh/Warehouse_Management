@@ -5,15 +5,22 @@ module.exports = {
   listCategory: async (req, res) => {
     try {
       const { limit, skip } = getPaginationParams(req);
+      const { name } = req.query;
+
+      const query = {};
+
+      if (name) {
+        query.name = { $regex: name, $options: 'i' };
+      }
 
       const categories = await Category
-        .find()
+        .find(query)
         .select('_id name isDelete createdAt')
         .skip(skip)
         .limit(limit)
         .lean();
 
-      const totalCategories = await Category.countDocuments();
+      const totalCategories = await Category.countDocuments(query);
       const totalPages = Math.ceil(totalCategories / limit);
 
       const mappedCategories = categories.map(category => ({

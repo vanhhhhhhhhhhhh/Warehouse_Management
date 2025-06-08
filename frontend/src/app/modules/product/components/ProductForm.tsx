@@ -1,6 +1,9 @@
 import { FieldArray, Formik, FormikProps } from 'formik';
 import { ProductRequest, productSchemaRequest } from '../../../schemas/productSchema';
-import React from 'react';
+import React, { useState } from 'react';
+import AsyncPicker from '../../../reusableWidgets/AsyncPicker';
+import { useQuery } from 'react-query';
+import { getCategories, getCategory } from '../../../apiClient/categories';
 import { Category } from '../../../schemas/categorySchema';
 
 interface ProductFormProps {
@@ -83,21 +86,57 @@ const renderAttributes: React.FC<FormikProps<ProductRequest>> = (formikOptions) 
 };
 
 const renderForm = (formikOptions: FormikProps<ProductRequest>, isEdit: boolean) => {
+  const [page, setPage] = useState(1)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedCategory, setSelectedCategory] = useState<{ _id: string, name: string } | null>(null)
+
+  useQuery({
+    queryKey: ['categories', formikOptions.values.categoryId],
+    queryFn: () => getCategory(formikOptions.values.categoryId),
+    enabled: !!formikOptions.values.categoryId,
+    cacheTime: 0,
+    onSuccess: (data) => {
+      setSelectedCategory(data)
+    }
+  })
+
+  const { data: categories, isLoading } = useQuery({
+    queryKey: ['categories', page, searchTerm],
+    queryFn: () => getCategories({
+      pagination: {
+        page,
+        limit: 5
+      },
+      search: {
+        name: searchTerm
+      }
+    }),
+    cacheTime: 0,
+    keepPreviousData: true
+   })
+
   return (
     <form className="form" onSubmit={formikOptions.handleSubmit}>
       <div className="row mb-3">
         <div className="col-md-6 mb-3">
           <label className="form-label required">Chọn danh mục sản phẩm</label>
-          <select
-            onChange={formikOptions.handleChange}
-            onBlur={formikOptions.handleBlur}
-            value={formikOptions.values.categoryId}
-            className="form-select"
-            name="categoryId"
-          >
-            <option value="">-- Chọn danh mục --</option>
-            <option value="68423dd608eb11f41c0b6467">Electronics</option>
-          </select>
+          <AsyncPicker
+            items={categories?.data || []}
+            isLoading={isLoading}
+            itemToString={(item) => item?.name || ''}
+            itemToKey={(item) => item?._id || ''}
+            selectedItem={selectedCategory}
+            placeholder={'--- Chọn danh mục sản phẩm ---'}
+            onPageChange={(page) => setPage(page)}
+            page={page}
+            totalPages={categories?.totalPages || 0}
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            onSelectedItemChange={(item) => {
+              formikOptions.setFieldValue('categoryId', item?._id)
+              setSelectedCategory(item)
+            }}
+          />
           {formikOptions.touched.categoryId && formikOptions.errors.categoryId && (
             <div className="text-danger">{formikOptions.errors.categoryId}</div>
           )}
@@ -237,7 +276,7 @@ const getLabel = (isLoading: boolean, isEdit: boolean): string => {
   }
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit, categories }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit }) => {
   return (
     <Formik initialValues={initialValues} onSubmit={onSubmit} validationSchema={productSchemaRequest}>
       {(formikOptions) => renderForm(formikOptions, isEdit ?? false)}

@@ -3,6 +3,11 @@ import axios, { AxiosError } from 'axios'
 import { AXIOS_CONFIG, getAxiosConfig } from '../config/api.config'
 
 export interface GetParams {
+  pagination?: PaginationParams
+  search?: Record<string, any>
+}
+
+export interface PaginationParams {
   page?: number
   limit?: number
 }
@@ -12,7 +17,7 @@ export interface PaginatedResponse<T> {
   totalPages: number
 }
 
-export function withDefaults(params?: GetParams) {
+export function withPaginationDefaults(params?: PaginationParams) {
   let page = params?.page || 1
   let limit = params?.limit || 10
 

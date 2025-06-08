@@ -6,15 +6,23 @@ module.exports = {
     try {
       const { limit, skip } = getPaginationParams(req);
 
+      const { name } = req.query;
+
+      const query = {};
+
+      if (name) {
+        query.name = { $regex: name, $options: 'i' };
+      }
+
       const products = await Product
-        .find()
+        .find(query)
         .populate('cateId', 'name')
         .select('_id code name price isDelete')
         .skip(skip)
         .limit(limit)
         .lean();
 
-      const totalProducts = await Product.countDocuments();
+      const totalProducts = await Product.countDocuments(query);
       const totalPages = Math.ceil(totalProducts / limit);
 
       const mappedProducts = products.map(product => ({
