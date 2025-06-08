@@ -2,10 +2,8 @@ import React from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { useMutation, useQuery } from 'react-query'
 import { getCategory, updateCategory } from '../../apiClient/categories'
-import { CategoryRequest } from '../../schemas/categorySchema'
 import Swal from 'sweetalert2'
-import { KTSVG } from '../../../_metronic/helpers'
-import CategoryForm from './compoents/CategoryForm'
+import CategoryForm, { CategoryFormRequest } from './components/CategoryForm'
 
 const EditCategoryPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -19,7 +17,7 @@ const EditCategoryPage: React.FC = () => {
   })
 
   const { mutateAsync: updateCategoryMutation } = useMutation({
-    mutationFn: (data: CategoryRequest) => updateCategory(id!, data),
+    mutationFn: (data: CategoryFormRequest) => updateCategory(id!, data),
     onSuccess: () => {
       Swal.fire({
         icon: 'success',

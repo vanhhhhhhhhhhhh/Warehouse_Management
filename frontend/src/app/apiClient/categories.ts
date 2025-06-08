@@ -1,4 +1,4 @@
-import { Category, CategoryListing, CategoryRequest } from '../schemas/categorySchema'
+import { Category, CategoryListing, CategoryRequest } from './api'
 import client, { GetParams, PaginatedResponse, withPaginationDefaults } from './client'
 import { API_URL } from '../config/api.config'
 

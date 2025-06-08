@@ -3,15 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useMutation } from 'react-query'
 import { createCategory } from '../../apiClient/categories'
 import Swal from 'sweetalert2'
-import { KTSVG } from '../../../_metronic/helpers'
-import CategoryForm from './compoents/CategoryForm'
-import { CategoryRequest } from '../../schemas/categorySchema'
+import CategoryForm, { CategoryFormRequest } from './components/CategoryForm'
 
 const CreateCategoryPage: React.FC = () => {
   const navigate = useNavigate()
 
   const { mutateAsync: createCategoryMutation } = useMutation({
-    mutationFn: (data: CategoryRequest) => createCategory(data),
+    mutationFn: (data: CategoryFormRequest) => createCategory(data),
     onSuccess: () => {
       Swal.fire({
         icon: 'success',

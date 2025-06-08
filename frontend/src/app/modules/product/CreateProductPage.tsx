@@ -1,19 +1,17 @@
 import { Link, useNavigate } from 'react-router-dom';
-import ProductForm from './components/ProductForm';
-import { ProductRequest } from '../../schemas/productSchema';
+import ProductForm, { ProductFormInitialValues, ProductFormRequest} from './components/ProductForm';
 import { useMutation, useQueryClient } from 'react-query';
 import { createProduct } from '../../apiClient/products';
 import Swal from 'sweetalert2';
 
-const initialValues: ProductRequest = {
+const initialValues: ProductFormInitialValues = {
   code: '',
   name: '',
   categoryId: '',
   description: '',
   price: 0,
   attributes: [],
-  isDelete: false,
-  image: undefined
+  isDelete: false
 }
 
 const CreateProduct = () => {
@@ -21,7 +19,7 @@ const CreateProduct = () => {
   const queryClient = useQueryClient();
 
   const { mutateAsync } = useMutation({
-    mutationFn: (product: ProductRequest) => {
+    mutationFn: (product: ProductFormRequest) => {
       return createProduct(product);
     },
     onSuccess: async () => {
@@ -46,7 +44,7 @@ const CreateProduct = () => {
     }
   })
 
-  const onSubmit = async (product: ProductRequest) => {
+  const onSubmit = async (product: ProductFormRequest) => {
     await mutateAsync(product);
   };
 

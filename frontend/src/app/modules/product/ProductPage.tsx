@@ -1,10 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { createColumnHelper, CellContext, ColumnDef } from '@tanstack/react-table';
 import CRUDTable from '../../reusableWidgets/CRUDTable';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import { activateProducts, deactivateProducts, getProducts } from '../../apiClient/products';
-import { ProductListing } from '../../schemas/productSchema';
+import { ProductListing } from '../../apiClient/api';
 import Swal from 'sweetalert2';
 import ProperBadge from '../../reusableWidgets/ProperBadge';
 import { ProductToolbar } from './components';
@@ -130,6 +130,10 @@ const ProductsPage: React.FC = () => {
     },
   ], [selectedItems]);
 
+  if (!products || isLoading) {
+    return <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+  }
+
   return (
     <>
       <div className="d-flex flex-column gap-7">
@@ -157,7 +161,7 @@ const ProductsPage: React.FC = () => {
               />
 
               <CRUDTable
-                data={products?.data ?? []}
+                data={products.data}
                 getRowId={(row) => row._id}
                 isLoading={isLoading}
                 columns={columns}
@@ -166,7 +170,7 @@ const ProductsPage: React.FC = () => {
                 pagination={
                   {
                     pageIndex,
-                    totalPages: products?.totalPages,
+                    totalPages: products.totalPages,
                     pageSize: 5
                   }
                 }

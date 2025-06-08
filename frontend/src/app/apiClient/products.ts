@@ -1,4 +1,4 @@
-import { Product, ProductListing, ProductRequest } from '../schemas/productSchema'
+import { Product, ProductListing, ProductRequest } from './api'
 import client, { GetParams, PaginatedResponse, withPaginationDefaults } from './client'
 import { API_URL } from '../config/api.config'
 

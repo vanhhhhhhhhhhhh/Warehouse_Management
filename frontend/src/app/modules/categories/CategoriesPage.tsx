@@ -4,7 +4,7 @@ import CRUDTable from '../../reusableWidgets/CRUDTable'
 import { useNavigate } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { activateCategories, deactivateCategories, getCategories } from '../../apiClient/categories'
-import { CategoryListing } from '../../schemas/categorySchema'
+import { CategoryListing } from '../../apiClient/api'
 import Swal from 'sweetalert2'
 import { KTSVG } from '../../../_metronic/helpers'
 import ProperBadge from '../../reusableWidgets/ProperBadge'
@@ -109,6 +109,10 @@ const CategoriesPage: React.FC = () => {
       onExecute: () => activateCategoriesMutation(selectedItems)
     }
   ], [selectedItems, deleteCategoriesMutation, activateCategoriesMutation])
+
+  if (!categories || isLoading) {
+    return <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+  }
 
   return (
     <>

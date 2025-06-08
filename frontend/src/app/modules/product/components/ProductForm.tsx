@@ -1,18 +1,36 @@
 import { FieldArray, Formik, FormikProps } from 'formik';
-import { ProductRequest, productSchemaRequest } from '../../../schemas/productSchema';
+import * as Yup from 'yup';
 import React, { useState } from 'react';
 import AsyncPicker from '../../../reusableWidgets/AsyncPicker';
 import { useQuery } from 'react-query';
 import { getCategories, getCategory } from '../../../apiClient/categories';
-import { Category } from '../../../schemas/categorySchema';
+
+const productSchemaRequest = Yup.object().shape({
+  code: Yup.string().required('Mã sản phẩm là bắt buộc'),
+  name: Yup.string().required('Tên sản phẩm là bắt buộc'),
+  description: Yup.string().max(1000, 'Mô tả không được vượt quá 1000 ký tự').default(''),
+  price: Yup.number().min(0, 'Giá không được nhỏ hơn 0').required('Giá là bắt buộc'),
+  attributes: Yup.array().of(Yup.object().shape({
+    name: Yup.string().required('Tên thuộc tính là bắt buộc'),
+    value: Yup.string().required('Giá trị thuộc tính là bắt buộc')
+  })).default([]),
+  isDelete: Yup.boolean().required('Trạng thái là bắt buộc'),
+  image: Yup.mixed<File>().optional(),
+  categoryId: Yup.string().required('Danh mục là bắt buộc'),
+})
+
+export type ProductFormRequest = Yup.InferType<typeof productSchemaRequest>
+
+export type ProductFormInitialValues = Omit<ProductFormRequest, 'image'>
 
 interface ProductFormProps {
-  initialValues: ProductRequest;
-  onSubmit: (values: ProductRequest) => void;
+  initialValues: ProductFormInitialValues;
+  imageUrl?: string;
+  onSubmit: (values: ProductFormRequest) => void;
   isEdit?: boolean;
 }
 
-const renderAttributeError = (formikOptions: FormikProps<ProductRequest>, index: number) => {
+const renderAttributeError = (formikOptions: FormikProps<ProductFormRequest>, index: number) => {
   const touched = !!formikOptions.touched.attributes
   const errors = formikOptions.errors.attributes?.[index]
 
@@ -25,7 +43,7 @@ const renderAttributeError = (formikOptions: FormikProps<ProductRequest>, index:
   return <div className="text-danger">{Object.values(errors).join(' - ')}</div>
 }
 
-const renderAttributes: React.FC<FormikProps<ProductRequest>> = (formikOptions) => {
+const renderAttributes: React.FC<FormikProps<ProductFormRequest>> = (formikOptions) => {
   return (
     <FieldArray name="attributes">
       {(props) => (
@@ -85,7 +103,7 @@ const renderAttributes: React.FC<FormikProps<ProductRequest>> = (formikOptions) 
   );
 };
 
-const renderForm = (formikOptions: FormikProps<ProductRequest>, isEdit: boolean) => {
+const renderForm = (formikOptions: FormikProps<ProductFormRequest>, isEdit: boolean, imageUrl?: string) => {
   const [page, setPage] = useState(1)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedCategory, setSelectedCategory] = useState<{ _id: string, name: string } | null>(null)
@@ -174,6 +192,11 @@ const renderForm = (formikOptions: FormikProps<ProductRequest>, isEdit: boolean)
 
         <div className="col-12 mb-3">
           <label className="form-label">Ảnh sản phẩm</label>
+          {imageUrl && (
+            <div className="mb-3">
+              <img src={imageUrl} alt="Ảnh sản phẩm" className="img-fluid" />
+            </div>
+          )}
           <input
             type="file"
             onChange={(e) => {
@@ -276,10 +299,10 @@ const getLabel = (isLoading: boolean, isEdit: boolean): string => {
   }
 }
 
-const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit }) => {
+const ProductForm: React.FC<ProductFormProps> = ({ initialValues, onSubmit, isEdit, imageUrl }) => {
   return (
     <Formik initialValues={initialValues} onSubmit={onSubmit} validationSchema={productSchemaRequest}>
-      {(formikOptions) => renderForm(formikOptions, isEdit ?? false)}
+      {(formikOptions) => renderForm(formikOptions, isEdit ?? false, imageUrl)}
     </Formik>
   );
 };
