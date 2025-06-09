@@ -7,9 +7,9 @@ const authController = {
 
     register: async (req, res) => {
         try {
-            const { fullname, email, password, confirmPassword, phone } = req.body
+            const { fullName, email, password, confirmPassword, phone } = req.body
 
-            if (!fullname || !email || !password || !confirmPassword || !phone) {
+            if (!fullName || !email || !password || !confirmPassword || !phone) {
                 return res.status(400).json({ message: 'Vui lòng điền đầy đủ tất cả các trường' })
             }
 
@@ -25,7 +25,7 @@ const authController = {
             const hashPassword = await argon2.hash(password)
 
             const user = new User({
-                fullname,
+                fullName,
                 email: email.trim().toLowerCase(),
                 password: hashPassword,
                 phone,

@@ -7,7 +7,7 @@ import { toAbsoluteUrl } from '../../../../_metronic/helpers'
 import axios from 'axios'
 
 const initialValues = {
-  fullname: '',
+  fullName: '',
   phone: '',
   email: '',
   password: '',
@@ -15,7 +15,7 @@ const initialValues = {
 }
 
 const registrationSchema = Yup.object().shape({
-  fullname: Yup.string()
+  fullName: Yup.string()
     .min(3, 'Tối thiểu 3 ký tự')
     .max(50, 'Tối đa 50 ký tự')
     .required('Vui lòng nhập họ tên'),
@@ -36,14 +36,14 @@ const registrationSchema = Yup.object().shape({
 })
 
 const register = async (
-  fullname: string,
+  fullName: string,
   phone: string,
   email: string,
   password: string,
   confirmPassword: string
 ) => {
   return await axios.post('http://localhost:9999/auth/register', {
-    fullname,
+    fullName,
     phone,
     email,
     password,
@@ -58,28 +58,36 @@ export function Registration() {
   const formik = useFormik({
     initialValues,
     validationSchema: registrationSchema,
-    onSubmit: async (values, { setStatus }) => {
+    onSubmit: async (values, { setStatus, resetForm }) => {
       setLoading(true)
       try {
         await register(
-          values.fullname,
+          values.fullName,
           values.phone,
           values.email,
           values.password,
           values.confirmPassword
         )
-        navigate('/auth/login')
+
+        setStatus('Đăng ký thành công! Đang chuyển hướng tới trang đăng nhập...')
+        resetForm()
+
+        setTimeout(() => {
+          navigate('/auth/login')
+        }, 3000)
       } catch (error) {
         let msg = 'Đăng ký thất bại. Vui lòng thử lại.'
         if (axios.isAxiosError(error)) {
           const responseMsg = error.response?.data?.message
           msg = typeof responseMsg === 'string' ? responseMsg : msg
         }
-        setStatus(msg) 
+        setStatus(msg)
       } finally {
         setLoading(false)
       }
     }
+
+
     ,
   })
 
@@ -105,19 +113,19 @@ export function Registration() {
           <form className='form w-100' onSubmit={formik.handleSubmit} noValidate>
             <div className='row g-4'>
 
-              {/* Fullname */}
+              {/* fullName */}
               <div className='col-12'>
                 <label className='form-label fw-bold text-dark'>Họ và tên</label>
                 <input
                   type='text'
                   placeholder='Họ tên của bạn'
-                  {...formik.getFieldProps('fullname')}
+                  {...formik.getFieldProps('fullName')}
                   className={clsx('form-control', {
-                    'is-invalid': formik.touched.fullname && formik.errors.fullname,
+                    'is-invalid': formik.touched.fullName && formik.errors.fullName,
                   })}
                 />
-                {formik.touched.fullname && formik.errors.fullname && (
-                  <div className='text-danger fs-8 mt-1'>{formik.errors.fullname}</div>
+                {formik.touched.fullName && formik.errors.fullName && (
+                  <div className='text-danger fs-8 mt-1'>{formik.errors.fullName}</div>
                 )}
               </div>
 
@@ -188,9 +196,16 @@ export function Registration() {
               {/* Status Message */}
               {formik.status && (
                 <div className='col-12'>
-                  <div className='alert alert-danger text-center py-2'>{formik.status}</div>
+                  <div
+                    className={`alert text-center py-2 ${formik.status.includes('thành công') ? 'alert-success' : 'alert-danger'
+                      }`}
+                  >
+                    {formik.status}
+                  </div>
                 </div>
               )}
+
+
 
               {/* Submit Button */}
               <div className='col-12 mt-2'>
