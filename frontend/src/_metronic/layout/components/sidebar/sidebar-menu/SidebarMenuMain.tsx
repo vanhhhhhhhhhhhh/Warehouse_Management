@@ -14,10 +14,17 @@ const SidebarMenuMain = () => {
 
   useEffect(() => {
     // Lấy thông tin user từ localStorage
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-  
-    // Kiểm tra roleId có phải là admin không
-    setIsAdmin(user.roleId === ADMIN_ROLE_ID);
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        // Kiểm tra roleName có phải là Admin không
+        setIsAdmin(user.roleName === 'Admin');
+      } catch (error) {
+        console.error('Error parsing user data:', error);
+        setIsAdmin(false);
+      }
+    }
   }, []);
 
   return (
@@ -62,14 +69,19 @@ const SidebarMenuMain = () => {
         to='/apps/warehouse' 
         title='Danh sách kho'
       />
-      <SidebarMenuItem 
-        to='/apps/stockIn' 
-        title='Nhập kho'
-      />
-      <SidebarMenuItem 
-        to='/apps/stockOut' 
-        title='Xuất kho'
-      />
+      {/* Ẩn menu Nhập/Xuất kho nếu là Admin */}
+      {!isAdmin && (
+        <>
+          <SidebarMenuItem 
+            to='/apps/stockIn' 
+            title='Nhập kho'
+          />
+          <SidebarMenuItem 
+            to='/apps/stockOut' 
+            title='Xuất kho'
+          />
+        </>
+      )}
       <SidebarMenuItem 
         to='/apps/importHistory' 
         title='Lịch sử nhập kho'

@@ -3,56 +3,41 @@ import { useNavigate } from 'react-router-dom'
 import { ToolbarWrapper } from '../../../_metronic/layout/components/toolbar'
 import { Content } from '../../../_metronic/layout/components/content'
 import { KTSVG } from '../../../_metronic/helpers'
-
-// Mock data for staff list
-const mockStaffData = [
-  {
-    _id: '1',
-    fullName: 'Nguyễn Văn A',
-    phone: '0901234567',
-    roleId: { name: 'Quản lý kho' },
-    status: 'Active'
-  },
-  {
-    _id: '2',
-    fullName: 'Trần Thị B',
-    phone: '0912345678',
-    roleId: { name: 'Nhân viên kho' },
-    status: 'Active'
-  },
-  {
-    _id: '3',
-    fullName: 'Lê Văn C',
-    phone: '0923456789',
-    roleId: { name: 'Nhân viên kho' },
-    status: 'Inactive'
-  },
-  {
-    _id: '4',
-    fullName: 'Phạm Thị D',
-    phone: '0934567890',
-    roleId: { name: 'Quản lý kho' },
-    status: 'Active'
-  },
-  {
-    _id: '5',
-    fullName: 'Hoàng Văn E',
-    phone: '0945678901',
-    roleId: { name: 'Nhân viên kho' },
-    status: 'Active'
-  }
-]
+import axios from 'axios'
+import { API_URL, getAxiosConfig } from '../../config/api.config'
 
 const StaffPage = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
-  const [staff, setStaff] = useState(mockStaffData)
-  const [loading, setLoading] = useState(false)
+  const [staff, setStaff] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
   const [selectedMessage, setSelectedMessage] = useState('')
   const [selectedAction, setSelectedAction] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
+
+  // Fetch staff data
+  useEffect(() => {
+    fetchStaffData()
+  }, [])
+
+  const fetchStaffData = async () => {
+    try {
+      setLoading(true)
+      const response = await axios.get(API_URL.USERS.LIST, getAxiosConfig())
+      if (response.data.success) {
+        setStaff(response.data.staff)
+      } else {
+        setError('Failed to fetch staff data')
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Error fetching staff data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   // Filter staff list
   const filteredStaff = staff?.filter((staff) => {
@@ -104,14 +89,27 @@ const StaffPage = () => {
     }
   }
 
-  const handleConfirmDelete = () => {
-    const newStaff = staff.filter(staff => !selectedItems.includes(staff._id))
-    setStaff(newStaff)
-    setShowDeleteModal(false)
-    setSelectedAction('')
-    setSelectedItems([])
-    setSelectedMessage('')
-    setSelectAll(false)
+  const handleConfirmDelete = async () => {
+    try {
+      const response = await axios.delete(
+        API_URL.USERS.DELETE(selectedItems[0]), 
+        {
+          ...getAxiosConfig(),
+          data: { staffIds: selectedItems }
+        }
+      )
+
+      if (response.data.success) {
+        await fetchStaffData()
+        setShowDeleteModal(false)
+        setSelectedAction('')
+        setSelectedItems([])
+        setSelectedMessage('')
+        setSelectAll(false)
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || 'Error deleting staff')
+    }
   }
 
   return (
@@ -161,6 +159,12 @@ const StaffPage = () => {
 
             {/* Begin Body */}
             <div className='card-body py-4'>
+              {error && (
+                <div className='alert alert-danger'>
+                  {error}
+                </div>
+              )}
+
               {/* Thông báo số lượng đã chọn */}
               {selectedItems.length > 0 && (
                 <div className='d-flex align-items-center mb-5'>
@@ -245,14 +249,14 @@ const StaffPage = () => {
                           <td>{staff.phone}</td>
                           <td>{staff.roleId?.name || 'N/A'}</td>
                           <td>
-                            <span className={`badge badge-light-${staff.status === 'Active' ? 'success' : 'danger'}`}>
-                              {staff.status === 'Active' ? 'Đang làm việc' : 'Đã nghỉ việc'}
+                            <span className={`badge badge-light-${staff.status ? 'success' : 'danger'}`}>
+                              {staff.status ? 'Hoạt động' : 'Ngừng hoạt động'}
                             </span>
                           </td>
                           <td>
                             <button
                               className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 ms-4'
-                              onClick={() => navigate(`/apps/staff/edit/${staff._id}`)}
+                              onClick={() => navigate(`/apps/staff/update/${staff._id}`)}
                             >
                               <i className='fas fa-edit'></i>
                             </button>

@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Content } from '../../../_metronic/layout/components/content'
 import { KTSVG } from '../../../_metronic/helpers'
 import { useNavigate } from 'react-router-dom'
+import ErrorModal from '../errors/components/modalErros'
+
 
 // Mock data cho sản phẩm lỗi
 const mockDefectiveProducts = [
@@ -47,6 +49,53 @@ const DefectiveProductPage = () => {
     const [selectedAction, setSelectedAction] = useState('')
     const [showDeleteModal, setShowDeleteModal] = useState(false)
     const [defectiveProducts] = useState(mockDefectiveProducts)
+    const [isAdmin, setIsAdmin] = useState(false)
+    const [showErrorModal, setShowErrorModal] = useState(false)
+    const [errorMessage, setErrorMessage] = useState('')
+    const [permissions, setPermissions] = useState({
+        create: false,
+        update: false,
+        delete: false
+    })
+
+    useEffect(() => {
+        // Kiểm tra vai trò admin và permissions từ localStorage
+        const userStr = localStorage.getItem('user')
+        if (userStr) {
+            try {
+                const user = JSON.parse(userStr)
+                setIsAdmin(user.roleName === 'Admin')
+                
+                // Chỉ kiểm tra quyền nếu không phải admin
+                if (user.roleName !== 'Admin') {
+                    const permissions = user.permissions || {}
+                    console.log('Permissions:', permissions)
+                    
+                    // Kiểm tra các loại quyền
+                    const hasCreatePermission = Array.isArray(permissions.DEFECT_PRODUCTS) && 
+                                            permissions.DEFECT_PRODUCTS.includes('CREATE')
+                    const hasUpdatePermission = Array.isArray(permissions.DEFECT_PRODUCTS) && 
+                                            permissions.DEFECT_PRODUCTS.includes('UPDATE')
+                    const hasDeletePermission = Array.isArray(permissions.DEFECT_PRODUCTS) && 
+                                            permissions.DEFECT_PRODUCTS.includes('DELETE')
+                    
+                    setPermissions({
+                        create: hasCreatePermission,
+                        update: hasUpdatePermission,
+                        delete: hasDeletePermission
+                    })
+                }
+            } catch (error) {
+                console.error('Error parsing user data:', error)
+                setIsAdmin(false)
+                setPermissions({
+                    create: false,
+                    update: false,
+                    delete: false
+                })
+            }
+        }
+    }, [])
 
     const getStatusClass = (status) => {
         const classes = {
@@ -120,12 +169,17 @@ const DefectiveProductPage = () => {
         }
     }
 
-    // Xử lý thực hiện action
+    // Xử lý thực hiện action với kiểm tra quyền
     const handleExecuteAction = () => {
         if (!selectedAction) return;
 
         switch (selectedAction) {
             case 'delete':
+                if (!isAdmin && !permissions.delete) {
+                    setErrorMessage('Bạn không có quyền xóa sản phẩm lỗi')
+                    setShowErrorModal(true)
+                    return
+                }
                 setShowDeleteModal(true)
                 break;
             default:
@@ -142,8 +196,13 @@ const DefectiveProductPage = () => {
         setSelectedMessage('')
     }
 
-    // Xử lý chuyển đến trang khai báo sản phẩm
+    // Xử lý chuyển đến trang khai báo sản phẩm với kiểm tra quyền
     const handleNavigateToCreate = () => {
+        if (!isAdmin && !permissions.create) {
+            setErrorMessage('Bạn không có quyền khai báo sản phẩm lỗi')
+            setShowErrorModal(true)
+            return
+        }
         navigate('/apps/declareProduct')
     }
 
@@ -224,24 +283,27 @@ const DefectiveProductPage = () => {
                                     Đặt lại
                                 </button>
                             </div>
-                            <div className='card-toolbar'>
-                                <div className='d-flex justify-content-end'>
-                                    <button
-                                        type='button'
-                                        className='btn btn-primary'
-                                        onClick={handleNavigateToCreate}
-                                    >
-                                        <i className='ki-duotone ki-plus fs-2'></i>
-                                        Khai báo sản phẩm
-                                    </button>
+                            {/* Hiển thị nút khai báo cho tất cả nhân viên */}
+                            {!isAdmin && (
+                                <div className='card-toolbar'>
+                                    <div className='d-flex justify-content-end'>
+                                        <button
+                                            type='button'
+                                            className='btn btn-primary'
+                                            onClick={handleNavigateToCreate}
+                                        >
+                                            <i className='ki-duotone ki-plus fs-2'></i>
+                                            Khai báo sản phẩm
+                                        </button>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                         </div>
 
                         {/* Table */}
                         <div className='card-body py-4'>
-                            {/* Thông báo số lượng đã chọn */}
-                            {selectedItems.length > 0 && (
+                            {/* Hiển thị thông báo số lượng đã chọn cho tất cả nhân viên */}
+                            {!isAdmin && selectedItems.length > 0 && (
                                 <div className='d-flex align-items-center mb-5'>
                                     <div className='d-flex align-items-center'>
                                         <KTSVG
@@ -274,16 +336,19 @@ const DefectiveProductPage = () => {
                                 <table className='table align-middle table-row-dashed fs-6 gy-5'>
                                     <thead>
                                         <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
-                                            <th className='w-35px'>
-                                                <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                                                    <input
-                                                        className='form-check-input'
-                                                        type='checkbox'
-                                                        checked={selectAll}
-                                                        onChange={handleSelectAll}
-                                                    />
-                                                </div>
-                                            </th>
+                                            {/* Hiển thị checkbox cho tất cả nhân viên */}
+                                            {!isAdmin && (
+                                                <th className='w-35px'>
+                                                    <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                                                        <input
+                                                            className='form-check-input'
+                                                            type='checkbox'
+                                                            checked={selectAll}
+                                                            onChange={handleSelectAll}
+                                                        />
+                                                    </div>
+                                                </th>
+                                            )}
                                             <th>ID</th>
                                             <th>Ngày khai báo</th>
                                             <th>Kho</th>
@@ -296,16 +361,19 @@ const DefectiveProductPage = () => {
                                     <tbody className='text-gray-600 fw-semibold'>
                                         {filteredData.map((item) => (
                                             <tr key={item.id}>
-                                                <td>
-                                                    <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                                                        <input
-                                                            className='form-check-input'
-                                                            type='checkbox'
-                                                            checked={selectedItems.includes(item.id)}
-                                                            onChange={() => handleSelectItem(item.id)}
-                                                        />
-                                                    </div>
-                                                </td>
+                                                {/* Hiển thị checkbox cho tất cả nhân viên */}
+                                                {!isAdmin && (
+                                                    <td>
+                                                        <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                                                            <input
+                                                                className='form-check-input'
+                                                                type='checkbox'
+                                                                checked={selectedItems.includes(item.id)}
+                                                                onChange={() => handleSelectItem(item.id)}
+                                                            />
+                                                        </div>
+                                                    </td>
+                                                )}
                                                 <td>{item.id}</td>
                                                 <td>{item.date}</td>
                                                 <td>{item.warehouse}</td>
@@ -334,12 +402,6 @@ const DefectiveProductPage = () => {
                         style={{
                             backgroundColor: 'rgba(0,0,0,0.5)',
                             transition: 'background-color 0.3s ease',
-                            position: 'fixed',
-                            top: 0,
-                            left: 0,
-                            right: 0,
-                            bottom: 0,
-                            zIndex: 1050,
                         }}
                     >
                         <div
@@ -385,6 +447,21 @@ const DefectiveProductPage = () => {
                         </div>
                     </div>
                 )}
+
+                {/* Style cho animation */}
+                <style>{`
+                    @keyframes modal-fade-in {
+                        from { opacity: 0; transform: translateY(-60px); }
+                        to { opacity: 1; transform: translateY(0); }
+                    }
+                `}</style>
+
+                {/* Error Modal */}
+                <ErrorModal
+                    show={showErrorModal}
+                    onHide={() => setShowErrorModal(false)}
+                    message={errorMessage}
+                />
             </div>
         </>
     )

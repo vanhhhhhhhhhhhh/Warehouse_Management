@@ -3,9 +3,6 @@ const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
 
-
-
-
 const authController = {
 
     register: async (req, res) => {
@@ -87,33 +84,78 @@ const authController = {
         try {
             const { email, password } = req.body
             if (!email || !password) {
-                return res.status(400).json({ message: 'Vui lòng điền đầy đủ tất cả các trường' })
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'Vui lòng điền đầy đủ email và mật khẩu' 
+                })
             }
 
             const normalizedEmail = email.trim().toLowerCase();
 
-            const user = await User.findOne({ email: normalizedEmail })
-            if (!user || user.isDelete || !user.isActive) {
-                return res.status(404).json({ message: 'Email hoặc mật khẩu không chính xác' })
+            // Tìm user và kiểm tra isDelete
+            const user = await User.findOne({ 
+                email: normalizedEmail,
+                isDelete: false 
+            }).populate('roleId')
+
+            // Kiểm tra user tồn tại
+            if (!user) {
+                return res.status(401).json({ 
+                    success: false,
+                    message: 'Email hoặc mật khẩu không chính xác' 
+                })
             }
 
+            // Kiểm tra mật khẩu
             const validPassword = await argon2.verify(user.password, password)
             if (!validPassword) {
-                return res.status(404).json({ message: 'Email hoặc mật khẩu không chính xác' })
+                return res.status(401).json({ 
+                    success: false,
+                    message: 'Email hoặc mật khẩu không chính xác' 
+                })
             }
 
-            const accessToken = await jwt.sign({ userId: user._id, roleId: user.roleId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1d' })
+            // Kiểm tra trạng thái tài khoản
+            if (!user.status) {
+                return res.status(403).json({ 
+                    success: false,
+                    message: 'Tài khoản đã bị vô hiệu hóa' 
+                })
+            }
+
+            // Tạo token với thông tin cần thiết
+            const accessToken = jwt.sign(
+                { 
+                    userId: user._id,
+                    roleId: user.roleId._id
+                }, 
+                process.env.ACCESS_TOKEN_SECRET,
+                { expiresIn: '1d' }
+            )
+
+            // Trả về thông tin đăng nhập thành công
             return res.status(200).json({
-                message: 'Đăng nhập thành công', accessToken,
+                success: true,
+                message: 'Đăng nhập thành công',
+                token: accessToken,
                 user: {
                     id: user._id,
                     fullname: user.fullname,
                     email: user.email,
-                    roleId: user.roleId
+                    phone: user.phone,
+                    roleId: user.roleId._id,
+                    roleName: user.roleId.name,
+                    adminId: user.adminId,
+                    status: user.status,
+                    permissions: user.roleId.permissions
                 }
             })
         } catch (error) {
-            return res.status(500).json(error.message)
+            console.error('Login error:', error)
+            return res.status(500).json({ 
+                success: false,
+                message: 'Lỗi server khi đăng nhập' 
+            })
         }
     }
 }
