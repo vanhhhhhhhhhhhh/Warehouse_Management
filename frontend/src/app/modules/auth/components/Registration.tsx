@@ -69,12 +69,12 @@ export function Registration() {
           values.confirmPassword
         )
 
-        setStatus('Đăng ký thành công! Đang chuyển hướng tới trang đăng nhập...')
-        resetForm()
+        setStatus('Đăng ký thành công!')
 
         setTimeout(() => {
           navigate('/auth/login')
-        }, 3000)
+          resetForm()
+        }, 2000)
       } catch (error) {
         let msg = 'Đăng ký thất bại. Vui lòng thử lại.'
         if (axios.isAxiosError(error)) {
@@ -112,6 +112,17 @@ export function Registration() {
 
           <form className='form w-100' onSubmit={formik.handleSubmit} noValidate>
             <div className='row g-4'>
+
+              {formik.status && (
+                <div className='col-12'>
+                  <div
+                    className={`alert text-center py-2 ${formik.status.includes('thành công') ? 'alert-success' : 'alert-danger'
+                      }`}
+                  >
+                    {formik.status}
+                  </div>
+                </div>
+              )}
 
               {/* fullName */}
               <div className='col-12'>
@@ -192,19 +203,6 @@ export function Registration() {
                   <div className='text-danger fs-8 mt-1'>{formik.errors.confirmPassword}</div>
                 )}
               </div>
-
-              {/* Status Message */}
-              {formik.status && (
-                <div className='col-12'>
-                  <div
-                    className={`alert text-center py-2 ${formik.status.includes('thành công') ? 'alert-success' : 'alert-danger'
-                      }`}
-                  >
-                    {formik.status}
-                  </div>
-                </div>
-              )}
-
 
 
               {/* Submit Button */}
