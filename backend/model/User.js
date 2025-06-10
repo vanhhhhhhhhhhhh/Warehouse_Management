@@ -1,10 +1,13 @@
 const mongoose = require('mongoose')
 
-
 const userSchema = mongoose.Schema({
-    fullname: {
+    fullName: {
         type: String,
         required: true
+    },
+    username: {
+        type: String,
+        unique: true
     },
     email: {
         type: String,
@@ -17,17 +20,18 @@ const userSchema = mongoose.Schema({
     },
     phone: {
         type: String,
-        default: ''
+        required: true
     },
     roleId: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'roles'
+        ref: 'roles',
+        required: true
     },
     adminId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'
     },
-    isActive: {
+    status: {
         type: Boolean,
         default: true
     },

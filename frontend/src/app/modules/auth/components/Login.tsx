@@ -52,15 +52,46 @@ export function Login() {
         })
 
         const data = await response.json()
+        console.log('Login response:', data)
 
-        if (!response.ok) {
+        if (!response.ok || !data.success) {
           throw new Error(data.message || 'Đăng nhập thất bại')
         }
 
-        saveAuth({api_token: data.accessToken})
-        setCurrentUser(data.user)
+        // Kiểm tra dữ liệu từ response
+        if (!data.token || !data.user) {
+          throw new Error('Dữ liệu đăng nhập không hợp lệ')
+        }
+
+        // Tạo object auth với thông tin user từ response
+        const auth = {
+          api_token: data.token,
+          user: {
+            id: data.user.id,
+            fullname: data.user.fullname,
+            email: data.user.email,
+            phone: data.user.phone,
+            roleId: data.user.roleId,
+            roleName: data.user.roleName,
+            adminId: data.user.adminId,
+            status: data.user.status,
+            permissions: data.user.permissions
+          }
+        }
+
+        console.log('Auth object to save:', auth)
+
+        // Lưu auth vào localStorage và state
+        saveAuth(auth)
+        setCurrentUser(auth.user)
+
+        // Lưu thông tin user và permissions riêng vào localStorage 
+        localStorage.setItem('user', JSON.stringify(auth.user))
+        localStorage.setItem('permissions', JSON.stringify(data.user.permissions || {}))
+        
         navigate('/dashboard')
       } catch (error) {
+        console.error('Login error:', error)
         const errorMessage =
           error instanceof Error
             ? error.message

@@ -4,6 +4,7 @@ import { ToolbarWrapper } from '../../../_metronic/layout/components/toolbar'
 import { Content } from '../../../_metronic/layout/components/content'
 import { useNavigate } from 'react-router-dom'
 import { KTSVG } from '../../../_metronic/helpers'
+import ErrorModal from '../errors/components/modalErros'
 
 // Mock data for warehouses
 const mockWarehouses = [
@@ -57,6 +58,33 @@ const WarehousePage = () => {
   const [selectedAction, setSelectedAction] = useState('')
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
+  const [userPermissions, setUserPermissions] = useState([])
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    // Kiểm tra vai trò và quyền từ localStorage
+    const userStr = localStorage.getItem('user')
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr)
+        setIsAdmin(user.roleName === 'Admin')
+        // Lưu trữ danh sách quyền của user
+        setUserPermissions(user.permissions?.WAREHOUSE || [])
+      } catch (error) {
+        console.error('Error parsing user data:', error)
+        setIsAdmin(false)
+        setUserPermissions([])
+      }
+    }
+  }, [])
+
+  // Kiểm tra quyền thực hiện hành động
+  const checkPermission = (action) => {
+    if (isAdmin) return true // Admin luôn có quyền
+    return userPermissions.includes(action)
+  }
 
   const handleSelectAll = (e) => {
     setSelectAll(e.target.checked)
@@ -86,6 +114,12 @@ const WarehousePage = () => {
   }
 
   const handleExecuteAction = () => {
+    if (!checkPermission('DELETE')) {
+      setErrorMessage('Bạn không có quyền xóa kho')
+      setShowErrorModal(true)
+      return
+    }
+
     if (!selectedAction) return;
 
     switch (selectedAction) {
@@ -109,10 +143,20 @@ const WarehousePage = () => {
   }
 
   const handleShow = () => {
+    if (!checkPermission('CREATE')) {
+      setErrorMessage('Bạn không có quyền thêm kho mới')
+      setShowErrorModal(true)
+      return
+    }
     navigate('/apps/warehouse/create')
   }
 
   const handleEdit = (id) => {
+    if (!checkPermission('UPDATE')) {
+      setErrorMessage('Bạn không có quyền chỉnh sửa kho')
+      setShowErrorModal(true)
+      return
+    }
     navigate(`/apps/warehouse/edit/${id}`)
   }
 
@@ -156,23 +200,27 @@ const WarehousePage = () => {
                 {/* End Search */}
               </div>
 
-              <div className='card-toolbar'>
-                <div className='d-flex justify-content-end gap-2'>
-                  <button
-                    type='button'
-                    className='btn btn-primary'
-                    onClick={() => navigate('/apps/warehouse/create')}
-                  >
-                    <i className='ki-duotone ki-plus fs-2'></i>
-                    Thêm kho mới
-                  </button>
+              {/* Hiển thị nút thêm mới nếu có quyền */}
+              {(isAdmin || checkPermission('CREATE')) && (
+                <div className='card-toolbar'>
+                  <div className='d-flex justify-content-end gap-2'>
+                    <button
+                      type='button'
+                      className='btn btn-primary'
+                      onClick={handleShow}
+                    >
+                      <i className='ki-duotone ki-plus fs-2'></i>
+                      Thêm kho mới
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Card body */}
             <div className='card-body py-4'>
-              {selectedItems.length > 0 && (
+              {/* Thông báo số lượng đã chọn - Hiển thị nếu có quyền xóa */}
+              {(isAdmin || checkPermission('DELETE')) && selectedItems.length > 0 && (
                 <div className='d-flex align-items-center mb-5'>
                   <div className='d-flex align-items-center'>
                     <KTSVG
@@ -211,26 +259,33 @@ const WarehousePage = () => {
                 <table className='table align-middle table-row-dashed fs-6 gy-5'>
                   <thead>
                     <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
-                      <th className='w-35px'>
-                        <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                          <input
-                            className='form-check-input'
-                            type='checkbox'
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                            disabled
-                          />
-                        </div>
-                      </th>
+                      {/* Hiển thị checkbox nếu có quyền xóa */}
+                      {(isAdmin || checkPermission('DELETE')) && (
+                        <th className='w-35px'>
+                          <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                            <input
+                              className='form-check-input'
+                              type='checkbox'
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                              disabled
+                            />
+                          </div>
+                        </th>
+                      )}
                       <th className='min-w-100px text-black'>Tên kho</th>
                       <th className='min-w-150px text-black'>Địa chỉ</th>
                       <th className='min-w-100px text-black'>Số điện thoại</th>
                       <th className='min-w-100px text-black'>Trạng thái</th>
+                      {/* Hiển thị cột thao tác nếu có quyền sửa */}
+                      {(isAdmin || checkPermission('UPDATE')) && (
+                        <th className='min-w-100px text-black'>Thao tác</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className='text-gray-600 fw-semibold'>
                     <tr>
-                      <td colSpan={5} className='text-center py-5'>
+                      <td colSpan={isAdmin ? 5 : 6} className='text-center py-5'>
                         Không có dữ liệu
                       </td>
                     </tr>
@@ -240,36 +295,45 @@ const WarehousePage = () => {
                 <table className='table align-middle table-row-dashed fs-6 gy-5'>
                   <thead>
                     <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
-                      <th className='w-35px'>
-                        <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                          <input
-                            className='form-check-input'
-                            type='checkbox'
-                            checked={selectAll}
-                            onChange={handleSelectAll}
-                          />
-                        </div>
-                      </th>
+                      {/* Hiển thị checkbox nếu có quyền xóa */}
+                      {(isAdmin || checkPermission('DELETE')) && (
+                        <th className='w-35px'>
+                          <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                            <input
+                              className='form-check-input'
+                              type='checkbox'
+                              checked={selectAll}
+                              onChange={handleSelectAll}
+                            />
+                          </div>
+                        </th>
+                      )}
                       <th className='min-w-100px text-black'>Tên kho</th>
                       <th className='min-w-150px text-black'>Địa chỉ</th>
                       <th className='min-w-100px text-black'>Số điện thoại</th>
                       <th className='min-w-100px text-black'>Trạng thái</th>
-                      <th className='min-w-100px text-black'>Thao tác</th>
+                      {/* Hiển thị cột thao tác nếu có quyền sửa */}
+                      {(isAdmin || checkPermission('UPDATE')) && (
+                        <th className='min-w-100px text-black'>Thao tác</th>
+                      )}
                     </tr>
                   </thead>
                   <tbody className='text-gray-600 fw-semibold'>
                     {filteredWarehouses.map((warehouse) => (
                       <tr key={warehouse._id}>
-                        <td>
-                          <div className='form-check form-check-sm form-check-custom form-check-solid'>
-                            <input
-                              className='form-check-input'
-                              type='checkbox'
-                              checked={selectedItems.includes(warehouse._id)}
-                              onChange={() => handleSelectItem(warehouse._id)}
-                            />
-                          </div>
-                        </td>
+                        {/* Hiển thị checkbox nếu có quyền xóa */}
+                        {(isAdmin || checkPermission('DELETE')) && (
+                          <td>
+                            <div className='form-check form-check-sm form-check-custom form-check-solid'>
+                              <input
+                                className='form-check-input'
+                                type='checkbox'
+                                checked={selectedItems.includes(warehouse._id)}
+                                onChange={() => handleSelectItem(warehouse._id)}
+                              />
+                            </div>
+                          </td>
+                        )}
                         <td>{warehouse.name}</td>
                         <td>
                           {`${warehouse.address.detail}, ${warehouse.address.ward}, ${warehouse.address.district}, ${warehouse.address.city}`}
@@ -280,14 +344,17 @@ const WarehousePage = () => {
                             {warehouse.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                           </span>
                         </td>
-                        <td>
-                          <button 
-                            className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 ms-4' 
-                            onClick={() => handleEdit(warehouse._id)}
-                          >
-                            <i className='fas fa-edit'></i>
-                          </button>
-                        </td>
+                        {/* Hiển thị nút thao tác nếu có quyền sửa */}
+                        {(isAdmin || checkPermission('UPDATE')) && (
+                          <td>
+                            <button 
+                              className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1 ms-4' 
+                              onClick={() => handleEdit(warehouse._id)}
+                            >
+                              <i className='fas fa-edit'></i>
+                            </button>
+                          </td>
+                        )}
                       </tr>
                     ))}
                   </tbody>
@@ -298,8 +365,15 @@ const WarehousePage = () => {
         </div>
       </div>
 
-      {/* Modal xác nhận xóa */}
-      {showDeleteModal && (
+      {/* Error Modal */}
+      <ErrorModal
+        show={showErrorModal}
+        onHide={() => setShowErrorModal(false)}
+        message={errorMessage}
+      />
+
+      {/* Modal xác nhận xóa - Hiển thị nếu có quyền xóa */}
+      {(isAdmin || checkPermission('DELETE')) && showDeleteModal && (
         <div
           className='modal fade show d-block'
           tabIndex={-1}

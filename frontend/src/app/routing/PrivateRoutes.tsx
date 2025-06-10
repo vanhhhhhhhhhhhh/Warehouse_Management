@@ -9,6 +9,7 @@ import {MenuTestPage} from '../pages/MenuTestPage'
 import {getCSSVariableValue} from '../../_metronic/assets/ts/_utils'
 import {WithChildren} from '../../_metronic/helpers'
 import BuilderPageWrapper from '../pages/layout-builder/BuilderPageWrapper'
+import PermissionGuard from '../modules/auth/components/PermissionGuard'
 
 const SuspensedView: FC<WithChildren> = ({children}) => {
   const baseColor = getCSSVariableValue('--bs-primary')
@@ -51,274 +52,296 @@ const PrivateRoutes = () => {
   const StockOutHistory = lazy(() => import('../modules/warehouse/stockOutHistory'))
   const StockOverview = lazy(() => import('../modules/warehouse/inventory'))
   const InventoryReport = lazy(() => import('../modules/warehouse/report'))
+  const UpdateRole = lazy(() => import('../modules/role/updateRole'))
+  const UpdateStaff = lazy(() => import('../modules/staff/updateStaff'))
 
   return (
     <Routes>
       <Route element={<MasterLayout />}>
-        {/* Redirect to Dashboard after success login/registartion */}
+        {/* Redirect to Dashboard after success login/registration */}
         <Route path='auth/*' element={<Navigate to='/dashboard' />} />
         {/* Pages */}
         <Route path='dashboard' element={<DashboardWrapper />} />
         <Route path='builder' element={<BuilderPageWrapper />} />
         <Route path='menu-test' element={<MenuTestPage />} />
-        {/* Lazy Modules */}
-        <Route
-          path='crafted/pages/profile/*'
-          element={
-            <SuspensedView>
-              <ProfilePage />
-            </SuspensedView>
-          }
-        />
-        <Route
-          path='crafted/pages/wizards/*'
-          element={
-            <SuspensedView>
-              <WizardsPage />
-            </SuspensedView>
-          }
-        />
-        <Route
-          path='crafted/widgets/*'
-          element={
-            <SuspensedView>
-              <WidgetsPage />
-            </SuspensedView>
-          }
-        />
-        <Route
-          path='crafted/account/*'
-          element={
-            <SuspensedView>
-              <AccountPage />
-            </SuspensedView>
-          }
-        />
-        <Route
-          path='apps/chat/*'
-          element={
-            <SuspensedView>
-              <ChatPage />
-            </SuspensedView>
-          }
-        />
-        <Route
-          path='apps/user-management/*'
-          element={
-            <SuspensedView>
-              <UsersPage />
-            </SuspensedView>
-          }
-        />
 
-        {/*categories*/}
+        {/* Categories */}
         <Route
           path='apps/categories'
           element={
-            <SuspensedView>
-              <CategoriesPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'VIEW'}]}>
+              <SuspensedView>
+                <CategoriesPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/categories/create'
           element={
-            <SuspensedView>
-              <CreateCategoryPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateCategoryPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/categories/:id'
           element={
-            <SuspensedView>
-              <EditCategoryPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <EditCategoryPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         {/*role*/}
+        {/* Role Management */}
         <Route
           path='apps/role/*'
           element={
-            <SuspensedView>
-              <RolePage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'ROLES', action: 'VIEW'}]}>
+              <SuspensedView>
+                <RolePage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/role/create'
           element={
-            <SuspensedView>
-              <CreateRolePage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'ROLES', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateRolePage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
-        {/*staff*/}
+        <Route
+          path='apps/role/update/:roleId'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'ROLES', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <UpdateRole />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        {/* Staff Management */}
         <Route
           path='apps/staff/*'
           element={
-            <SuspensedView>
-              <StaffPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'USERS', action: 'VIEW'}]}>
+              <SuspensedView>
+                <StaffPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/staff/create'
           element={
-            <SuspensedView>
-              <CreateStaff />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'USERS', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateStaff />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
-        {/*product*/}
+        <Route
+          path='apps/staff/update/:staffId'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'USERS', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <UpdateStaff />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        {/* Product Management */}
         <Route
           path='apps/products'
           element={
-            <SuspensedView>
-              <ProductPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'PRODUCTS', action: 'VIEW'}]}>
+              <SuspensedView>
+                <ProductPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/products/:id'
           element={
-            <SuspensedView>
-              <EditProduct />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'PRODUCTS', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <EditProduct />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/products/create'
           element={
-            <SuspensedView>
-              <CreateProduct />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'PRODUCTS', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateProduct />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
-        {/*warehouse*/}
+        {/* Warehouse Management */}
         <Route
           path='apps/warehouse/*'
           element={
-            <SuspensedView>
-              <WarehousePage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'VIEW'}]}>
+              <SuspensedView>
+                <WarehousePage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/warehouse/create'
           element={
-            <SuspensedView>
-              <CreateWarehouse />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'WAREHOUSE', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateWarehouse />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
-        {/*defective product*/}
-        <Route
-          path='apps/defectiveProduct/*'
-          element={
-            <SuspensedView>
-              <DefectiveProductPage />
-            </SuspensedView>
-          }
-        />
-
-        <Route
-          path='apps/declareProduct/*'
-          element={
-            <SuspensedView>
-              <DeclareProduct />
-            </SuspensedView>
-          }
-        />
-
+        {/* Stock Management */}
         <Route
           path='apps/stockIn/*'
           element={
-            <SuspensedView>
-              <StockInPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'STOCK_IN'}]}>
+              <SuspensedView>
+                <StockInPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/stockOut/*'
           element={
-            <SuspensedView>
-              <StockOutPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'STOCK_OUT'}]}>
+              <SuspensedView>
+                <StockOutPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/stockIn/create'
           element={
-            <SuspensedView>
-              <CreateStockInPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'STOCK_IN'}]}>
+              <SuspensedView>
+                <CreateStockInPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/stockOut/create'
           element={
-            <SuspensedView>
-              <CreateStockOutPage />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'STOCK_OUT'}]}>
+              <SuspensedView>
+                <CreateStockOutPage />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/importHistory/*'
           element={
-            <SuspensedView>
-              <StockInHistory />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'VIEW_STOCK_IN_HISTORY'}]}>
+              <SuspensedView>
+                <StockInHistory />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/exportHistory/*'
           element={
-            <SuspensedView>
-              <StockOutHistory />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'VIEW_STOCK_OUT_HISTORY'}]}>
+              <SuspensedView>
+                <StockOutHistory />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/inventory/*'
           element={
-            <SuspensedView>
-              <StockOverview />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'VIEW_INVENTORY'}]}>
+              <SuspensedView>
+                <StockOverview />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
 
         <Route
           path='apps/report/*'
           element={
-            <SuspensedView>
-              <InventoryReport />
-            </SuspensedView>
+            <PermissionGuard requiredPermissions={[{module: 'STOCK', action: 'VIEW_STOCK_REPORT'}]}>
+              <SuspensedView>
+                <InventoryReport />
+              </SuspensedView>
+            </PermissionGuard>
           }
         />
-        {/* Page Not Found */}
+
+        {/* Defective Products */}
+        <Route
+          path='apps/defectiveProduct/*'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'DEFECT_PRODUCTS', action: 'VIEW'}]}>
+              <SuspensedView>
+                <DefectiveProductPage />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        <Route
+          path='apps/declareProduct/*'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'DEFECT_PRODUCTS', action: 'CREATE'}]}>
+              <SuspensedView>
+                <DeclareProduct />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        {/* Catch all */}
         <Route path='*' element={<Navigate to='/error/404' />} />
       </Route>
     </Routes>
   )
 }
 
-export {PrivateRoutes}
+export default PrivateRoutes

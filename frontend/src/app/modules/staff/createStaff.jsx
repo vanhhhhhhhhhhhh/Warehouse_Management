@@ -2,13 +2,9 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Select from 'react-select'
 import { Link } from 'react-router-dom'
-
-// Mock data for roles
-const mockRoles = [
-  { _id: '1', name: 'Staff' },
-  { _id: '2', name: 'Manager' },
-  { _id: '3', name: 'Supervisor' }
-]
+import axios from 'axios'
+import { API_URL, getAxiosConfig, API_ERROR_MESSAGES } from '../../config/api.config'
+import Swal from 'sweetalert2'
 
 const CreateStaff = () => {
   const navigate = useNavigate()
@@ -23,7 +19,8 @@ const CreateStaff = () => {
   })
   const [errors, setErrors] = useState({})
   const [loading, setLoading] = useState(false)
-  const [roles, setRoles] = useState(mockRoles)
+  const [roles, setRoles] = useState([])
+  const [apiError, setApiError] = useState(null)
 
   const selectStyles = {
     control: (base, { isFocused }) => ({
@@ -47,15 +44,33 @@ const CreateStaff = () => {
     })
   }
 
+  // Fetch roles from API
   useEffect(() => {
-    // Using mock data instead of API call
-    const roleOptions = mockRoles
-      .filter(role => role.name.toLowerCase() !== 'admin')
-      .map(role => ({
-        value: role._id,
-        label: role.name
-      }))
-    setRoles(roleOptions)
+    const fetchRoles = async () => {
+      try {
+        const response = await axios.get(API_URL.ROLES.LIST, getAxiosConfig())
+
+        if (response.data) {
+          // Kiểm tra xem response.data có phải là array không
+          const rolesData = Array.isArray(response.data) ? response.data : response.data.roles || []
+          const roleOptions = rolesData
+            .filter(role => role.name.toLowerCase() !== 'admin')
+            .map(role => ({
+              value: role._id,
+              label: role.name
+            }))
+
+          setRoles(roleOptions)
+        } else {
+          throw new Error('Invalid roles data format')
+        }
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.message || API_ERROR_MESSAGES.SERVER_ERROR
+        setApiError(`Lỗi khi tải danh sách vai trò: ${errorMessage}`)
+      }
+    }
+
+    fetchRoles()
   }, [])
 
   // Validate từng trường khi người dùng nhập
@@ -134,8 +149,9 @@ const CreateStaff = () => {
     }
   }
 
-  // Handle role change
+  // Handle role change with logging
   const handleRoleChange = (selectedOption) => {
+    console.log('Selected role:', selectedOption)
     setFormData(prev => ({
       ...prev,
       role: selectedOption
@@ -173,26 +189,51 @@ const CreateStaff = () => {
     e.preventDefault()
     
     if (!validateForm()) {
-      console.error('Vui lòng kiểm tra lại thông tin')
       return
     }
 
     setLoading(true)
     setErrors({})
+    setApiError(null)
 
     try {
       const staffData = {
-        ...formData,
+        fullName: formData.fullName,
+        username: formData.username,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        rePassword: formData.confirmPassword,
         roleId: formData.role?.value
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      console.log('Created staff:', staffData)
-      navigate('/apps/staff/list')
+      const response = await axios.post(
+        API_URL.USERS.CREATE,
+        staffData,
+        getAxiosConfig()
+      )
+
+      if (response.data.success) {
+        await Swal.fire({
+          icon: 'success',
+          title: 'Thành công!',
+          text: 'Tạo nhân viên mới thành công',
+          showConfirmButton: false,
+          timer: 1500
+        })
+        navigate('/apps/staff')
+      }
     } catch (error) {
-      // Log error message
-      console.error(error.message)
+      console.error('Create staff error:', error)
+      const errorMessage = error.response?.data?.message || API_ERROR_MESSAGES.SERVER_ERROR
+      
+      setApiError(errorMessage)
+      await Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: errorMessage,
+        confirmButtonText: 'Đóng'
+      })
     } finally {
       setLoading(false)
     }
@@ -203,7 +244,7 @@ const CreateStaff = () => {
     <div className='d-flex flex-column gap-7'>
       <div className='px-9'>
         <Link
-          to='/apps/staff/list'
+          to='/apps/staff'
           className='fs-5 fw-bold text-gray-500 text-hover-dark d-flex align-items-center'
         >
           <i className='bi bi-arrow-left fs-2 me-2'></i>
@@ -220,6 +261,15 @@ const CreateStaff = () => {
           </div>
 
           <div className='card-body py-4'>
+            {apiError && (
+              <div className='alert alert-danger d-flex align-items-center p-5 mb-10'>
+                <i className='bi bi-exclamation-circle fs-2 text-danger me-4'></i>
+                <div className='d-flex flex-column'>
+                  <span>{apiError}</span>
+                </div>
+              </div>
+            )}
+
             <form onSubmit={handleSubmit}>
               <div className='row g-5 g-xl-8'>
                 <div className='col-lg-6'>
@@ -299,6 +349,7 @@ const CreateStaff = () => {
                       className={`react-select-container ${errors.role ? 'is-invalid' : ''}`}
                       classNamePrefix='react-select'
                       styles={selectStyles}
+                      noOptionsMessage={() => "Không có vai trò nào"}
                     />
                     {errors.role && (
                       <div className='invalid-feedback d-block'>{errors.role}</div>

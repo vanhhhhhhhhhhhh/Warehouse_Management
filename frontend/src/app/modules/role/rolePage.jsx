@@ -5,6 +5,7 @@ import { Content } from '../../../_metronic/layout/components/content'
 import { KTSVG } from '../../../_metronic/helpers'
 import axios from 'axios'
 import { API_URL, getAxiosConfig } from '../../config/api.config'
+import Swal from 'sweetalert2'
 
 const EmployeeRolePage = () => {
     const navigate = useNavigate()
@@ -28,16 +29,16 @@ const EmployeeRolePage = () => {
         try {
             setLoading(true)
             setError(null)
-            
+
             const token = localStorage.getItem('token')
             if (!token) {
                 setError('Vui lòng đăng nhập để tiếp tục')
                 navigate('/auth/login')
                 return
             }
-            
+
             const response = await axios.get(API_URL.ROLES.LIST, getAxiosConfig())
-            
+
             if (Array.isArray(response.data)) {
                 setRoles(response.data)
             } else {
@@ -51,7 +52,7 @@ const EmployeeRolePage = () => {
                 headers: err.response?.headers,
                 config: err.config
             })
-            
+
             if (err.response?.status === 401) {
                 setError('Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.')
                 navigate('/auth/login')
@@ -106,18 +107,33 @@ const EmployeeRolePage = () => {
 
     const handleConfirmDelete = async () => {
         try {
-            await Promise.all(selectedItems.map(id => 
-                axios.delete(`${API_URL.ROLES.BASE}/${id}`, getAxiosConfig())
+            await Promise.all(selectedItems.map(id =>
+                axios.delete(`${API_URL.ROLES.DELETE(id)}`, getAxiosConfig())
             ))
-            await fetchRoles() // Refresh the list after deletion
+
+            await fetchRoles()
+
             setShowDeleteModal(false)
             setSelectedAction('')
             setSelectedItems([])
             setSelectedMessage('')
             setSelectAll(false)
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Thành công!',
+                text: 'Xóa vai trò thành công',
+                showConfirmButton: false,
+                timer: 1500
+            })
         } catch (err) {
             console.error('Error deleting roles:', err)
-            setError('Không thể xóa vai trò. Vui lòng thử lại sau.')
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: err.response?.data?.message || 'Không thể xóa vai trò. Vui lòng thử lại sau.',
+                confirmButtonText: 'Đóng'
+            })
         }
     }
 
@@ -241,7 +257,7 @@ const EmployeeRolePage = () => {
                                         <option value="delete">Xóa các mục đã chọn</option>
                                     </select>
                                     <button
-                                        className='btn btn-sm btn-primary ms-3 w-150px'
+                                        className='btn btn-sm btn-primary ms-3 w-100px'
                                         onClick={handleExecuteAction}
                                         disabled={!selectedAction}
                                     >
@@ -267,13 +283,14 @@ const EmployeeRolePage = () => {
                                             </div>
                                         </th>
                                         <th className='min-w-125px'>Tên vai trò</th>
+                                        <th className='min-w-125px'>Trạng thái</th>
                                         <th className='min-w-100px text-end'>Thao tác</th>
                                     </tr>
                                 </thead>
                                 <tbody className='text-gray-600 fw-semibold'>
                                     {roles.length === 0 ? (
                                         <tr>
-                                            <td colSpan={3} className='text-center'>
+                                            <td colSpan={3} style={{paddingLeft: '480px'}}>
                                                 Không có dữ liệu
                                             </td>
                                         </tr>
@@ -295,6 +312,11 @@ const EmployeeRolePage = () => {
                                                         </div>
                                                     </td>
                                                     <td>{role.name}</td>
+                                                    <td>
+                                                        <span className={`badge badge-light-${role.status ? 'success' : 'danger'} fw-bold fs-8 px-2 py-1`}>
+                                                            {role.status ? 'Hoạt động' : 'Ngừng hoạt động'}
+                                                        </span>
+                                                    </td>
                                                     <td className='text-end'>
                                                         <button
                                                             className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-2'
@@ -305,7 +327,7 @@ const EmployeeRolePage = () => {
                                                         </button>
                                                         <button
                                                             className='btn btn-icon btn-bg-light btn-active-color-primary btn-sm'
-                                                            onClick={() => navigate(`/apps/role/edit/${role._id}`)}
+                                                            onClick={() => navigate(`/apps/role/update/${role._id}`)}
                                                             title='Chỉnh sửa'
                                                         >
                                                             <i className='fas fa-edit'></i>

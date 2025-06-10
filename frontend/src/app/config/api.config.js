@@ -17,6 +17,16 @@ export const API_URL = {
     CREATE: `${BASE_URL}/roles`,
     UPDATE: (id) => `${BASE_URL}/roles/${id}`,
     DELETE: (id) => `${BASE_URL}/roles/${id}`,
+    GET: (id) => `${BASE_URL}/roles/${id}`,
+  },
+
+  // Users/Staff endpoints
+  USERS: {
+    LIST: `${BASE_URL}/users`,
+    CREATE: `${BASE_URL}/users`,
+    UPDATE: (userId) => `${BASE_URL}/users/${userId}`,
+    DELETE: (userId) => `${BASE_URL}/users/${userId}`,
+    DETAIL: (userId) => `${BASE_URL}/users/${userId}`,
   },
 
   // Categories endpoints
@@ -43,21 +53,6 @@ export const API_URL = {
       CREATE: `${BASE_URL}/products/defective`,
       UPDATE: (id) => `${BASE_URL}/products/defective/${id}`,
       DELETE: (id) => `${BASE_URL}/products/defective/${id}`,
-    }
-  },
-
-  // Staff endpoints
-  STAFF: {
-    LIST: `${BASE_URL}/staff`,
-    DETAIL: (id) => `${BASE_URL}/staff/${id}`,
-    CREATE: `${BASE_URL}/staff`,
-    UPDATE: (id) => `${BASE_URL}/staff/${id}`,
-    DELETE: (id) => `${BASE_URL}/staff/${id}`,
-    ROLES: {
-      LIST: `${BASE_URL}/staff/roles`,
-      CREATE: `${BASE_URL}/staff/roles`,
-      UPDATE: (id) => `${BASE_URL}/staff/roles/${id}`,
-      DELETE: (id) => `${BASE_URL}/staff/roles/${id}`,
     }
   },
 
