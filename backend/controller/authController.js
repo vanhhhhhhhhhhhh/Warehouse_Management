@@ -2,6 +2,7 @@ const User = require('../model/User')
 const argon2 = require('argon2')
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
+const sendMail = require('./sendMail')
 
 const authController = {
 
@@ -33,7 +34,21 @@ const authController = {
             })
 
             await user.save()
-
+            await sendMail({
+                email: email,
+                subject: "Chúc mừng bạn đã đăng ký thành công tài khoản Metronic!",
+                html: `
+                        <h2>Chào mừng ${fullName} đến với Metronic - Hệ thống quản lý kho chuyên nghiệp!</h2>
+                        <p>Cảm ơn bạn đã đăng ký tài khoản. Dưới đây là thông tin tài khoản của bạn:</p>
+                    <ul>
+                        <li><strong>Họ tên:</strong> ${fullName}</li>
+                        <li><strong>Email:</strong> ${email}</li>
+                        <li><strong>Số điện thoại:</strong> ${phone}</li>
+                    </ul>
+                        <p>Hãy đăng nhập và bắt đầu quản lý kho hàng của bạn một cách hiệu quả ngay hôm nay.</p>
+                        <p>Trân trọng,<br/>Đội ngũ Metronic</p>
+                    `
+            })
             return res.status(201).json({ message: 'Đăng ký thành công' })
         } catch (error) {
             console.error(error)
@@ -44,38 +59,38 @@ const authController = {
 
     verifyToken: async (req, res) => {
         try {
-          const api_token = req.body?.api_token
-          if (!api_token) {
-            return res.status(400).json({ message: 'Token không hợp lệ' })
-          }
-
-          let decoded
-          try {
-            decoded = jwt.verify(api_token, process.env.ACCESS_TOKEN_SECRET)
-            if (!decoded) {
-              return res.status(400).json({ message: 'Token không hợp lệ' })
+            const api_token = req.body?.api_token
+            if (!api_token) {
+                return res.status(400).json({ message: 'Token không hợp lệ' })
             }
-          } catch (error) {
-            return res.status(400).json({ message: 'Token không hợp lệ' })
-          }
 
-          const user = await User.findOne({ _id: decoded.userId })
-
-          if (!user) {
-            return res.status(400).json({ message: 'User không tồn tại' })
-          }
-
-          return res.status(200).json({
-            message: 'Token hợp lệ',
-            user: {
-                id: user._id,
-                fullname: user.fullname,
-                email: user.email,
-                roleId: user.roleId
+            let decoded
+            try {
+                decoded = jwt.verify(api_token, process.env.ACCESS_TOKEN_SECRET)
+                if (!decoded) {
+                    return res.status(400).json({ message: 'Token không hợp lệ' })
+                }
+            } catch (error) {
+                return res.status(400).json({ message: 'Token không hợp lệ' })
             }
-          })
+
+            const user = await User.findOne({ _id: decoded.userId })
+
+            if (!user) {
+                return res.status(400).json({ message: 'User không tồn tại' })
+            }
+
+            return res.status(200).json({
+                message: 'Token hợp lệ',
+                user: {
+                    id: user._id,
+                    fullname: user.fullname,
+                    email: user.email,
+                    roleId: user.roleId
+                }
+            })
         } catch (error) {
-          return res.status(500).json({ message: error.message || 'Internal server error' })
+            return res.status(500).json({ message: error.message || 'Internal server error' })
         }
     },
 
@@ -84,51 +99,51 @@ const authController = {
         try {
             const { email, password } = req.body
             if (!email || !password) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    message: 'Vui lòng điền đầy đủ email và mật khẩu' 
+                    message: 'Vui lòng điền đầy đủ email và mật khẩu'
                 })
             }
 
             const normalizedEmail = email.trim().toLowerCase();
 
             // Tìm user và kiểm tra isDelete
-            const user = await User.findOne({ 
+            const user = await User.findOne({
                 email: normalizedEmail,
-                isDelete: false 
+                isDelete: false
             }).populate('roleId')
 
             // Kiểm tra user tồn tại
             if (!user) {
-                return res.status(401).json({ 
+                return res.status(401).json({
                     success: false,
-                    message: 'Email hoặc mật khẩu không chính xác' 
+                    message: 'Email hoặc mật khẩu không chính xác'
                 })
             }
 
             // Kiểm tra mật khẩu
             const validPassword = await argon2.verify(user.password, password)
             if (!validPassword) {
-                return res.status(401).json({ 
+                return res.status(401).json({
                     success: false,
-                    message: 'Email hoặc mật khẩu không chính xác' 
+                    message: 'Email hoặc mật khẩu không chính xác'
                 })
             }
 
             // Kiểm tra trạng thái tài khoản
             if (!user.status) {
-                return res.status(403).json({ 
+                return res.status(403).json({
                     success: false,
-                    message: 'Tài khoản đã bị vô hiệu hóa' 
+                    message: 'Tài khoản đã bị vô hiệu hóa'
                 })
             }
 
             // Tạo token với thông tin cần thiết
             const accessToken = jwt.sign(
-                { 
+                {
                     userId: user._id,
                     roleId: user.roleId._id
-                }, 
+                },
                 process.env.ACCESS_TOKEN_SECRET,
                 { expiresIn: '1d' }
             )
@@ -152,9 +167,9 @@ const authController = {
             })
         } catch (error) {
             console.error('Login error:', error)
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
-                message: 'Lỗi server khi đăng nhập' 
+                message: 'Lỗi server khi đăng nhập'
             })
         }
     }
