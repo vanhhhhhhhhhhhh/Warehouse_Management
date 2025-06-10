@@ -8,21 +8,18 @@ const EditProduct = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { id } = useParams();
-
-  if (!id) {
-    return <div>Product not found</div>;
-  }
+  const { id } = useParams<{ id: string }>();
 
   const { data: product, isLoading } = useQuery({
     queryKey: ['product', id],
-    queryFn: () => getProduct(id)
+    queryFn: () => getProduct(id!),
+    enabled: !!id
   })
 
 
   const { mutateAsync } = useMutation({
     mutationFn: (product: ProductFormRequest) => {
-      return updateProduct(id, product);
+      return updateProduct(id!, product);
     },
     onSuccess: async () => {
       Swal.fire({

@@ -162,7 +162,7 @@ const CategoriesPage: React.FC = () => {
               />
 
               <CRUDTable
-                data={categories?.data ?? []}
+                data={categories.data}
                 getRowId={(row) => row._id}
                 isLoading={isLoading}
                 columns={columns}

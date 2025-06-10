@@ -1,6 +1,6 @@
 import React from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { useMutation, useQuery } from 'react-query'
+import { useMutation, useQuery, useQueryClient } from 'react-query'
 import { getCategory, updateCategory } from '../../apiClient/categories'
 import Swal from 'sweetalert2'
 import CategoryForm, { CategoryFormRequest } from './components/CategoryForm'
@@ -8,6 +8,7 @@ import CategoryForm, { CategoryFormRequest } from './components/CategoryForm'
 const EditCategoryPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
 
+  const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const { data: category, isLoading  } = useQuery({
@@ -15,6 +16,7 @@ const EditCategoryPage: React.FC = () => {
     queryFn: () => getCategory(id!),
     enabled: !!id
   })
+
 
   const { mutateAsync: updateCategoryMutation } = useMutation({
     mutationFn: (data: CategoryFormRequest) => updateCategory(id!, data),
@@ -26,6 +28,7 @@ const EditCategoryPage: React.FC = () => {
         showConfirmButton: false,
         timer: 1500
       })
+      queryClient.invalidateQueries({ queryKey: ['categories'] })
       navigate('/apps/categories')
     },
     onError: (error: any) => {
@@ -37,7 +40,7 @@ const EditCategoryPage: React.FC = () => {
     }
   })
 
-  if (isLoading) {
+  if (!category || isLoading) {
     return (
       <div className='d-flex justify-content-center'>
         <div className='spinner-border text-primary' role='status'>
@@ -67,7 +70,7 @@ const EditCategoryPage: React.FC = () => {
 
             <div className='card-body'>
               <CategoryForm
-                initialValues={{ name: category?.name ?? '' }}
+                initialValues={{ name: category.name  }}
                 onSubmit={(values) => updateCategoryMutation(values)}
                 isEdit={true}
               />

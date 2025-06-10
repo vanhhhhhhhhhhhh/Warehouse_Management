@@ -128,7 +128,7 @@ const ProductsPage: React.FC = () => {
         console.log('Nhập kho sản phẩm', selectedItems);
       }),
     },
-  ], [selectedItems]);
+  ], [selectedItems, deactivateProductMutation, activateProductMutation]);
 
   if (!products || isLoading) {
     return <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

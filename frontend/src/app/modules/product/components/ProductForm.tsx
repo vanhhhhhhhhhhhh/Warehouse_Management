@@ -131,7 +131,7 @@ const renderForm = (formikOptions: FormikProps<ProductFormRequest>, isEdit: bool
     }),
     cacheTime: 0,
     keepPreviousData: true
-   })
+  })
 
   return (
     <form className="form" onSubmit={formikOptions.handleSubmit}>

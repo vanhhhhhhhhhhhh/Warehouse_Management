@@ -152,7 +152,6 @@ const CRUDTable: CRUDTableComponent = ({
               <button
                 className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
                 onClick={() => onEdit?.(info.row.original)}
-                title="Edit Product"
               >
                 <KTSVG
                   path="/media/icons/duotune/art/art005.svg"
@@ -164,7 +163,6 @@ const CRUDTable: CRUDTableComponent = ({
               <button
                 className="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
                 onClick={() => onDelete?.(info.row.original)}
-                title="Remove Product"
               >
                 <KTSVG
                   path="/media/icons/duotune/general/gen027.svg"
@@ -176,7 +174,7 @@ const CRUDTable: CRUDTableComponent = ({
         ),
       }),
     ],
-    [columns]
+    [columns, showEdit, showDelete, onEdit, onDelete, intl]
   );
 
   const table = useReactTable({
