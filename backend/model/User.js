@@ -38,7 +38,13 @@ const userSchema = mongoose.Schema({
     isDelete: {
         type: Boolean,
         default: false
+    },
+    resetPasswordOtp: {
+        type: String
+    },
+    resetPasswordOtpExpire: {
+        type: Date
     }
-}, {timestamps: true})
+}, { timestamps: true })
 
 module.exports = mongoose.model('users', userSchema)

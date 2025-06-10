@@ -172,6 +172,104 @@ const authController = {
                 message: 'Lỗi server khi đăng nhập'
             })
         }
+    },
+
+
+    forgotPassword: async (req, res) => {
+        try {
+            const {email} = req.body
+
+            if(!email){
+                return res.status(500).json({message: 'Vui lòng nhập email'})
+            }
+
+            const user = await User.findOne({email: email.trim().toLowerCase()})
+            if(!user){
+                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            }
+
+            const otp = Math.floor(100000 + Math.random() * 900000).toString()
+
+            user.resetPasswordOtp = otp
+            user.resetPasswordOtpExpire = Date.now() + 10 * 6 * 1000
+            await user.save()
+
+            await sendMail({
+                email: user.email,
+                subject: "Metronic - Mã xác minh đặt lại mật khẩu",
+                html: `
+                        <h2>Xin chào ${user.fullName},</h2>
+                        <p>Bạn đã yêu cầu đặt lại mật khẩu trên <strong>Hệ thống Quản lý Kho Metronic</strong>.</p>
+                        <p>Mã xác minh OTP của bạn là:</p>
+                        <h1>${otp}</h1>
+                        <p>Mã này sẽ hết hạn sau 10 phút.</p>
+                        <p>Nếu bạn không thực hiện yêu cầu này, vui lòng bỏ qua email này.</p>
+                        <p>Trân trọng,<br/>Đội ngũ Metronic</p>
+                `
+            })
+            return res.status(200).json({message: 'OTP đã được gửi tới email của bạn'})
+        } catch (error) {
+            return res.status(500).json({ message: error.message || 'Internal server error' })
+        }
+    },
+
+
+    verifyOTP: async (req, res) => {
+        try {
+            const {email, otp} = req.body
+
+            if(!email || !otp){
+                return res.status(500).json({message: 'Thiếu email hoặc mã otp'})
+            }
+
+            const user = await User.findOne({email: email.trim().toLowerCase()})
+            if(!user){
+                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            }
+
+            if(user.resetPasswordOtp !== otp){
+                return res.status(400).json({message: 'Mã OTP không đúng'})
+            }
+
+            if(user.resetPasswordOtpExpire < Date.now()){
+                return res.status(400).json({message: 'Mã OTP đã hết hạn'})
+            }
+            return res.status(200).json({message: 'Xác minh OTP thành công'})
+        } catch (error) {
+            return res.status(500).json({ message: error.message || 'Internal server error' })
+        }
+    },
+
+
+    resetPassword: async (req, res) => {
+        try {
+            const {email, otp, newPassword, confirmPassword} = req.body
+
+            if(!email || !otp || !newPassword || !confirmPassword){
+                return res.status(400).json({message: 'Vui lòng nhập đầy đủ thông tin'})
+            }
+
+            if(newPassword !== confirmPassword){
+                return res.status(400).json({message: 'Mật khẩu không khớp'})
+            }
+
+            const user = await User.findOne({email: email.trim().toLowerCase()})
+            if(!user){
+                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            }
+
+            if(user.resetPasswordOtp !== otp || user.resetPasswordOtpExpire < Date.now()){
+                 return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' })
+            }
+
+            user.password = await argon2.hash(newPassword)
+            user.resetPasswordOtp = undefined
+            user.resetPasswordOtpExpire = undefined
+            await user.save()
+            return res.status(200).json({message: 'Đặt lại mật khẩu thành công'})
+        } catch (error) {
+            return res.status(500).json({ message: error.message || 'Internal server error' })
+        }
     }
 }
 
