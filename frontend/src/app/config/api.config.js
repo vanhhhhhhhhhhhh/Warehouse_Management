@@ -1,6 +1,8 @@
-const BASE_URL = (import.meta.env.VITE_APP_API_URL || 'http://localhost:9999').replace(/\/$/, '');
+const BASE_URL = (
+  import.meta.env.VITE_APP_API_URL || "http://localhost:9999"
+).replace(/\/$/, "");
 
-import * as authHelper from '../modules/auth/core/AuthHelpers';
+import * as authHelper from "../modules/auth/core/AuthHelpers";
 
 export const API_URL = {
   // Auth endpoints
@@ -10,7 +12,9 @@ export const API_URL = {
     LOGOUT: `${BASE_URL}/auth/logout`,
     VERIFY_TOKEN: `${BASE_URL}/auth/verify-token`,
   },
-
+  ASSETS: {
+    GET: (id) => `${BASE_URL}/assets/${id}`,
+  },
   // Role endpoints
   ROLES: {
     LIST: `${BASE_URL}/roles`,
@@ -53,7 +57,7 @@ export const API_URL = {
       CREATE: `${BASE_URL}/products/defective`,
       UPDATE: (id) => `${BASE_URL}/products/defective/${id}`,
       DELETE: (id) => `${BASE_URL}/products/defective/${id}`,
-    }
+    },
   },
 
   // Warehouse endpoints
@@ -74,23 +78,23 @@ export const API_URL = {
       },
       INVENTORY: `${BASE_URL}/warehouse/inventory`,
       REPORT: `${BASE_URL}/warehouse/report`,
-    }
+    },
   },
 
   // Common endpoints for file handling
   COMMON: {
     UPLOAD_FILE: `${BASE_URL}/upload`,
     DELETE_FILE: (fileId) => `${BASE_URL}/files/${fileId}`,
-  }
+  },
 };
 
 // Axios configuration
 export const AXIOS_CONFIG = {
   timeout: 30000, // 30 seconds
   headers: {
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-  }
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 };
 
 // Function to get axios config with auth token
@@ -101,8 +105,8 @@ export const getAxiosConfig = () => {
     ...AXIOS_CONFIG,
     headers: {
       ...AXIOS_CONFIG.headers,
-      'Authorization': token ? `Bearer ${token}` : '',
-    }
+      Authorization: token ? `Bearer ${token}` : "",
+    },
   };
 
   return config;
@@ -121,10 +125,10 @@ export const API_STATUS = {
 
 // API error messages
 export const API_ERROR_MESSAGES = {
-  NETWORK_ERROR: 'Lỗi kết nối mạng. Vui lòng kiểm tra kết nối của bạn.',
-  SERVER_ERROR: 'Lỗi máy chủ. Vui lòng thử lại sau.',
-  UNAUTHORIZED: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
-  FORBIDDEN: 'Bạn không có quyền truy cập tài nguyên này.',
-  NOT_FOUND: 'Không tìm thấy tài nguyên yêu cầu.',
-  VALIDATION_ERROR: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
+  NETWORK_ERROR: "Lỗi kết nối mạng. Vui lòng kiểm tra kết nối của bạn.",
+  SERVER_ERROR: "Lỗi máy chủ. Vui lòng thử lại sau.",
+  UNAUTHORIZED: "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+  FORBIDDEN: "Bạn không có quyền truy cập tài nguyên này.",
+  NOT_FOUND: "Không tìm thấy tài nguyên yêu cầu.",
+  VALIDATION_ERROR: "Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.",
 };
