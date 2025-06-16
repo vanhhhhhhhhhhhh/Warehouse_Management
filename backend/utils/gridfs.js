@@ -5,6 +5,7 @@
 const { GridFSBucket } = require("mongodb");
 const multer = require("multer");
 const mongoose = require("mongoose");
+const { failedResponse } = require("./index");
 
 /**
  * Multer GridFS Storage crude implementation
@@ -62,11 +63,38 @@ class MulterGridFSStorage {
   }
 }
 
-exports.MulterGridFSStorage = new MulterGridFSStorage({
+exports.MulterImageStorage = new MulterGridFSStorage({
   connection: mongoose.connection,
-  bucketName: "uploads",
+  bucketName: "images",
 });
 
-exports.storage = multer({
-  storage: exports.MulterGridFSStorage,
+const TRANSLATIONS = {
+  "LIMIT_FILE_SIZE": "Kích thước file quá lớn",
+}
+
+const imageStorage = multer({
+  limits: {
+    fileSize: 1024 * 1024 * 10, // 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Sai định dạng file"), false);
+    }
+  },
+  storage: exports.MulterImageStorage,
 });
+
+const singleImage = imageStorage.single("image");
+
+exports.singleImage = (req, res, next) => {
+  singleImage(req, res, (err) => {
+    if (err) {
+      console.error(err);
+      return failedResponse(res, 400, TRANSLATIONS[err.code] || err.message);
+    }
+
+    next();
+  });
+}

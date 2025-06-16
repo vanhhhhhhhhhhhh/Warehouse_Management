@@ -8,7 +8,7 @@ const apiRole = require("./router/apiRole");
 const apiProduct = require("./router/apiProduct");
 const apiCategory = require("./router/apiCategory");
 const apiUser = require("./router/apiUser");
-const apiAssets = require("./router/apiAssets");
+const apiImage = require("./router/apiImage");
 
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
@@ -51,8 +51,8 @@ app.use("/products", apiProduct);
 // USERS
 app.use("/users", apiUser);
 
-// ASSETS
-app.use("/assets", apiAssets);
+// IMAGES
+app.use("/images", apiImage);
 
 app.listen(port, () => {
   console.log(`Server is running on http://${hostname}:${port}`);

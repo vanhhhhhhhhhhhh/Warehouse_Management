@@ -12,8 +12,8 @@ export const API_URL = {
     LOGOUT: `${BASE_URL}/auth/logout`,
     VERIFY_TOKEN: `${BASE_URL}/auth/verify-token`,
   },
-  ASSETS: {
-    GET: (id) => `${BASE_URL}/assets/${id}`,
+  IMAGES: {
+    GET: (id) => `${BASE_URL}/images/${id}`,
   },
   // Role endpoints
   ROLES: {
