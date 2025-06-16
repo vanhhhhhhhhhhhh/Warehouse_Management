@@ -1,5 +1,6 @@
 const BASE_URL = (import.meta.env.VITE_APP_API_URL || 'http://localhost:9999').replace(/\/$/, '');
 
+import * as authHelper from '../modules/auth/core/AuthHelpers';
 
 export const API_URL = {
   // Auth endpoints
@@ -28,6 +29,16 @@ export const API_URL = {
     DETAIL: (userId) => `${BASE_URL}/users/${userId}`,
   },
 
+  // Categories endpoints
+  CATEGORIES: {
+    LIST: `${BASE_URL}/categories`,
+    DETAIL: (id) => `${BASE_URL}/categories/${id}`,
+    CREATE: `${BASE_URL}/categories`,
+    UPDATE: (id) => `${BASE_URL}/categories/${id}`,
+    DEACTIVATE: `${BASE_URL}/categories/deactivate`,
+    ACTIVATE: `${BASE_URL}/categories/activate`,
+  },
+
   // Products endpoints
   PRODUCTS: {
     LIST: `${BASE_URL}/products`,
@@ -35,7 +46,8 @@ export const API_URL = {
     DETAIL: (id) => `${BASE_URL}/products/${id}`,
     CREATE: `${BASE_URL}/products`,
     UPDATE: (id) => `${BASE_URL}/products/${id}`,
-    DELETE: (id) => `${BASE_URL}/products/${id}`,
+    DEACTIVATE: `${BASE_URL}/products/deactivate`,
+    ACTIVATE: `${BASE_URL}/products/activate`,
     DEFECTIVE: {
       LIST: `${BASE_URL}/products/defective`,
       CREATE: `${BASE_URL}/products/defective`,
@@ -83,7 +95,7 @@ export const AXIOS_CONFIG = {
 
 // Function to get axios config with auth token
 export const getAxiosConfig = () => {
-  const token = localStorage.getItem('token');
+  const token = authHelper.getAuth()?.api_token;
 
   const config = {
     ...AXIOS_CONFIG,
@@ -92,7 +104,7 @@ export const getAxiosConfig = () => {
       'Authorization': token ? `Bearer ${token}` : '',
     }
   };
-  
+
   return config;
 };
 
@@ -115,4 +127,4 @@ export const API_ERROR_MESSAGES = {
   FORBIDDEN: 'Bạn không có quyền truy cập tài nguyên này.',
   NOT_FOUND: 'Không tìm thấy tài nguyên yêu cầu.',
   VALIDATION_ERROR: 'Dữ liệu không hợp lệ. Vui lòng kiểm tra lại.',
-}; 
+};

@@ -46,11 +46,11 @@ function OtherMenus() {
 
 const Navbar = () => {
   const {config} = useLayout()
+  //<div className={clsx('app-navbar-item', itemClass)}>
+  //  <ThemeModeSwitcher toggleBtnClass={clsx('btn-active-light-primary btn-custom')} />
+  //</div>
   return (
     <div className='app-navbar flex-shrink-0'>
-      <div className={clsx('app-navbar-item', itemClass)}>
-        <ThemeModeSwitcher toggleBtnClass={clsx('btn-active-light-primary btn-custom')} />
-      </div>
 
       <div className={clsx('app-navbar-item', itemClass)}>
         <div

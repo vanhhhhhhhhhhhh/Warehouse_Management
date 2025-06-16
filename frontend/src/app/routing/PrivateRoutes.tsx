@@ -30,12 +30,15 @@ const PrivateRoutes = () => {
   const WidgetsPage = lazy(() => import('../modules/widgets/WidgetsPage'))
   const ChatPage = lazy(() => import('../modules/apps/chat/ChatPage'))
   const UsersPage = lazy(() => import('../modules/apps/user-management/UsersPage'))
-  const CategoriesPage = lazy(() => import('../modules/categories/categories'))
+  const CategoriesPage = lazy(() => import('../modules/categories/CategoriesPage'))
+  const CreateCategoryPage = lazy(() => import('../modules/categories/CreateCategoryPage'))
+  const EditCategoryPage = lazy(() => import('../modules/categories/EditCategoryPage'))
   const RolePage = lazy(() => import('../modules/role/rolePage'))
   const CreateRolePage = lazy(() => import('../modules/role/createRole'))
   const StaffPage = lazy(() => import('../modules/staff/staffPage'))
   const ProductPage = lazy(() => import('../modules/product/ProductPage'))
-  const CreateProduct = lazy(() => import('../modules/product/CreateProduct'))
+  const CreateProduct = lazy(() => import('../modules/product/CreateProductPage'))
+  const EditProduct = lazy(() => import('../modules/product/EditProductPage'))
   const CreateStaff = lazy(() => import('../modules/staff/createStaff'))
   const WarehousePage = lazy(() => import('../modules/warehouse/warehousePage'))
   const CreateWarehouse = lazy(() => import('../modules/warehouse/createWarehouse'))
@@ -64,7 +67,7 @@ const PrivateRoutes = () => {
 
         {/* Categories */}
         <Route
-          path='apps/categories/*'
+          path='apps/categories'
           element={
             <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'VIEW'}]}>
               <SuspensedView>
@@ -74,6 +77,29 @@ const PrivateRoutes = () => {
           }
         />
 
+        <Route
+          path='apps/categories/create'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'CREATE'}]}>
+              <SuspensedView>
+                <CreateCategoryPage />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        <Route
+          path='apps/categories/:id'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'CATEGORIES', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <EditCategoryPage />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        {/*role*/}
         {/* Role Management */}
         <Route
           path='apps/role/*'
@@ -144,11 +170,22 @@ const PrivateRoutes = () => {
 
         {/* Product Management */}
         <Route
-          path='apps/products/*'
+          path='apps/products'
           element={
             <PermissionGuard requiredPermissions={[{module: 'PRODUCTS', action: 'VIEW'}]}>
               <SuspensedView>
                 <ProductPage />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        <Route
+          path='apps/products/:id'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'PRODUCTS', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <EditProduct />
               </SuspensedView>
             </PermissionGuard>
           }

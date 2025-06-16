@@ -5,6 +5,8 @@ const exp = require('constants')
 require('dotenv').config()
 const apiAuth = require('./router/apiAuth')
 const apiRole = require('./router/apiRole')
+const apiProduct = require('./router/apiProduct')
+const apiCategory = require('./router/apiCategory')
 const apiUser = require('./router/apiUser')
 
 const hostname = process.env.HOSTNAME
@@ -35,6 +37,12 @@ app.use('/auth', apiAuth)
 
 // ROLES
 app.use('/roles', apiRole)
+
+// CATEGORIES
+app.use('/categories', apiCategory)
+
+// PRODUCTS
+app.use('/products', apiProduct)
 
 // USERS
 app.use('/users', apiUser)
