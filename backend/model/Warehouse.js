@@ -5,7 +5,12 @@ const warehouseSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    address: String,
+    address: {
+        city: String,
+        district: String,
+        ward: String,
+        detail: String
+    },
     phone: String,
     adminId: {
         type: mongoose.Schema.Types.ObjectId,

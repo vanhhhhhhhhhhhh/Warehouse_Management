@@ -54,6 +54,7 @@ const PrivateRoutes = () => {
   const InventoryReport = lazy(() => import('../modules/warehouse/report'))
   const UpdateRole = lazy(() => import('../modules/role/updateRole'))
   const UpdateStaff = lazy(() => import('../modules/staff/updateStaff'))
+  const EditWarehouse = lazy(() => import('../modules/warehouse/editWarehouse'))
 
   return (
     <Routes>
@@ -220,6 +221,17 @@ const PrivateRoutes = () => {
             <PermissionGuard requiredPermissions={[{module: 'WAREHOUSE', action: 'CREATE'}]}>
               <SuspensedView>
                 <CreateWarehouse />
+              </SuspensedView>
+            </PermissionGuard>
+          }
+        />
+
+        <Route
+          path='apps/warehouse/edit/:id'
+          element={
+            <PermissionGuard requiredPermissions={[{module: 'WAREHOUSE', action: 'UPDATE'}]}>
+              <SuspensedView>
+                <EditWarehouse />
               </SuspensedView>
             </PermissionGuard>
           }

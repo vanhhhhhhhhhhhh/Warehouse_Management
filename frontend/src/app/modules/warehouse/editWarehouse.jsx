@@ -1,21 +1,15 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { ToolbarWrapper } from '../../../_metronic/layout/components/toolbar'
-import { Content } from '../../../_metronic/layout/components/content'
-import { Link } from 'react-router-dom'
-import * as Yup from 'yup'
-import { createWarehouse, getAllStaff } from '../../services/warehouseService'
+import { useNavigate, useParams } from 'react-router-dom'
+import { getWarehouse, updateWarehouse, getAllStaff } from '../../services/warehouseService'
 import Swal from 'sweetalert2'
+import * as Yup from 'yup'
 
-// Custom CSS for validation styling
-const redBorderStyle = {
-  borderColor: '#F1416C'
-}
+const redBorderStyle = { borderColor: '#F1416C' }
 
-const CreateWarehouse = () => {
+const EditWarehouse = () => {
   const navigate = useNavigate()
+  const { id } = useParams()
 
-  // State cho form data
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -25,17 +19,15 @@ const CreateWarehouse = () => {
       district: '',
       ward: '',
       detail: ''
-    }
+    },
+    staffId: ''
   })
-
-  // Thêm state để lưu trữ lỗi form
   const [formErrors, setFormErrors] = useState({})
   const [touched, setTouched] = useState({})
   const [submitting, setSubmitting] = useState(false)
-
+  const [loading, setLoading] = useState(true)
   const [staffList, setStaffList] = useState([])
   const [staffLoading, setStaffLoading] = useState(false)
-
   const [provinces, setProvinces] = useState([])
   const [districts, setDistricts] = useState([])
   const [wards, setWards] = useState([])
@@ -60,169 +52,14 @@ const CreateWarehouse = () => {
     })
   })
 
-  // Đánh dấu field đã được chạm vào
-  const handleBlur = (field) => {
-    setTouched({ ...touched, [field]: true })
-    
-    // Get the current value for validation
-    let value
-    if (field.startsWith('address.')) {
-      const addressField = field.split('.')[1]
-      value = formData.address[addressField]
-    } else {
-      value = formData[field]
-    }
-    
-    // Validate the field
-    validateField(field, value)
-  }
-
-  // Validate một field cụ thể
-  const validateField = async (field, value) => {
-    try {
-      // Handle address fields differently
-      if (field.startsWith('address.')) {
-        const addressField = field.split('.')[1]
-        const addressSchema = Yup.object().shape({
-          [addressField]: Yup.string().required(`Vui lòng nhập ${addressField === 'city' ? 'tỉnh/thành phố' : addressField === 'district' ? 'quận/huyện' : addressField === 'ward' ? 'phường/xã' : 'địa chỉ cụ thể'}`)
-        })
-        
-        await addressSchema.validate({ [addressField]: value }, { abortEarly: false })
-        
-        // Clear error for this field
-        setFormErrors(prev => {
-          const newErrors = { ...prev }
-          if (newErrors.address) {
-            newErrors.address = { ...newErrors.address, [addressField]: undefined }
-          }
-          return newErrors
-        })
-      } else {
-        // Handle regular fields
-        const fieldSchema = Yup.object().shape({
-          [field]: field === 'name' 
-            ? Yup.string().required('Tên kho không được để trống').min(2, 'Tên kho phải có ít nhất 2 ký tự').max(100, 'Tên kho không được vượt quá 100 ký tự')
-            : Yup.string().required('Số điện thoại không được để trống').matches(/^[0-9]+$/, 'Số điện thoại chỉ được chứa số').min(10, 'Số điện thoại phải có ít nhất 10 số').max(15, 'Số điện thoại không được vượt quá 15 số')
-        })
-        
-        await fieldSchema.validate({ [field]: value }, { abortEarly: false })
-        
-        // Clear error for this field
-        setFormErrors(prev => ({ ...prev, [field]: undefined }))
-      }
-      return true
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const error = err.inner[0]
-        
-        if (field.startsWith('address.')) {
-          const addressField = field.split('.')[1]
-          setFormErrors(prev => ({
-            ...prev,
-            address: {
-              ...(prev.address || {}),
-              [addressField]: error.message
-            }
-          }))
-        } else {
-          setFormErrors(prev => ({ ...prev, [field]: error.message }))
-        }
-      }
-      return false
-    }
-  }
-
-  // Validate toàn bộ form
-  const validateForm = async () => {
-    // Đánh dấu tất cả các trường là đã chạm vào
-    const allFields = ['name', 'phone', 'address.city', 'address.district', 'address.ward', 'address.detail']
-    const newTouched = { ...touched }
-    allFields.forEach(field => {
-      newTouched[field] = true
-    })
-    setTouched(newTouched)
-    
-    try {
-      // Prepare data for validation
-      const validationData = {
-        ...formData,
-        address: { ...formData.address }
-      }
-      
-      // Validate
-      await validationSchema.validate(validationData, { abortEarly: false })
-      setFormErrors({})
-      return true
-    } catch (err) {
-      if (err instanceof Yup.ValidationError) {
-        const errors = {
-          address: {}
-        }
-        
-        err.inner.forEach(e => {
-          if (e.path?.startsWith('address.')) {
-            const field = e.path.split('.')[1]
-            if (errors.address) {
-              errors.address[field] = e.message
-            }
-          } else if (e.path) {
-            errors[e.path] = e.message
-          }
-        })
-        
-        setFormErrors(errors)
-        console.error('Vui lòng kiểm tra lại thông tin')
-      }
-      return false
-    }
-  }
-
-  // Handle input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target
-    if (name.startsWith('address.')) {
-      const addressField = name.split('.')[1]
-      setFormData(prev => ({
-        ...prev,
-        address: {
-          ...prev.address,
-          [addressField]: value
-        }
-      }))
-      
-      // Validate if touched
-      if (touched[name]) {
-        validateField(name, value)
-      }
-    } else if (name === 'isActive') {
-      const checkbox = e.target
-      setFormData(prev => ({
-        ...prev,
-        isActive: checkbox.checked
-      }))
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        [name]: value
-      }))
-      
-      // Validate if touched
-      if (touched[name]) {
-        validateField(name, value)
-      }
-    }
-  }
-
-  // Lấy danh sách nhân viên quản lý kho khi mở form
+  // Lấy danh sách nhân viên quản lý kho
   useEffect(() => {
     const fetchStaff = async () => {
       setStaffLoading(true)
       try {
         const token = localStorage.getItem('token')
         const res = await getAllStaff(token)
-        if (res.success) {
-          setStaffList(res.staff)
-        }
+        if (res.success) setStaffList(res.staff)
       } catch (err) {
         setStaffList([])
       } finally {
@@ -232,7 +69,7 @@ const CreateWarehouse = () => {
     fetchStaff()
   }, [])
 
-  // Fetch tỉnh/thành phố khi mở form
+  // Lấy danh sách tỉnh/thành phố
   useEffect(() => {
     const fetchProvinces = async () => {
       setAddressLoading(true)
@@ -248,6 +85,64 @@ const CreateWarehouse = () => {
     }
     fetchProvinces()
   }, [])
+
+  // Lấy dữ liệu kho hiện tại
+  useEffect(() => {
+    const fetchWarehouse = async () => {
+      setLoading(true)
+      try {
+        const res = await getWarehouse(id)
+        if (res.success && res.data) {
+          // Tìm code của tỉnh/thành, quận/huyện, phường/xã dựa trên tên
+          const province = provinces.find(p => p.name === res.data.address.city)
+          let districtList = []
+          let wardList = []
+          let districtCode = ''
+          let wardCode = ''
+          if (province) {
+            const provinceRes = await fetch(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`)
+            const provinceData = await provinceRes.json()
+            districtList = provinceData.districts || []
+            const district = districtList.find(d => d.name === res.data.address.district)
+            if (district) {
+              districtCode = district.code
+              const districtRes = await fetch(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`)
+              const districtData = await districtRes.json()
+              wardList = districtData.wards || []
+              const ward = wardList.find(w => w.name === res.data.address.ward)
+              if (ward) wardCode = ward.code
+            }
+          }
+          setDistricts(districtList)
+          setWards(wardList)
+          setFormData({
+            name: res.data.name,
+            phone: res.data.phone,
+            isActive: res.data.isActive,
+            address: {
+              city: province ? province.code : '',
+              district: districtCode,
+              ward: wardCode,
+              detail: res.data.address.detail
+            },
+            staffId: res.data.staffId || ''
+          })
+        }
+      } catch (err) {
+        Swal.fire({
+          title: 'Lỗi!',
+          text: 'Không thể tải dữ liệu kho',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        })
+        navigate('/apps/warehouse/list')
+      } finally {
+        setLoading(false)
+      }
+    }
+    if (provinces.length > 0 && staffList.length > 0) fetchWarehouse()
+    // eslint-disable-next-line
+  }, [provinces, staffList, id])
 
   // Fetch quận/huyện khi chọn tỉnh/thành phố
   const handleProvinceChange = async (e) => {
@@ -314,22 +209,66 @@ const CreateWarehouse = () => {
     }))
   }
 
-  // Handle form submission
+  const handleBlur = (field) => {
+    setTouched({ ...touched, [field]: true })
+  }
+
+  // Validate toàn bộ form
+  const validateForm = async () => {
+    const allFields = ['name', 'phone', 'address.city', 'address.district', 'address.ward', 'address.detail']
+    const newTouched = { ...touched }
+    allFields.forEach(field => {
+      newTouched[field] = true
+    })
+    setTouched(newTouched)
+    try {
+      await validationSchema.validate(formData, { abortEarly: false })
+      setFormErrors({})
+      return true
+    } catch (err) {
+      if (err instanceof Yup.ValidationError) {
+        const errors = { address: {} }
+        err.inner.forEach(e => {
+          if (e.path?.startsWith('address.')) {
+            const field = e.path.split('.')[1]
+            if (errors.address) errors.address[field] = e.message
+          } else if (e.path) {
+            errors[e.path] = e.message
+          }
+        })
+        setFormErrors(errors)
+      }
+      return false
+    }
+  }
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target
+    if (name.startsWith('address.')) {
+      const addressField = name.split('.')[1]
+      setFormData(prev => ({
+        ...prev,
+        address: {
+          ...prev.address,
+          [addressField]: value
+        }
+      }))
+    } else if (name === 'isActive') {
+      setFormData(prev => ({ ...prev, isActive: e.target.checked }))
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }))
+    }
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validate form
     const isValid = await validateForm()
-    if (!isValid) {
-      return
-    }
-    
+    if (!isValid) return
     setSubmitting(true)
-
     try {
-      const selectedProvince = provinces.find(p => String(p.code) === String(formData.address.city))
-      const selectedDistrict = districts.find(d => String(d.code) === String(formData.address.district))
-      const selectedWard = wards.find(w => String(w.code) === String(formData.address.ward))
+      const selectedProvince = provinces.find(p => p.code === formData.address.city)
+      const selectedDistrict = districts.find(d => d.code === formData.address.district)
+      const selectedWard = wards.find(w => w.code === formData.address.ward)
       const warehouseData = {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
@@ -342,14 +281,7 @@ const CreateWarehouse = () => {
         isActive: formData.isActive,
         staffId: formData.staffId || undefined
       }
-
-      console.log('formData.address:', formData.address)
-      console.log('selectedProvince:', selectedProvince)
-      console.log('selectedDistrict:', selectedDistrict)
-      console.log('selectedWard:', selectedWard)
-
-      const response = await createWarehouse(warehouseData)
-      
+      const response = await updateWarehouse(id, warehouseData)
       if (response.success) {
         Swal.fire({
           title: 'Thành công!',
@@ -363,7 +295,7 @@ const CreateWarehouse = () => {
     } catch (error) {
       Swal.fire({
         title: 'Lỗi!',
-        text: error.message || 'Có lỗi xảy ra khi tạo kho',
+        text: error.message || 'Có lỗi xảy ra khi cập nhật kho',
         icon: 'error',
         confirmButtonText: 'OK'
       })
@@ -376,27 +308,29 @@ const CreateWarehouse = () => {
     navigate('/apps/warehouse/list')
   }
 
+  if (loading) {
+    return (
+      <div className='d-flex justify-content-center p-5'>
+        <div className='spinner-border text-primary' role='status'>
+          <span className='visually-hidden'>Loading...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <>
       <div className='d-flex flex-column gap-7'>
         <div className='px-9'>
-          <Link
-            to='/apps/warehouse/list'
-            className='fs-5 fw-bold text-gray-500 text-hover-dark d-flex align-items-center'
-          >
-            <i className='bi bi-arrow-left fs-2 me-2'></i>
-            Quay lại danh sách kho
-          </Link>
+          <button className='btn btn-light mb-4' onClick={handleCancel}>&larr; Quay lại danh sách kho</button>
         </div>
-
         <div className='px-9'>
           <div className='card'>
             <div className='card-header border-0 pt-6'>
               <div className='card-title'>
-                <h3 className='fw-bold'>Tạo kho mới</h3>
+                <h3 className='fw-bold'>Chỉnh sửa kho</h3>
               </div>
             </div>
-
             <div className='card-body'>
               <form onSubmit={handleSubmit} noValidate>
                 <div className='mb-8'>
@@ -415,7 +349,6 @@ const CreateWarehouse = () => {
                     <div className='text-danger fs-7 mt-2'>{formErrors.name}</div>
                   )}
                 </div>
-
                 <div className='mb-8'>
                   <label className='form-label fw-bolder text-dark fs-6 required'>Số điện thoại</label>
                   <input
@@ -432,7 +365,6 @@ const CreateWarehouse = () => {
                     <div className='text-danger fs-7 mt-2'>{formErrors.phone}</div>
                   )}
                 </div>
-
                 <div className='mb-8'>
                   <label className='form-label fw-bolder text-dark fs-6 required'>Địa chỉ cụ thể</label>
                   <input
@@ -449,7 +381,6 @@ const CreateWarehouse = () => {
                     <div className='text-danger fs-7 mt-2'>{formErrors.address.detail}</div>
                   )}
                 </div>
-
                 <div className='row mb-8'>
                   <div className='col-md-4 mb-4'>
                     <label className='form-label fw-bolder text-dark fs-6 required'>Tỉnh/Thành phố</label>
@@ -471,7 +402,6 @@ const CreateWarehouse = () => {
                       <div className='text-danger fs-7 mt-2'>{formErrors.address.city}</div>
                     )}
                   </div>
-
                   <div className='col-md-4 mb-4'>
                     <label className='form-label fw-bolder text-dark fs-6 required'>Quận/Huyện</label>
                     <select
@@ -492,7 +422,6 @@ const CreateWarehouse = () => {
                       <div className='text-danger fs-7 mt-2'>{formErrors.address.district}</div>
                     )}
                   </div>
-
                   <div className='col-md-4 mb-4'>
                     <label className='form-label fw-bolder text-dark fs-6 required'>Phường/Xã</label>
                     <select
@@ -514,7 +443,6 @@ const CreateWarehouse = () => {
                     )}
                   </div>
                 </div>
-
                 <div className='mb-8'>
                   <label className='form-label fw-bolder text-dark fs-6'>Nhân viên quản lý kho</label>
                   <select
@@ -524,21 +452,38 @@ const CreateWarehouse = () => {
                     onChange={e => setFormData(prev => ({ ...prev, staffId: e.target.value }))}
                     disabled={staffLoading}
                   >
-                    <option value=''>Chọn nhân viên quản lý</option>
-                    {staffList
-                      .filter(staff => staff.roleId?.name !== 'Admin')
-                      .map(staff => (
+                    <option value='' disabled={!!formData.staffId}>Chọn nhân viên quản lý</option>
+                    {staffLoading ? (
+                      <option value='' disabled>Đang tải danh sách nhân viên...</option>
+                    ) : staffList.length === 0 ? (
+                      <option value='' disabled>Không có nhân viên nào</option>
+                    ) : (
+                      staffList.map(staff => (
                         <option key={staff._id} value={staff._id}>
-                          {staff.fullName || staff.username || staff.email}
+                          {staff.fullName || staff.username || staff.email || ''}
                         </option>
-                      ))}
+                      ))
+                    )}
                   </select>
+                  {staffLoading && (
+                    <div className='text-muted fs-7 mt-2'>Đang tải danh sách nhân viên...</div>
+                  )}
                 </div>
-
-              
-               
-
-                {/* Buttons */}
+                <div className='mb-8'>
+                  <div className='form-check form-switch form-check-custom form-check-solid'>
+                    <input
+                      className='form-check-input'
+                      type='checkbox'
+                      name='isActive'
+                      checked={formData.isActive}
+                      onChange={handleInputChange}
+                      id='flexSwitchDefault'
+                    />
+                    <label className='form-check-label' htmlFor='flexSwitchDefault'>
+                      Kích hoạt
+                    </label>
+                  </div>
+                </div>
                 <div className='d-flex justify-content-end mt-6'>
                   <button
                     type='button'
@@ -556,7 +501,7 @@ const CreateWarehouse = () => {
                     {submitting ? (
                       <span>Đang xử lý...</span>
                     ) : (
-                      'Lưu'
+                      'Lưu thay đổi'
                     )}
                   </button>
                 </div>
@@ -569,4 +514,4 @@ const CreateWarehouse = () => {
   )
 }
 
-export default CreateWarehouse
+export default EditWarehouse
