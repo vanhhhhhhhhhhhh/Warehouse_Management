@@ -1,4 +1,9 @@
-const { successResponse, failedResponse, getPaginationParams, formatPaginatedResponse } = require("../utils");
+const {
+  successResponse,
+  failedResponse,
+  getPaginationParams,
+  formatPaginatedResponse,
+} = require("../utils");
 const { Product } = require("../model");
 
 module.exports = {
@@ -11,13 +16,12 @@ module.exports = {
       const query = {};
 
       if (name) {
-        query.name = { $regex: name, $options: 'i' };
+        query.name = { $regex: name, $options: "i" };
       }
 
-      const products = await Product
-        .find(query)
-        .populate('cateId', 'name')
-        .select('_id code name price isDelete')
+      const products = await Product.find(query)
+        .populate("cateId", "name")
+        .select("_id code name price isDelete")
         .skip(skip)
         .limit(limit)
         .lean();
@@ -25,16 +29,19 @@ module.exports = {
       const totalProducts = await Product.countDocuments(query);
       const totalPages = Math.ceil(totalProducts / limit);
 
-      const mappedProducts = products.map(product => ({
+      const mappedProducts = products.map((product) => ({
         _id: product._id,
         code: product.code,
         name: product.name,
         category: product.cateId.name,
         price: product.price,
-        isDelete: product.isDelete
+        isDelete: product.isDelete,
       }));
 
-      const paginatedResponse = formatPaginatedResponse(mappedProducts, totalPages);
+      const paginatedResponse = formatPaginatedResponse(
+        mappedProducts,
+        totalPages,
+      );
 
       return successResponse(res, 200, paginatedResponse);
     } catch (error) {
@@ -46,13 +53,12 @@ module.exports = {
     try {
       const { id } = req.params;
 
-      const product = await Product
-        .findById(id)
-        .populate('cateId', '_id')
+      const product = await Product.findById(id)
+        .populate("cateId", "_id")
         .lean();
 
       if (!product) {
-        return failedResponse(res, 404, 'Không tìm thấy sản phẩm');
+        return failedResponse(res, 404, "Không tìm thấy sản phẩm");
       }
 
       const mappedProduct = {
@@ -67,24 +73,34 @@ module.exports = {
         adminId: product.adminId,
         isDelete: product.isDelete,
         createdAt: product.createdAt,
-        updatedAt: product.updatedAt
+        updatedAt: product.updatedAt,
       };
 
       return successResponse(res, 200, mappedProduct);
     } catch (error) {
       console.error(error);
-      return failedResponse(res, 500, 'Có lỗi xảy ra khi lấy sản phẩm');
+      return failedResponse(res, 500, "Có lỗi xảy ra khi lấy sản phẩm");
     }
   },
 
   createProduct: async (req, res) => {
     try {
-      const { code, name, categoryId, description, price, attributes, isDelete } = req.body;
+      const {
+        code,
+        name,
+        categoryId,
+        description,
+        price,
+        attributes,
+        isDelete,
+      } = req.body;
 
       const existingProduct = await Product.findOne({ code });
       if (existingProduct) {
-        return failedResponse(res, 400, 'Mã sản phẩm đã tồn tại');
+        return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
+
+      console.log(req.file);
 
       const newProduct = new Product({
         code,
@@ -93,14 +109,14 @@ module.exports = {
         description,
         price: parseFloat(price),
         attribute: attributes,
-        image: 'sample.jpg',
-        isDelete: isDelete === 'true',
-        adminId: req.user?.id
+        image: req.file?.id ?? null,
+        isDelete: isDelete === "true",
+        adminId: req.user?.id,
       });
 
       const savedProduct = await newProduct.save();
 
-      await savedProduct.populate('cateId', 'name');
+      await savedProduct.populate("cateId", "name");
 
       const mappedProduct = {
         _id: savedProduct._id,
@@ -114,33 +130,44 @@ module.exports = {
         adminId: savedProduct.adminId,
         isDelete: savedProduct.isDelete,
         createdAt: savedProduct.createdAt,
-        updatedAt: savedProduct.updatedAt
+        updatedAt: savedProduct.updatedAt,
       };
 
       return successResponse(res, 201, mappedProduct);
     } catch (error) {
       if (error.code === 11000) {
-        return failedResponse(res, 400, 'Mã sản phẩm đã tồn tại');
+        return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
       console.error(error);
-      return failedResponse(res, 500, 'Có lỗi xảy ra khi tạo sản phẩm');
+      return failedResponse(res, 500, "Có lỗi xảy ra khi tạo sản phẩm");
     }
   },
 
   updateProduct: async (req, res) => {
     try {
       const { id } = req.params;
-      const { code, name, categoryId, description, price, attributes, isDelete } = req.body;
+      const {
+        code,
+        name,
+        categoryId,
+        description,
+        price,
+        attributes,
+        isDelete,
+      } = req.body;
 
       const existingProduct = await Product.findById(id);
       if (!existingProduct) {
-        return failedResponse(res, 404, 'Không tìm thấy sản phẩm');
+        return failedResponse(res, 404, "Không tìm thấy sản phẩm");
       }
 
       if (code && code !== existingProduct.code) {
-        const duplicateProduct = await Product.findOne({ code, _id: { $ne: id } });
+        const duplicateProduct = await Product.findOne({
+          code,
+          _id: { $ne: id },
+        });
         if (duplicateProduct) {
-          return failedResponse(res, 400, 'Mã sản phẩm đã tồn tại');
+          return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
         }
       }
 
@@ -151,15 +178,14 @@ module.exports = {
         description: description,
         price: price,
         attribute: attributes,
-        image: 'sample.jpg',
-        isDelete: isDelete
+        image: req.file ? req.file.id : existingProduct.image,
+        isDelete: isDelete,
       };
 
-      const updatedProduct = await Product.findByIdAndUpdate(
-        id,
-        updateData,
-        { new: true, runValidators: true }
-      ).populate('cateId', 'name');
+      const updatedProduct = await Product.findByIdAndUpdate(id, updateData, {
+        new: true,
+        runValidators: true,
+      }).populate("cateId", "name");
 
       const mappedProduct = {
         _id: updatedProduct._id,
@@ -173,16 +199,16 @@ module.exports = {
         adminId: updatedProduct.adminId,
         isDelete: updatedProduct.isDelete,
         createdAt: updatedProduct.createdAt,
-        updatedAt: updatedProduct.updatedAt
+        updatedAt: updatedProduct.updatedAt,
       };
 
       return successResponse(res, 200, mappedProduct);
     } catch (error) {
       if (error.code === 11000) {
-        return failedResponse(res, 400, 'Mã sản phẩm đã tồn tại');
+        return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
       console.error(error);
-      return failedResponse(res, 500, 'Có lỗi xảy ra khi cập nhật sản phẩm');
+      return failedResponse(res, 500, "Có lỗi xảy ra khi cập nhật sản phẩm");
     }
   },
 
@@ -192,10 +218,16 @@ module.exports = {
 
       await Product.updateMany({ _id: { $in: ids } }, { isDelete: true });
 
-      return successResponse(res, 200, { message: 'Hủy kích hoạt sản phẩm thành công' });
+      return successResponse(res, 200, {
+        message: "Hủy kích hoạt sản phẩm thành công",
+      });
     } catch (error) {
       console.error(error);
-      return failedResponse(res, 500, 'Có lỗi xảy ra khi hủy kích hoạt sản phẩm');
+      return failedResponse(
+        res,
+        500,
+        "Có lỗi xảy ra khi hủy kích hoạt sản phẩm",
+      );
     }
   },
 
@@ -205,10 +237,12 @@ module.exports = {
 
       await Product.updateMany({ _id: { $in: ids } }, { isDelete: false });
 
-      return successResponse(res, 200, { message: 'Kích hoạt sản phẩm thành công' });
+      return successResponse(res, 200, {
+        message: "Kích hoạt sản phẩm thành công",
+      });
     } catch (error) {
       console.error(error);
-      return failedResponse(res, 500, 'Có lỗi xảy ra khi kích hoạt sản phẩm');
+      return failedResponse(res, 500, "Có lỗi xảy ra khi kích hoạt sản phẩm");
     }
-  }
-}
+  },
+};
