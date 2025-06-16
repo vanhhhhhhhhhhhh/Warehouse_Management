@@ -11,12 +11,10 @@ module.exports = {
     try {
       const { limit, skip } = getPaginationParams(req);
 
-      const { name } = req.query;
-
       const query = {};
 
-      if (name) {
-        query.name = { $regex: name, $options: "i" };
+      if (req.query.name) {
+        query.name = { $regex: req.query.name, $options: "i" };
       }
 
       const products = await Product.find(query)
@@ -69,7 +67,7 @@ module.exports = {
         description: product.description,
         price: product.price,
         attributes: product.attribute,
-        imageUrl: product.image,
+        imageId: product.image,
         adminId: product.adminId,
         isDelete: product.isDelete,
         createdAt: product.createdAt,
@@ -95,12 +93,11 @@ module.exports = {
         isDelete,
       } = req.body;
 
+
       const existingProduct = await Product.findOne({ code });
       if (existingProduct) {
         return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
-
-      console.log(req.file);
 
       const newProduct = new Product({
         code,
@@ -111,7 +108,7 @@ module.exports = {
         attribute: attributes,
         image: req.file?.id ?? null,
         isDelete: isDelete === "true",
-        adminId: req.user?.id,
+        adminId: req.user?.adminId,
       });
 
       const savedProduct = await newProduct.save();
@@ -126,7 +123,7 @@ module.exports = {
         description: savedProduct.description,
         price: savedProduct.price,
         attributes: savedProduct.attribute,
-        imageUrl: savedProduct.image,
+        imageId: savedProduct.image,
         adminId: savedProduct.adminId,
         isDelete: savedProduct.isDelete,
         createdAt: savedProduct.createdAt,
@@ -195,7 +192,7 @@ module.exports = {
         description: updatedProduct.description,
         price: updatedProduct.price,
         attributes: updatedProduct.attribute,
-        imageUrl: updatedProduct.image,
+        imageId: updatedProduct.image,
         adminId: updatedProduct.adminId,
         isDelete: updatedProduct.isDelete,
         createdAt: updatedProduct.createdAt,

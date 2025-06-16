@@ -1,10 +1,10 @@
-import { Product, ProductListing, ProductRequest } from "./api";
+import { Product, ProductListing, ProductRequest } from './api';
 import client, {
   GetParams,
   PaginatedResponse,
   withPaginationDefaults,
-} from "./client";
-import { API_URL } from "../config/api.config";
+} from './client';
+import { API_URL } from '../config/api.config';
 
 export async function getProducts(
   params?: GetParams,
@@ -25,8 +25,9 @@ export async function getProducts(
 }
 
 function patchImageUrl(product: Product) {
-  if (product.imageUrl) {
-    product.imageUrl = API_URL.ASSETS.GET(product.imageUrl);
+  if (product.imageId) {
+    //add base url to image id
+    product.imageId = API_URL.IMAGES.GET(product.imageId);
   }
 
   return product;
@@ -43,7 +44,7 @@ export async function createProduct(product: ProductRequest): Promise<Product> {
     product,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     },
   );
@@ -60,7 +61,7 @@ export async function updateProduct(
     product,
     {
       headers: {
-        "Content-Type": "multipart/form-data",
+        'Content-Type': 'multipart/form-data',
       },
     },
   );

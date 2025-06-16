@@ -327,7 +327,7 @@ const CRUDTable: CRUDTableComponent = ({
             {!isLoading && getTableBody(table)}
           </tbody>
         </table>
-        {(pagination?.totalPages ?? 0) > 0 && renderPaginationControls()}
+        {(pagination?.totalPages ?? 0) > 1 && renderPaginationControls()}
       </div>
     </div>
   );

@@ -14,7 +14,7 @@ export interface Product {
   price: number
   attributes: ProductAttributes[]
   isDelete: boolean
-  imageUrl: string
+  imageId: string
   categoryId: string
   adminId: string
 }

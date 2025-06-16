@@ -1,35 +1,35 @@
-import { FieldArray, Formik, FormikProps } from "formik";
-import * as Yup from "yup";
-import React, { useState } from "react";
-import AsyncPicker from "../../../reusableWidgets/AsyncPicker";
-import { useQuery } from "react-query";
-import { getCategories, getCategory } from "../../../apiClient/categories";
+import { FieldArray, Formik, FormikProps } from 'formik';
+import * as Yup from 'yup';
+import React, { useState } from 'react';
+import AsyncPicker from '../../../reusableWidgets/AsyncPicker';
+import { useQuery } from 'react-query';
+import { getCategories, getCategory } from '../../../apiClient/categories';
 
 const productSchemaRequest = Yup.object().shape({
-  code: Yup.string().required("Mã sản phẩm là bắt buộc"),
-  name: Yup.string().required("Tên sản phẩm là bắt buộc"),
+  code: Yup.string().required('Mã sản phẩm là bắt buộc'),
+  name: Yup.string().required('Tên sản phẩm là bắt buộc'),
   description: Yup.string()
-    .max(1000, "Mô tả không được vượt quá 1000 ký tự")
-    .default(""),
+    .max(1000, 'Mô tả không được vượt quá 1000 ký tự')
+    .default(''),
   price: Yup.number()
-    .min(0, "Giá không được nhỏ hơn 0")
-    .required("Giá là bắt buộc"),
+    .min(0, 'Giá không được nhỏ hơn 0')
+    .required('Giá là bắt buộc'),
   attributes: Yup.array()
     .of(
       Yup.object().shape({
-        name: Yup.string().required("Tên thuộc tính là bắt buộc"),
-        value: Yup.string().required("Giá trị thuộc tính là bắt buộc"),
+        name: Yup.string().required('Tên thuộc tính là bắt buộc'),
+        value: Yup.string().required('Giá trị thuộc tính là bắt buộc'),
       }),
     )
     .default([]),
-  isDelete: Yup.boolean().required("Trạng thái là bắt buộc"),
+  isDelete: Yup.boolean().required('Trạng thái là bắt buộc'),
   image: Yup.mixed<File>().optional(),
-  categoryId: Yup.string().required("Danh mục là bắt buộc"),
+  categoryId: Yup.string().required('Danh mục là bắt buộc'),
 });
 
 export type ProductFormRequest = Yup.InferType<typeof productSchemaRequest>;
 
-export type ProductFormInitialValues = Omit<ProductFormRequest, "image">;
+export type ProductFormInitialValues = Omit<ProductFormRequest, 'image'>;
 
 interface ProductFormProps {
   initialValues: ProductFormInitialValues;
@@ -47,11 +47,11 @@ const renderAttributeError = (
 
   if (!touched || !errors) return null;
 
-  if (typeof errors === "string") {
-    return <div className="text-danger">{errors}</div>;
+  if (typeof errors === 'string') {
+    return <div className='text-danger'>{errors}</div>;
   }
 
-  return <div className="text-danger">{Object.values(errors).join(" - ")}</div>;
+  return <div className='text-danger'>{Object.values(errors).join(' - ')}</div>;
 };
 
 const renderAttributes: React.FC<FormikProps<ProductFormRequest>> = (
@@ -126,14 +126,14 @@ const renderForm = (
   imageUrl?: string,
 ) => {
   const [page, setPage] = useState(1);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<{
     _id: string;
     name: string;
   } | null>(null);
 
   useQuery({
-    queryKey: ["categories", "detail"],
+    queryKey: ['categories', 'detail'],
     queryFn: () => getCategory(formikOptions.values.categoryId),
     enabled: !!formikOptions.values.categoryId,
     cacheTime: 0,
@@ -143,7 +143,7 @@ const renderForm = (
   });
 
   const { data: categories, isLoading } = useQuery({
-    queryKey: ["categories", page, searchTerm],
+    queryKey: ['categories', page, searchTerm],
     queryFn: () =>
       getCategories({
         pagination: {
@@ -333,15 +333,15 @@ const renderForm = (
 const getLabel = (isLoading: boolean, isEdit: boolean): string => {
   if (isLoading) {
     if (isEdit) {
-      return "Đang cập nhật...";
+      return 'Đang cập nhật...';
     }
-    return "Đang tạo...";
+    return 'Đang tạo...';
   } else {
     if (isEdit) {
-      return "Cập nhật";
+      return 'Cập nhật';
     }
 
-    return "Tạo";
+    return 'Tạo';
   }
 };
 

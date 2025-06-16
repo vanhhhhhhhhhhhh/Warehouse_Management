@@ -1,11 +1,11 @@
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import ProductForm, {
   ProductFormInitialValues,
   ProductFormRequest,
-} from "./components/ProductForm";
-import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getProduct, updateProduct } from "../../apiClient/products";
-import Swal from "sweetalert2";
+} from './components/ProductForm';
+import { useMutation, useQuery, useQueryClient } from 'react-query';
+import { getProduct, updateProduct } from '../../apiClient/products';
+import Swal from 'sweetalert2';
 
 const EditProduct = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const EditProduct = () => {
   const { id } = useParams<{ id: string }>();
 
   const { data: product, isLoading } = useQuery({
-    queryKey: ["product", id],
+    queryKey: ['product', id],
     queryFn: () => getProduct(id!),
     enabled: !!id,
   });
@@ -25,22 +25,22 @@ const EditProduct = () => {
     },
     onSuccess: async () => {
       Swal.fire({
-        icon: "success",
-        title: "Thành công!",
-        text: "Cập nhật sản phẩm thành công",
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Cập nhật sản phẩm thành công',
         showConfirmButton: false,
         timer: 1500,
       });
 
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["product", id] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['product', id] });
 
-      navigate("/apps/products");
+      navigate('/apps/products');
     },
     onError: (error: any) => {
       Swal.fire({
-        icon: "error",
-        title: "Lỗi!",
+        icon: 'error',
+        title: 'Lỗi!',
         text: error.message,
       });
     },
@@ -53,9 +53,9 @@ const EditProduct = () => {
   if (!product || isLoading) {
     return (
       <span
-        className="spinner-border spinner-border-sm"
-        role="status"
-        aria-hidden="true"
+        className='spinner-border spinner-border-sm'
+        role='status'
+        aria-hidden='true'
       ></span>
     );
   }
@@ -97,7 +97,7 @@ const EditProduct = () => {
               initialValues={initialValues}
               onSubmit={onSubmit}
               isEdit={true}
-              imageUrl={product.imageUrl}
+              imageUrl={product.imageId}
             />
           </div>
         </div>
