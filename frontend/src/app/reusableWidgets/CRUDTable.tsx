@@ -13,12 +13,15 @@ import {
   Table,
   Updater,
   useReactTable,
-} from '@tanstack/react-table';
-import { useState, useMemo, useEffect } from 'react';
-import { useIntl } from 'react-intl';
-import { KTSVG } from '../../_metronic/helpers';
-import clsx from 'clsx';
-import { SelectedItemsActions, SelectedItemsActionsProps } from './SelectedItemsActions';
+} from "@tanstack/react-table";
+import { useState, useMemo } from "react";
+import { useIntl } from "react-intl";
+import { KTSVG } from "../../_metronic/helpers";
+import clsx from "clsx";
+import {
+  SelectedItemsActions,
+  SelectedItemsActionsProps,
+} from "./SelectedItemsActions";
 
 interface Pagination {
   pageIndex: number;
@@ -42,9 +45,9 @@ interface CRUDTableProps<TData extends RowData> {
 }
 
 type CRUDTableComponent = (<TData extends RowData>(
-  props: CRUDTableProps<TData>
+  props: CRUDTableProps<TData>,
 ) => React.ReactNode) & {
-  SelectedItemsActions: React.FC<SelectedItemsActionsProps>
+  SelectedItemsActions: React.FC<SelectedItemsActionsProps>;
 };
 
 const getTableBody = <TData extends RowData>(table: Table<TData>) => {
@@ -53,12 +56,11 @@ const getTableBody = <TData extends RowData>(table: Table<TData>) => {
       {row.getVisibleCells().map((cell) => (
         <td
           className={clsx([
-            cell.column.getIsLastColumn() ||
-            cell.column.getIsFirstColumn()
-              ? 'width-min'
-              : '',
-            'py-4 align-middle px-0',
-            cell.column.getIsFirstColumn() ? 'pe-7' : ''
+            cell.column.getIsLastColumn() || cell.column.getIsFirstColumn()
+              ? "width-min"
+              : "",
+            "py-4 align-middle px-0",
+            cell.column.getIsFirstColumn() ? "pe-7" : "",
           ])}
           key={cell.id}
         >
@@ -66,23 +68,25 @@ const getTableBody = <TData extends RowData>(table: Table<TData>) => {
         </td>
       ))}
     </tr>
-  ))
-}
+  ));
+};
 
-function withPaginationDefaults(pagination: Partial<Pagination> | undefined): Pagination {
+function withPaginationDefaults(
+  pagination: Partial<Pagination> | undefined,
+): Pagination {
   if (!pagination) {
     return {
       pageIndex: 0,
       pageSize: 10,
       totalPages: 0,
-    }
+    };
   }
 
   return {
     pageIndex: pagination.pageIndex ?? 0,
     pageSize: pagination.pageSize ?? 10,
     totalPages: pagination.totalPages ?? 0,
-  }
+  };
 }
 
 const convertToRowSelection = (selectedItems: string[]): RowSelectionState => {
@@ -90,7 +94,7 @@ const convertToRowSelection = (selectedItems: string[]): RowSelectionState => {
     acc[item] = true;
     return acc;
   }, {} as RowSelectionState);
-}
+};
 
 const CRUDTable: CRUDTableComponent = ({
   data,
@@ -107,19 +111,19 @@ const CRUDTable: CRUDTableComponent = ({
   selectedItems,
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
   const intl = useIntl();
   const paginationWithDefaults = withPaginationDefaults(pagination);
 
   const columnHelper = useMemo(
     () => createColumnHelper<(typeof data)[number]>(),
-    []
+    [],
   );
 
   const colDefs = useMemo(
     () => [
       {
-        id: 'select',
+        id: "select",
         header: ({ table }: { table: Table<(typeof data)[number]> }) => (
           <div className="form-check form-check-custom form-check-solid">
             <input
@@ -144,8 +148,8 @@ const CRUDTable: CRUDTableComponent = ({
       },
       ...columns,
       columnHelper.display({
-        id: 'actions',
-        header: intl.formatMessage({ id: 'TABLE.ACTIONS' }),
+        id: "actions",
+        header: intl.formatMessage({ id: "TABLE.ACTIONS" }),
         cell: (info) => (
           <div>
             {showEdit && (
@@ -174,7 +178,7 @@ const CRUDTable: CRUDTableComponent = ({
         ),
       }),
     ],
-    [columns, showEdit, showDelete, onEdit, onDelete, intl]
+    [columns, showEdit, showDelete, onEdit, onDelete, intl, columnHelper],
   );
 
   const table = useReactTable({
@@ -196,7 +200,10 @@ const CRUDTable: CRUDTableComponent = ({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     onRowSelectionChange: (updaterOrValue: Updater<RowSelectionState>) => {
-      const state = typeof updaterOrValue === 'function' ? updaterOrValue(table.getState().rowSelection) : updaterOrValue;
+      const state =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(table.getState().rowSelection)
+          : updaterOrValue;
       onSelectedItemsChange?.(Object.keys(state));
     },
     pageCount: paginationWithDefaults.totalPages,
@@ -204,10 +211,59 @@ const CRUDTable: CRUDTableComponent = ({
     manualPagination: true,
     enableRowSelection: true,
     onPaginationChange: (updaterOrValue: Updater<PaginationState>) => {
-      const state = typeof updaterOrValue === 'function' ? updaterOrValue(table.getState().pagination) : updaterOrValue;
+      const state =
+        typeof updaterOrValue === "function"
+          ? updaterOrValue(table.getState().pagination)
+          : updaterOrValue;
       onPageChange?.(state.pageIndex);
-    }
+    },
   });
+
+  const renderPaginationControls = () => {
+    return (
+      <div className="d-flex justify-content-end align-items-center">
+        <div className="d-flex align-items-center">
+          <button
+            className="btn btn-sm btn-light me-2"
+            onClick={() => table.setPageIndex(0)}
+            disabled={!table.getCanPreviousPage()}
+          >
+            {"<<"}
+          </button>
+          <button
+            className="btn btn-sm btn-light me-2"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            {"<"}
+          </button>
+          <span className="btn btn-sm btn-light-primary me-2">
+            {intl.formatMessage(
+              { id: "TABLE.PAGE_INFO" },
+              {
+                page: table.getState().pagination.pageIndex + 1,
+                total: table.getPageCount(),
+              },
+            )}
+          </span>
+          <button
+            className="btn btn-sm btn-light me-2"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            {">"}
+          </button>
+          <button
+            className="btn btn-sm btn-light"
+            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+            disabled={!table.getCanNextPage()}
+          >
+            {">>"}
+          </button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -218,17 +274,17 @@ const CRUDTable: CRUDTableComponent = ({
               <tr
                 key={headerGroup.id}
                 className={clsx(
-                  'fw-bold text-uppercase fs-7 border-bottom border-gray-200',
-                  'text-muted'
+                  "fw-bold text-uppercase fs-7 border-bottom border-gray-200",
+                  "text-muted",
                 )}
               >
                 {headerGroup.headers.map((header) => (
                   <th
                     key={header.id}
                     className={clsx(
-                      'user-select-none',
-                      header.column.getCanSort() ? 'cursor-pointer' : null,
-                      'py-4 align-middle px-0'
+                      "user-select-none",
+                      header.column.getCanSort() ? "cursor-pointer" : null,
+                      "py-4 align-middle px-0",
                     )}
                   >
                     {header.isPlaceholder ? null : (
@@ -238,14 +294,14 @@ const CRUDTable: CRUDTableComponent = ({
                       >
                         {flexRender(
                           header.column.columnDef.header,
-                          header.getContext()
+                          header.getContext(),
                         )}
                         {header.column.getIsSorted() ? (
                           <div
                             className="position-absolute"
-                            style={{ top: '-1px', right: '-19px' }}
+                            style={{ top: "-1px", right: "-19px" }}
                           >
-                            {header.column.getIsSorted() === 'asc' ? '↑' : '↓'}
+                            {header.column.getIsSorted() === "asc" ? "↑" : "↓"}
                           </div>
                         ) : null}
                       </span>
@@ -258,7 +314,10 @@ const CRUDTable: CRUDTableComponent = ({
           <tbody>
             {isLoading && (
               <tr>
-                <td colSpan={table.getAllColumns().length} className="text-center py-5">
+                <td
+                  colSpan={table.getAllColumns().length}
+                  className="text-center py-5"
+                >
                   <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Loading...</span>
                   </div>
@@ -268,47 +327,7 @@ const CRUDTable: CRUDTableComponent = ({
             {!isLoading && getTableBody(table)}
           </tbody>
         </table>
-      </div>
-      <div className="d-flex justify-content-end align-items-center">
-        <div className="d-flex align-items-center">
-          <button
-            className="btn btn-sm btn-light me-2"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {'<<'}
-          </button>
-          <button
-            className="btn btn-sm btn-light me-2"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            {'<'}
-          </button>
-          <span className="btn btn-sm btn-light-primary me-2">
-            {intl.formatMessage(
-              { id: 'TABLE.PAGE_INFO' },
-              {
-                page: table.getState().pagination.pageIndex + 1,
-                total: table.getPageCount(),
-              }
-            )}
-          </span>
-          <button
-            className="btn btn-sm btn-light me-2"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            {'>'}
-          </button>
-          <button
-            className="btn btn-sm btn-light"
-            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            {'>>'}
-          </button>
-        </div>
+        {(pagination?.totalPages ?? 0) > 0 && renderPaginationControls()}
       </div>
     </div>
   );
