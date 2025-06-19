@@ -15,7 +15,7 @@ import {
 import { ProductListing } from "../../apiClient/api";
 import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
-import { ProductToolbar } from "./components";
+import { ImportModal, ProductToolbar } from "./components";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -48,7 +48,7 @@ const columns: ColumnDef<ProductListing, any>[] = [
   }),
 ];
 
-const noop = () => {};
+const noop = () => { };
 
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,6 +57,7 @@ async function wait(ms: number) {
 const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showImportModal, setShowImportModal] = useState(false);
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({
@@ -157,6 +158,15 @@ const ProductsPage: React.FC = () => {
 
   return (
     <>
+      <ImportModal
+        show={showImportModal}
+        onClose={() => setShowImportModal(false)}
+        onImport={async (file, overrideExisting) => {
+          console.log("Importing file", file, overrideExisting);
+        }}
+        onDownloadTemplate={noop}
+      />
+
       <div className="d-flex flex-column gap-7">
         <div className="px-9">
           <div className="card">
@@ -170,7 +180,7 @@ const ProductsPage: React.FC = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               onDownloadTemplate={noop}
-              onShowImportModal={noop}
+              onShowImportModal={() => setShowImportModal(true)}
               onAddProduct={() => navigate("/apps/products/create")}
             />
 

@@ -3,7 +3,7 @@ import * as Yup from 'yup';
 import React from "react";
 
 const categorySchemaRequest = Yup.object().shape({
-  name: Yup.string().required('Tên danh mục là bắt buộc'),
+  name: Yup.string().required('Tên danh mục là bắt buộc')
 });
 
 export type CategoryFormRequest = Yup.InferType<typeof categorySchemaRequest>;

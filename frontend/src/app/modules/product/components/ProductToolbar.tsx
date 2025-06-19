@@ -38,15 +38,6 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
 
       <div className='card-toolbar'>
         <div className='d-flex justify-content-end gap-2'>
-          {/* Excel Import/Export buttons */}
-          <button
-            type='button'
-            className='btn btn-light-primary'
-            onClick={onDownloadTemplate}
-          >
-            <i className='bi bi-file-earmark-arrow-down fs-2'></i>
-            Tải mẫu Excel
-          </button>
           <button
             type='button'
             className='btn btn-light-success'
