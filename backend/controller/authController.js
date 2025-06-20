@@ -107,13 +107,11 @@ const authController = {
 
             const normalizedEmail = email.trim().toLowerCase();
 
-            // Tìm user và kiểm tra isDelete
             const user = await User.findOne({
                 email: normalizedEmail,
                 isDelete: false
-            }).populate('roleId')
+            }).populate('roleId').populate('adminId')
 
-            // Kiểm tra user tồn tại
             if (!user) {
                 return res.status(401).json({
                     success: false,
@@ -121,7 +119,10 @@ const authController = {
                 })
             }
 
-            // Kiểm tra mật khẩu
+            if(user.adminId){
+                return res.status(403).json({message: 'Tài khoản này không được phép đăng nhập tại trang quản trị'})
+            }
+
             const validPassword = await argon2.verify(user.password, password)
             if (!validPassword) {
                 return res.status(401).json({
@@ -130,7 +131,6 @@ const authController = {
                 })
             }
 
-            // Kiểm tra trạng thái tài khoản
             if (!user.status) {
                 return res.status(403).json({
                     success: false,
@@ -138,7 +138,6 @@ const authController = {
                 })
             }
 
-            // Tạo token với thông tin cần thiết
             const accessToken = jwt.sign(
                 {
                     userId: user._id,
@@ -148,7 +147,6 @@ const authController = {
                 { expiresIn: '1d' }
             )
 
-            // Trả về thông tin đăng nhập thành công
             return res.status(200).json({
                 success: true,
                 message: 'Đăng nhập thành công',
@@ -160,7 +158,6 @@ const authController = {
                     phone: user.phone,
                     roleId: user.roleId._id,
                     roleName: user.roleId.name,
-                    adminId: user.adminId,
                     status: user.status,
                     permissions: user.roleId.permissions
                 }
@@ -171,6 +168,59 @@ const authController = {
                 success: false,
                 message: 'Lỗi server khi đăng nhập'
             })
+        }
+    },
+
+    loginEmployee: async(req, res) => {
+        try {
+            const {email, username, password} = req.body
+            const employee = await User.findOne({username:  username, isDelete: false}).populate('adminId').populate('roleId')
+            if(!employee){
+                return res.status(400).json({message: 'Tên người dùng hoặc mật khẩu không chính xác'})
+            }
+            if(employee.adminId.email !== email){
+                return res.status(400).json({message: 'Email quản trị viên không khớp'})
+            }
+            const validPassword = await argon2.verify(employee.password, password);
+            if(!validPassword){
+                return res.status(400).json({message: 'Tên người dùng hoặc mật khẩu không chính xác'})
+            }
+
+            if(!employee.status){
+                return res.status(403).json({message: 'Tài khoản đã bị vô hiệu hóa'})
+            }
+            const accessToken = jwt.sign(
+                {
+                    userId: employee._id,
+                    roleId: employee.roleId._id
+                },
+                process.env.ACCESS_TOKEN_SECRET,
+                {expiresIn: '1d'}
+            )
+
+                return res.status(200).json({
+                success: true,
+                message: 'Đăng nhập thành công',
+                token: accessToken,
+                employee: {
+                    id: employee._id,
+                    fullname: employee.fullname,
+                    email: employee.email,
+                    phone: employee.phone,
+                    roleId: employee.roleId._id,
+                    roleName: employee.roleId.name,
+                    adminId: employee.adminId,
+                    status: employee.status,
+                    permissions: employee.roleId.permissions
+                }
+            })
+
+        } catch (error) {
+            console.log('Login error:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Lỗi server khi đăng nhập'
+            })  
         }
     },
 
