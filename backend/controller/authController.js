@@ -192,7 +192,8 @@ const authController = {
             const accessToken = jwt.sign(
                 {
                     userId: employee._id,
-                    roleId: employee.roleId._id
+                    roleId: employee.roleId._id,
+                    adminId: employee.adminId._id
                 },
                 process.env.ACCESS_TOKEN_SECRET,
                 {expiresIn: '1d'}

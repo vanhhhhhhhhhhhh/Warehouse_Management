@@ -10,6 +10,7 @@ const apiCategory = require("./router/apiCategory");
 const apiUser = require("./router/apiUser");
 const apiImage = require("./router/apiImage");
 const apiWarehouse = require("./router/apiWarehouse");
+const apiImport = require("./router/apiImport");
 
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
@@ -57,6 +58,9 @@ app.use("/images", apiImage);
 
 // WAREHOUSES
 app.use("/warehouses", apiWarehouse);
+
+// IMPORT PRODUCT INTO WAREHOUSE
+app.use("/import", apiImport)
 
 app.listen(port, () => {
   console.log(`Server is running on http://${hostname}:${port}`);
