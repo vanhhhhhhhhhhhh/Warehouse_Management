@@ -1,4 +1,4 @@
-import React, { useRef, ChangeEvent, DragEvent, useState } from 'react'
+import React, { useRef, ChangeEvent, DragEvent, useState, useMemo } from 'react'
 import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik'
 import * as Yup from 'yup'
 import { KTSVG } from '../../../../_metronic/helpers'
@@ -245,40 +245,7 @@ const AskForFileScreen: React.FC<{
 
 }
 
-const mappingValidationSchema = Yup.object().shape({
-  mappings: Yup.object().test('required-mappings', 'Vui lòng chọn cột cho các trường bắt buộc', function (value) {
-    const requiredFields = ['name', 'price', 'quantity']
-    const mappings = (value as Record<string, string>) || {}
-
-    const mappedRequiredFields = Object.values(mappings).filter(mapped => requiredFields.includes(mapped))
-
-    if (mappedRequiredFields.length < requiredFields.length) {
-      return this.createError({
-        message: `Vui lòng ánh xạ các trường bắt buộc: ${requiredFields.join(', ')}`
-      })
-    }
-
-    return true
-  }),
-  options: Yup.object().shape({
-    overrideExisting: Yup.boolean(),
-    errorHandlingStrategy: Yup.string().oneOf(['skip', 'fail'])
-  })
-})
-
 const renderFields = (fileUploadState: FileUploadState, formikOptions: FormikProps<FileUploadRequest>) => {
-  const determineRequired = (fileField: string, availableFields: FileFieldLabel[]) => {
-    const mappedField = formikOptions.values.mappings[fileField]
-    const fieldInfo = mappedField ? availableFields.find(field => field.key === mappedField) : null
-    return fieldInfo ? (
-      <ProperBadge variant={fieldInfo.required ? 'danger' : 'secondary'}>
-        {fieldInfo.required ? 'Bắt buộc' : 'Tùy chọn'}
-      </ProperBadge>
-    ) : (
-      <span className='badge badge-light-secondary'>--</span>
-    )
-  }
-
   return fileUploadState.fileFields.map(fileField => (
     <tr key={fileField}>
       <td>
@@ -295,7 +262,7 @@ const renderFields = (fileUploadState: FileUploadState, formikOptions: FormikPro
               disabled={formikOptions.isSubmitting}
               onChange={(e) => formikOptions.setFieldValue(`mappings.${fileField}`, e.target.value)}
             >
-              <option value=''>-- Chọn trường --</option>
+              <option value=''>-- Không ánh xạ --</option>
               {fileUploadState.availableFields.map(availableField => (
                 <option key={availableField.key} value={availableField.key}>
                   {availableField.label}
@@ -310,9 +277,6 @@ const renderFields = (fileUploadState: FileUploadState, formikOptions: FormikPro
           className="invalid-feedback d-block"
         />
       </td>
-      <td>
-        {determineRequired(fileField, fileUploadState.availableFields)}
-      </td>
     </tr>
   ));
 }
@@ -324,6 +288,27 @@ const UploadConfigurationScreen: React.FC<{
   fileUploadState: FileUploadState
 }> = ({ onFinishUpload, onClose, fileUploadState }) => {
   const [isUploading, setIsUploading] = useState(false)
+
+  const mappingValidationSchema = useMemo(() => Yup.object().shape({
+    mappings: Yup.object().test('required-mappings', 'Vui lòng chọn cột cho các trường bắt buộc', function (value) {
+      const requiredFields = fileUploadState.availableFields.filter(field => field.required)
+      const enteredFields = new Set(Object.values(value as Record<string, string>))
+      const requiredFieldsNotEntered = requiredFields.filter(field => !enteredFields.has(field.key))
+
+      if (requiredFieldsNotEntered.length > 0) {
+        return this.createError({
+          message: `Vui lòng ánh xạ các trường bắt buộc: ${requiredFieldsNotEntered.map(field => field.label).join(', ')}`
+        })
+      }
+
+      return true
+    }),
+    options: Yup.object().shape({
+      overrideExisting: Yup.boolean(),
+      errorHandlingStrategy: Yup.string().oneOf(['skip', 'fail'])
+    })
+  }), [fileUploadState.availableFields])
+
 
   const initialValues = {
     mappings: fileUploadState.mappings || {} as Record<string, string>,
@@ -388,13 +373,12 @@ const UploadConfigurationScreen: React.FC<{
                     <div className='col-12'>
                       <h6 className='mb-4'>Ánh xạ cột Excel với trường sản phẩm</h6>
 
-                      <div className='table-responsive'>
-                        <table className='table table-bordered'>
-                          <thead>
+                      <div className='table-responsive' style={{ marginBottom: 10, maxHeight: 400, overflowY: 'auto' }}>
+                        <table className='table table-bordered table-hover table-striped'>
+                          <thead style={{ position: 'sticky', top: 0, backgroundColor: 'white' }}>
                             <tr>
-                              <th style={{ width: '40%' }}>Cột trong file Excel</th>
-                              <th style={{ width: '40%' }}>Trường sản phẩm</th>
-                              <th style={{ width: '20%' }}>Bắt buộc</th>
+                              <th>Cột trong file Excel</th>
+                              <th>Trường sản phẩm</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -402,6 +386,8 @@ const UploadConfigurationScreen: React.FC<{
                           </tbody>
                         </table>
                       </div>
+
+                      <ErrorMessage name='mappings' component='div' className='alert alert-danger' />
 
                       <div className='separator my-6'></div>
 

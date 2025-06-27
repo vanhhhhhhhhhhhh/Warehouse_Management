@@ -1,4 +1,5 @@
 export { DeleteModal } from './DeleteModal'
 export { ImportModal } from './ImportModal'
+export { WrapperImportModal } from './WrapperImportModal'
 export { ProductToolbar } from './ProductToolbar'
 export { SelectedItemsActions } from '../../../reusableWidgets/SelectedItemsActions'

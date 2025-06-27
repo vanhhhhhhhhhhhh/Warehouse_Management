@@ -18,7 +18,8 @@ module.exports = {
         .select('_id name isDelete createdAt')
         .skip(skip)
         .limit(limit)
-        .lean();
+        .lean()
+        .exec();
 
       const totalCategories = await Category.countDocuments(query);
       const totalPages = Math.ceil(totalCategories / limit);
@@ -44,7 +45,8 @@ module.exports = {
 
       const category = await Category
         .findById(id)
-        .lean();
+        .lean()
+        .exec();
 
       if (!category) {
         return failedResponse(res, 404, 'Không tìm thấy danh mục');
@@ -70,7 +72,7 @@ module.exports = {
     try {
       const { name } = req.body;
 
-      const existingCategory = await Category.findOne({ name, isDelete: false });
+      const existingCategory = await Category.findOne({ name, isDelete: false }).lean().exec();
       if (existingCategory) {
         return failedResponse(res, 400, 'Tên danh mục đã tồn tại');
       }
@@ -103,13 +105,13 @@ module.exports = {
       const { id } = req.params;
       const { name } = req.body;
 
-      const existingCategory = await Category.findById(id);
+      const existingCategory = await Category.findById(id).lean().exec();
       if (!existingCategory) {
         return failedResponse(res, 404, 'Không tìm thấy danh mục');
       }
 
       if (name && name !== existingCategory.name) {
-        const duplicateCategory = await Category.findOne({ name, _id: { $ne: id }, isDelete: false });
+        const duplicateCategory = await Category.findOne({ name, _id: { $ne: id }, isDelete: false }).lean().exec();
         if (duplicateCategory) {
           return failedResponse(res, 400, 'Tên danh mục đã tồn tại');
         }
@@ -141,7 +143,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Category.updateMany({ _id: { $in: ids } }, { isDelete: true });
+      await Category.updateMany({ _id: { $in: ids } }, { isDelete: true }).exec();
 
       return successResponse(res, 200, { message: 'Vô hiệu hóa danh mục thành công' });
     } catch (error) {
@@ -154,7 +156,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Category.updateMany({ _id: { $in: ids } }, { isDelete: false });
+      await Category.updateMany({ _id: { $in: ids } }, { isDelete: false }).exec();
 
       return successResponse(res, 200, { message: 'Kích hoạt danh mục thành công' });
     } catch (error) {

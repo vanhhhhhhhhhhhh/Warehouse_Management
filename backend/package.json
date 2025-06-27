@@ -21,7 +21,7 @@
     "multer": "^2.0.0",
     "multer-storage-cloudinary": "^4.0.0",
     "nodemon": "^3.1.10",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
     "@types/multer": "^1.4.13"

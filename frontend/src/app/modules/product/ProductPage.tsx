@@ -15,7 +15,7 @@ import {
 import { ProductListing } from "../../apiClient/api";
 import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
-import { ImportModal, ProductToolbar } from "./components";
+import { WrapperImportModal, ProductToolbar } from "./components";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -158,13 +158,13 @@ const ProductsPage: React.FC = () => {
 
   return (
     <>
-      <ImportModal
+      <WrapperImportModal
         show={showImportModal}
         onClose={() => setShowImportModal(false)}
-        onImport={async (file, overrideExisting) => {
-          console.log("Importing file", file, overrideExisting);
+        onSuccess={() => {
+          // Refresh the products list after successful import
+          queryClient.invalidateQueries({ queryKey: ["products"] });
         }}
-        onDownloadTemplate={noop}
       />
 
       <div className="d-flex flex-column gap-7">
