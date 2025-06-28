@@ -38,7 +38,7 @@ const errorController = {
                 return res.status(400).json({ message: 'Số lượng khai báo không được phép nhỏ hơn hoặc bằng 0' })
             }
 
-            const checkProductExist = await Stock_Error.findOne({proId})
+            const checkProductExist = await Stock_Error.findOne({proId, wareId})
             if(checkProductExist){
                 return res.status(400).json({message: 'Sản phẩm đã được khai báo lỗi trong kho'})
             }
