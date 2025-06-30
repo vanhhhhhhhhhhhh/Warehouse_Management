@@ -135,13 +135,13 @@ const importController = {
 
                 imports = await Stock_Import.find({
                     adminId: { $in: userIds }
-                }).populate('wareId').populate('adminId');
+                }).populate('wareId').populate('adminId').populate('items.proId');
 
             } else {
                 // Vai trò nhân viên
                 imports = await Stock_Import.find({
                     adminId: userId
-                }).populate('wareId').populate('adminId');
+                }).populate('wareId').populate('adminId').populate('items.proId');
             }
 
             return res.status(200).json({ data: imports });

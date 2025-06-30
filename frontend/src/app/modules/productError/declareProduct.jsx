@@ -1,18 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Content } from '../../../_metronic/layout/components/content'
 import { Link } from 'react-router-dom'
-
-// Mock data cho sản phẩm và kho
-const mockWarehouses = [
-    { id: 'hn', name: 'Kho Hà Nội' },
-    { id: 'hcm', name: 'Kho HCM' }
-]
-
-const mockProducts = [
-    { id: '1', name: 'Honda Wave Alpha' },
-    { id: '2', name: 'Honda Vision' },
-    { id: '3', name: 'Honda Air Blade' }
-]
+import Swal from 'sweetalert2'
+import axios from 'axios'
 
 const DeclareProduct = () => {
     const [formData, setFormData] = useState({
@@ -25,7 +15,6 @@ const DeclareProduct = () => {
     const handleSubmit = (e) => {
         e.preventDefault()
         console.log('Form submitted:', formData)
-        // Xử lý gửi dữ liệu
     }
 
     const handleReset = () => {
@@ -73,11 +62,6 @@ const DeclareProduct = () => {
                                             required
                                         >
                                             <option value=''>Chọn kho</option>
-                                            {mockWarehouses.map(warehouse => (
-                                                <option key={warehouse.id} value={warehouse.id}>
-                                                    {warehouse.name}
-                                                </option>
-                                            ))}
                                         </select>
                                     </div>
 
@@ -86,16 +70,9 @@ const DeclareProduct = () => {
                                         <label className='form-label required'>Chọn Sản phẩm</label>
                                         <select
                                             className='form-select form-select-solid'
-                                            value={formData.product}
-                                            onChange={(e) => setFormData({ ...formData, product: e.target.value })}
                                             required
                                         >
                                             <option value=''>Chọn sản phẩm</option>
-                                            {mockProducts.map(product => (
-                                                <option key={product.id} value={product.id}>
-                                                    {product.name}
-                                                </option>
-                                            ))}
                                         </select>
                                     </div>
 
@@ -105,8 +82,6 @@ const DeclareProduct = () => {
                                         <input
                                             type='number'
                                             className='form-control form-control-solid'
-                                            value={formData.quantity}
-                                            onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })}
                                             min={1}
                                             required
                                         />
@@ -118,8 +93,6 @@ const DeclareProduct = () => {
                                         <textarea
                                             className='form-control form-control-solid'
                                             rows={4}
-                                            value={formData.reason}
-                                            onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                                             required
                                             placeholder='Nhập nguyên nhân chi tiết...'
                                         />
