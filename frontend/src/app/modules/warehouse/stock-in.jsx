@@ -116,6 +116,7 @@ const StockInPage = () => {
                                             <td>{calculateTotalValue(imports.items)}</td>
                                             <td>
                                                 <button
+                                                onClick={() => navigate(`/apps/stockIn/print/${imports._id}`)}
                                                     className='btn btn-icon btn-bg-light btn-active-color-success btn-sm ms-5'>
                                                     <i className='fas fa-print'></i>
                                                 </button>

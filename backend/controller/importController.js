@@ -149,6 +149,19 @@ const importController = {
         } catch (error) {
             return res.status(500).json(error);
         }
+    },
+
+    importReceipt: async(req, res) => {
+        try {
+            const impId = req.params.id
+            const stockImport = await Stock_Import.findById(impId).populate('wareId').populate('adminId').populate('items.proId')
+            if(!stockImport){
+                return res.status(404).json({message: 'Không tìm thấy dữ liệu'})
+            }
+            return res.status(200).json({data: stockImport})
+        } catch (error) {
+            return res.status(500).json(error)
+        }
     }
 
 

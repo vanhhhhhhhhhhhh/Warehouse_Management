@@ -10,4 +10,6 @@ router.post('/intoWarehouse', middleware.verifyToken, importController.importInt
 
 router.get('/history', middleware.verifyToken, importController.historyImport)
 
+router.get('/receipt/:id', middleware.verifyToken, importController.importReceipt)
+
 module.exports = router
