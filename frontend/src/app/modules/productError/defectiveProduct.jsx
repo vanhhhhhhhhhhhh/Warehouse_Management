@@ -7,7 +7,7 @@ const DefectiveProductPage = () => {
     const navigate = useNavigate()
     const [selectedDate, setSelectedDate] = useState('')
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
-    const [selectedStatus, setSelectedStatus] = useState('')
+    // const [selectedStatus, setSelectedStatus] = useState('')
     const [stockError, setStockError] = useState([])
 
 
@@ -41,6 +41,10 @@ const DefectiveProductPage = () => {
         return `${year}-${month}-${day}`
     }
 
+    const uniqueWarehouses = Array.from(
+        new Set(stockError.map((error) => error.wareId.name))
+    )
+
     const filterError = stockError.filter((error) => {
         const isMatchDate = !selectedDate || formatDateOnly(error.createdAt) === selectedDate
         const isMatchWarehouse = !selectedWarehouse || error.wareId.name === selectedWarehouse
@@ -54,7 +58,6 @@ const DefectiveProductPage = () => {
     const handleReset = () => {
         setSelectedDate('')
         setSelectedWarehouse('')
-        setSelectedStatus('')
     }
 
 
@@ -109,14 +112,14 @@ const DefectiveProductPage = () => {
                                 >
                                     <option value=''>Tất cả kho</option>
                                     {
-                                        stockError.map((error) => {
-                                            return <option value={error.wareId.name}>{error.wareId.name}</option>
+                                        uniqueWarehouses.map((error) => {
+                                            return <option value={error}>{error}</option>
                                         })
                                     }
                                 </select>
                             </div>
 
-                            {/* Status Filter */}
+                            {/* Status Filter
                             <div className='d-flex align-items-center position-relative'>
                                 <i className='ki-duotone ki-status fs-3 position-absolute ms-4'></i>
                                 <select
@@ -129,7 +132,7 @@ const DefectiveProductPage = () => {
                                     <option value='APPROVED'>Đã duyệt</option>
                                     <option value='REJECTED'>Từ chối</option>
                                 </select>
-                            </div>
+                            </div> */}
 
                             {/* Reset Button */}
                             <button type='button' className='btn btn-light-primary' onClick={handleReset}>
@@ -147,11 +150,11 @@ const DefectiveProductPage = () => {
                                     <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
                                         <th>STT</th>
                                         <th>Ngày khai báo</th>
+                                        <th>Người tạo</th>
                                         <th>Kho</th>
                                         <th>Sản phẩm</th>
                                         <th>Số lượng</th>
                                         <th>Nguyên nhân</th>
-                                        <th>Trạng thái</th>
                                     </tr>
                                 </thead>
                                 <tbody className='text-gray-600 fw-semibold'>
@@ -159,12 +162,12 @@ const DefectiveProductPage = () => {
                                         filterError.map((error, key) => {
                                             return <tr>
                                                 <td>{key + 1}</td>
-                                                <td>{formatDateOnly(error.createdAt)}</td>
+                                                <td>{formatDateOnly(error.declareDate)}</td>
+                                                <td>{error.adminId.fullName}</td>
                                                 <td>{error.wareId.name}</td>
                                                 <td>{error.proId.name}</td>
                                                 <td>{error.quantity}</td>
                                                 <td>{error.reason}</td>
-                                                <td style={{ color: 'green' }}>Chờ duyệt</td>
                                             </tr>
                                         })
                                     }

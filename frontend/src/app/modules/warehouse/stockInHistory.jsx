@@ -45,6 +45,10 @@ const StockInHistory = () => {
     return `${year}-${month}-${day}`
   }
 
+  const uniqueWarehouses = Array.from(
+    new Set(stockImports.map((stock) => stock.wareId.name))
+  )
+
   function countTotalProduct(items) {
     return items.reduce((total, item) => total + item.quantity, 0)
   }
@@ -87,8 +91,8 @@ const StockInHistory = () => {
                   onChange={(e) => handleSelected(e.target.value)}>
                   <option value=''>Tất cả kho</option>
                   {
-                    stockImports.map((stock) => {
-                      return <option value={stock.wareId.name}>{stock.wareId.name}</option>
+                    uniqueWarehouses.map((stock) => {
+                      return <option value={stock}>{stock}</option>
                     })
                   }
                 </select>
