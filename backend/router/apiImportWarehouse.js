@@ -1,4 +1,4 @@
-const importController = require('../controller/importController')
+const importWarehouseController = require('../controller/importWarehouseController')
 const router = require('express').Router()
 const middleware = require('../controller/middleware')
 

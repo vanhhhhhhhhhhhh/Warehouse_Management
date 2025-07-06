@@ -5,7 +5,7 @@ const User = require('../model/User')
 const Role = require('../model/Role')
 
 
-const importController = {
+const importWarehouseController = {
 
     listWarehouse: async(req, res) => {
         try {
@@ -167,4 +167,4 @@ const importController = {
 
 }
 
-module.exports = importController
+module.exports = importWarehouseController

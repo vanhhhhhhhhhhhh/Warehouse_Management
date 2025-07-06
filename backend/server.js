@@ -10,7 +10,7 @@ const apiCategory = require("./router/apiCategory");
 const apiUser = require("./router/apiUser");
 const apiImage = require("./router/apiImage");
 const apiWarehouse = require("./router/apiWarehouse");
-const apiImport = require("./router/apiImport");
+const apiImportWarehouse = require("./router/apiImportWarehouse");
 const apiError = require("./router/apiError")
 
 const hostname = process.env.HOSTNAME;
@@ -61,7 +61,7 @@ app.use("/images", apiImage);
 app.use("/warehouses", apiWarehouse);
 
 // IMPORT PRODUCT INTO WAREHOUSE
-app.use("/import", apiImport)
+app.use("/import", apiImportWarehouse)
 
 // DECLARE ERROR PRODUCT
 app.use("/error", apiError)
