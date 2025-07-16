@@ -1,4 +1,5 @@
 const Warehouse = require('../model/Warehouse')
+const mongoose = require('mongoose')
 
 // Lấy danh sách kho
 const getWarehouses = async (req, res) => {
@@ -55,6 +56,13 @@ const getWarehouse = async (req, res) => {
 const createWarehouse = async (req, res) => {
     try {
         const { name, address, phone, adminId, staffId } = req.body
+
+        if (!adminId) {
+            return res.status(400).json({
+                success: false,
+                message: 'Không tìm thấy ID người quản lý'
+            })
+        }
 
         // Kiểm tra kho đã tồn tại
         const existingWarehouse = await Warehouse.findOne({ 

@@ -35,7 +35,24 @@ export const getWarehouse = async (id) => {
 // Tạo kho mới
 export const createWarehouse = async (warehouseData) => {
     try {
-        const response = await axios.post(`${API_URL}/warehouses`, warehouseData)
+        const token = localStorage.getItem('token')
+        const userStr = localStorage.getItem('user')
+        const user = userStr ? JSON.parse(userStr) : null
+        const adminId = user?.id
+
+        if (!adminId) {
+            throw new Error('Không tìm thấy ID người quản lý')
+        }
+        
+        const response = await axios.post(`${API_URL}/warehouses`, 
+            { ...warehouseData, adminId },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                },
+                withCredentials: true
+            }
+        )
         return response.data
     } catch (error) {
         throw error.response?.data || error.message
