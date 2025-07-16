@@ -5,7 +5,11 @@ const API_URL = 'http://localhost:9999'
 // Lấy danh sách kho
 export const getWarehouses = async () => {
     try {
-        const response = await axios.get(`${API_URL}/warehouses`)
+        const userStr = localStorage.getItem('user')
+        const user = userStr ? JSON.parse(userStr) : null
+        const adminId = user?.id
+
+        const response = await axios.get(`${API_URL}/warehouses${adminId ? `?adminId=${adminId}` : ''}`)
         return response.data
     } catch (error) {
         throw error.response?.data || error.message
@@ -15,7 +19,11 @@ export const getWarehouses = async () => {
 // Tìm kiếm kho
 export const searchWarehouses = async (keyword) => {
     try {
-        const response = await axios.get(`${API_URL}/warehouses/search?keyword=${keyword}`)
+        const userStr = localStorage.getItem('user')
+        const user = userStr ? JSON.parse(userStr) : null
+        const adminId = user?.id
+
+        const response = await axios.get(`${API_URL}/warehouses/search?keyword=${keyword}${adminId ? `&adminId=${adminId}` : ''}`)
         return response.data
     } catch (error) {
         throw error.response?.data || error.message

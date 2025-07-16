@@ -4,7 +4,15 @@ const mongoose = require('mongoose')
 // Lấy danh sách kho
 const getWarehouses = async (req, res) => {
     try {
-        const warehouses = await Warehouse.find({ isDelete: false })
+        const { adminId } = req.query
+        const query = { isDelete: false }
+        
+        // Nếu có adminId, thêm vào điều kiện tìm kiếm
+        if (adminId) {
+            query.adminId = adminId
+        }
+
+        const warehouses = await Warehouse.find(query)
             .populate('adminId', 'name email')
             .populate('staffId', 'name email')
             .sort({ createdAt: -1 })
@@ -231,7 +239,7 @@ const deleteManyWarehouses = async (req, res) => {
 // Tìm kiếm kho
 const searchWarehouses = async (req, res) => {
     try {
-        const { keyword } = req.query
+        const { keyword, adminId } = req.query
 
         if (!keyword) {
             return res.status(400).json({
@@ -240,7 +248,7 @@ const searchWarehouses = async (req, res) => {
             })
         }
 
-        const warehouses = await Warehouse.find({
+        const query = {
             isDelete: false,
             $or: [
                 { name: { $regex: keyword, $options: 'i' } },
@@ -249,7 +257,14 @@ const searchWarehouses = async (req, res) => {
                 { 'address.ward': { $regex: keyword, $options: 'i' } },
                 { phone: { $regex: keyword, $options: 'i' } }
             ]
-        })
+        }
+
+        // Nếu có adminId, thêm vào điều kiện tìm kiếm
+        if (adminId) {
+            query.adminId = adminId
+        }
+
+        const warehouses = await Warehouse.find(query)
         .populate('adminId', 'name email')
         .populate('staffId', 'name email')
         .sort({ createdAt: -1 })
