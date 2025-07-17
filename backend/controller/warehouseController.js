@@ -4,17 +4,32 @@ const mongoose = require('mongoose')
 // Lấy danh sách kho
 const getWarehouses = async (req, res) => {
     try {
-        const { adminId } = req.query
+        const { adminId, staffId, roleName } = req.query
         const query = { isDelete: false }
         
-        // Nếu có adminId, thêm vào điều kiện tìm kiếm
-        if (adminId) {
+        // Nếu role là Admin, lọc theo adminId
+        if (roleName === 'Admin') {
+            if (!adminId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'AdminId is required for Admin users'
+                })
+            }
             query.adminId = adminId
+        } else {
+            // Các role khác lọc theo staffId
+            if (!staffId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'StaffId is required for non-admin users'
+                })
+            }
+            query.staffId = staffId
         }
 
         const warehouses = await Warehouse.find(query)
-            .populate('adminId', 'name email')
-            .populate('staffId', 'name email')
+            .populate('adminId', 'name email roleName')
+            .populate('staffId', 'name email roleName')
             .sort({ createdAt: -1 })
 
         res.status(200).json({
@@ -239,7 +254,7 @@ const deleteManyWarehouses = async (req, res) => {
 // Tìm kiếm kho
 const searchWarehouses = async (req, res) => {
     try {
-        const { keyword, adminId } = req.query
+        const { keyword, adminId, staffId, roleName } = req.query
 
         if (!keyword) {
             return res.status(400).json({
@@ -259,15 +274,30 @@ const searchWarehouses = async (req, res) => {
             ]
         }
 
-        // Nếu có adminId, thêm vào điều kiện tìm kiếm
-        if (adminId) {
+        // Nếu role là Admin, lọc theo adminId
+        if (roleName === 'Admin') {
+            if (!adminId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'AdminId is required for Admin users'
+                })
+            }
             query.adminId = adminId
+        } else {
+            // Các role khác lọc theo staffId
+            if (!staffId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'StaffId is required for non-admin users'
+                })
+            }
+            query.staffId = staffId
         }
 
         const warehouses = await Warehouse.find(query)
-        .populate('adminId', 'name email')
-        .populate('staffId', 'name email')
-        .sort({ createdAt: -1 })
+            .populate('adminId', 'name email roleName')
+            .populate('staffId', 'name email roleName')
+            .sort({ createdAt: -1 })
 
         res.status(200).json({
             success: true,

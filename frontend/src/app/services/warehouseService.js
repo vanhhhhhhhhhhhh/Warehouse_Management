@@ -7,9 +7,18 @@ export const getWarehouses = async () => {
     try {
         const userStr = localStorage.getItem('user')
         const user = userStr ? JSON.parse(userStr) : null
-        const adminId = user?.id
+        const userId = user?.id
+        const roleName = user?.roleName
 
-        const response = await axios.get(`${API_URL}/warehouses${adminId ? `?adminId=${adminId}` : ''}`)
+        // Xây dựng query params dựa vào role
+        let queryParams = `roleName=${roleName}`
+        if (roleName === 'Admin') {
+            queryParams += `&adminId=${userId}`
+        } else {
+            queryParams += `&staffId=${userId}`
+        }
+
+        const response = await axios.get(`${API_URL}/warehouses?${queryParams}`)
         return response.data
     } catch (error) {
         throw error.response?.data || error.message
@@ -21,9 +30,18 @@ export const searchWarehouses = async (keyword) => {
     try {
         const userStr = localStorage.getItem('user')
         const user = userStr ? JSON.parse(userStr) : null
-        const adminId = user?.id
+        const userId = user?.id
+        const roleName = user?.roleName
 
-        const response = await axios.get(`${API_URL}/warehouses/search?keyword=${keyword}${adminId ? `&adminId=${adminId}` : ''}`)
+        // Xây dựng query params dựa vào role
+        let queryParams = `keyword=${keyword}&roleName=${roleName}`
+        if (roleName === 'Admin') {
+            queryParams += `&adminId=${userId}`
+        } else {
+            queryParams += `&staffId=${userId}`
+        }
+
+        const response = await axios.get(`${API_URL}/warehouses/search?${queryParams}`)
         return response.data
     } catch (error) {
         throw error.response?.data || error.message
