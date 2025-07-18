@@ -63,3 +63,18 @@ export interface CategoryListing {
   isDelete: boolean
   createdAt: string
 }
+
+export interface ImportProductResponse {
+  successCount: number
+  failedCount: number
+  formatErrors: string[]
+  importErrors: string[]
+}
+
+export interface ImportProductRequest {
+  file: File,
+  options: {
+    merge: boolean,
+    stopOnError: boolean
+  }
+}

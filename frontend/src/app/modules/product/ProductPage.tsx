@@ -15,8 +15,10 @@ import {
 import { ProductListing } from "../../apiClient/api";
 import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
-import { WrapperImportModal, ProductToolbar } from "./components";
+import { ProductToolbar, ImportModal } from "./components";
 import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useStatusFilter";
+import { importFile } from "../../apiClient/excel";
+import { format } from "path";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -161,12 +163,57 @@ const ProductsPage: React.FC = () => {
 
   return (
     <>
-      <WrapperImportModal
-        show={showImportModal}
+      <ImportModal
         onClose={() => setShowImportModal(false)}
-        onSuccess={() => {
-          // Refresh the products list after successful import
-          queryClient.invalidateQueries({ queryKey: ["products"] });
+        show={showImportModal}
+        onUploadFile={async (file: File) => {
+          try {
+            const response = await importFile({
+              file,
+              options: {
+                merge: true,
+                stopOnError: true
+              }
+            })
+
+            if (response.failedCount > 0) {
+              const formatErrors = response.formatErrors.join('\n');
+              const importErrors = response.importErrors.join('\n');
+
+              let warningText = `Đã nhập ${response.successCount} sản phẩm thành công.`;
+              if (formatErrors.length > 0) {
+                warningText += `<br><br>Lỗi định dạng:<br>${formatErrors}`;
+              }
+
+              if (importErrors.length > 0) {
+                warningText += `<br><br>Lỗi nhập dữ liệu:<br>${importErrors}`;
+              }
+
+              Swal.fire({
+                icon: "warning",
+                title: "Có lỗi trong quá trình nhập dữ liệu",
+                html: warningText,
+              });
+            } else {
+              Swal.fire({
+                icon: "success",
+                title: "Thành công!",
+                text: "Nhập dữ liệu thành công",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+          } catch (error: any) {
+            Swal.fire({
+              icon: "error",
+              title: "Lỗi!",
+              text: error.message,
+            });
+          }
+
+          setShowImportModal(false);
         }}
       />
 
