@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { KTSVG } from '../../../../_metronic/helpers'
+import { StatusFilterValue, useStatusFilter } from '../../../reusableWidgets/useStatusFilter'
 
 interface ProductToolbarProps {
   searchTerm: string
   onSearchChange: (value: string) => void
   onDownloadTemplate: () => void
+  onStatusChange: (value: StatusFilterValue) => void
   onShowImportModal: () => void
   onAddProduct: () => void
 }
@@ -12,14 +14,20 @@ interface ProductToolbarProps {
 export const ProductToolbar: React.FC<ProductToolbarProps> = ({
   searchTerm,
   onSearchChange,
+  onStatusChange,
   onDownloadTemplate,
   onShowImportModal,
   onAddProduct
 }) => {
+  const {statusFilter, statusFilterElement} = useStatusFilter()
+
+  useEffect(() => {
+    onStatusChange?.(statusFilter);
+  }, [statusFilter])
+
   return (
     <div className='card-header border-0 pt-6'>
-      <div className='card-title'>
-        {/* Begin Search */}
+      <div className='card-title space-x-2'>
         <div className='d-flex align-items-center position-relative my-1'>
           <KTSVG
             path='/media/icons/duotune/general/gen021.svg'
@@ -33,7 +41,8 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
             onChange={(e) => onSearchChange(e.target.value)}
           />
         </div>
-        {/* End Search */}
+
+        {statusFilterElement}
       </div>
 
       <div className='card-toolbar'>

@@ -19,6 +19,10 @@ module.exports = {
         query.name = { $regex: req.query.name, $options: "i" };
       }
 
+      if (req.query.status) {
+        query.isDelete = req.query.status !== 'active';
+      }
+
       const products = await Product.find(query)
         .populate("cateId", "name")
         .select("_id code name price isDelete")

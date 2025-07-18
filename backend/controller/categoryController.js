@@ -5,9 +5,7 @@ module.exports = {
   listCategory: async (req, res) => {
     try {
       const { limit, skip } = getPaginationParams(req);
-      const { name } = req.query;
-
-      console.log(req.user)
+      const { name, status } = req.query;
 
       const query = {
         adminId: req.user?.adminId
@@ -15,6 +13,10 @@ module.exports = {
 
       if (name) {
         query.name = { $regex: name, $options: 'i' };
+      }
+
+      if (status) {
+        query.isDelete = status !== 'active'
       }
 
       const categories = await Category

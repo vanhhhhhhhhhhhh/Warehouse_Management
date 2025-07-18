@@ -8,6 +8,7 @@ import { CategoryListing } from '../../apiClient/api'
 import Swal from 'sweetalert2'
 import { KTSVG } from '../../../_metronic/helpers'
 import ProperBadge from '../../reusableWidgets/ProperBadge'
+import { useStatusFilter } from '../../reusableWidgets/useStatusFilter'
 
 const columnHelper = createColumnHelper<CategoryListing>()
 
@@ -35,19 +36,21 @@ const CategoriesPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const { statusFilter, statusFilterElement } = useStatusFilter()
 
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
   const { data: categories, isLoading } = useQuery({
-    queryKey: ['categories', pageIndex, searchTerm],
+    queryKey: ['categories', pageIndex, searchTerm, statusFilter],
     queryFn: () => getCategories({
       pagination: {
         page: pageIndex + 1,
         limit: 5
       },
       search: {
-        name: searchTerm
+        name: searchTerm,
+        status: statusFilter
       }
     }),
     keepPreviousData: true
@@ -126,7 +129,7 @@ const CategoriesPage: React.FC = () => {
             </div>
 
             <div className='card-header border-0 pt-6'>
-              <div className='card-title'>
+              <div className='card-title space-x-2'>
                 <div className='d-flex align-items-center position-relative my-1'>
                   <KTSVG
                     path='/media/icons/duotune/general/gen021.svg'
@@ -140,6 +143,8 @@ const CategoriesPage: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
+
+                {statusFilterElement}
               </div>
 
               <div className='card-toolbar'>

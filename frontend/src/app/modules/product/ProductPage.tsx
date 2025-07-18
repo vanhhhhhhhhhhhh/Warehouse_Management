@@ -16,6 +16,7 @@ import { ProductListing } from "../../apiClient/api";
 import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
 import { WrapperImportModal, ProductToolbar } from "./components";
+import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useStatusFilter";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -58,10 +59,11 @@ const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showImportModal, setShowImportModal] = useState(false);
+  const [status, setStatus] = useState<StatusFilterValue>('active');
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({
-    queryKey: ["products", pageIndex, searchTerm],
+    queryKey: ["products", pageIndex, searchTerm, status],
     queryFn: () =>
       getProducts({
         pagination: {
@@ -70,6 +72,7 @@ const ProductsPage: React.FC = () => {
         },
         search: {
           name: searchTerm,
+          status
         },
       }),
     keepPreviousData: true,
@@ -179,6 +182,7 @@ const ProductsPage: React.FC = () => {
             <ProductToolbar
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
+              onStatusChange={setStatus}
               onDownloadTemplate={noop}
               onShowImportModal={() => setShowImportModal(true)}
               onAddProduct={() => navigate("/apps/products/create")}
