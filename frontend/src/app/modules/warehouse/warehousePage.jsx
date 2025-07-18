@@ -5,52 +5,14 @@ import { Content } from '../../../_metronic/layout/components/content'
 import { useNavigate } from 'react-router-dom'
 import { KTSVG } from '../../../_metronic/helpers'
 import ErrorModal from '../errors/components/modalErros'
-
-// Mock data for warehouses
-const mockWarehouses = [
-  {
-    _id: '1',
-    name: 'Kho Hà Nội',
-    address: {
-      detail: '123 Đường ABC',
-      ward: 'Phường XYZ',
-      district: 'Quận Hoàn Kiếm',
-      city: 'Hà Nội'
-    },
-    phone: '0123456789',
-    isActive: true
-  },
-  {
-    _id: '2',
-    name: 'Kho Hồ Chí Minh',
-    address: {
-      detail: '456 Đường DEF',
-      ward: 'Phường UVW',
-      district: 'Quận 1',
-      city: 'Hồ Chí Minh'
-    },
-    phone: '0987654321',
-    isActive: true
-  },
-  {
-    _id: '3',
-    name: 'Kho Đà Nẵng',
-    address: {
-      detail: '789 Đường GHI',
-      ward: 'Phường KLM',
-      district: 'Quận Hải Châu',
-      city: 'Đà Nẵng'
-    },
-    phone: '0123498765',
-    isActive: false
-  }
-]
+import { getWarehouses, searchWarehouses, deleteManyWarehouses } from '../../services/warehouseService'
+import Swal from 'sweetalert2'
 
 const WarehousePage = () => {
   const navigate = useNavigate()
 
   // States
-  const [warehouses, setWarehouses] = useState(mockWarehouses)
+  const [warehouses, setWarehouses] = useState([])
   const [loading, setLoading] = useState(false)
   const [selectAll, setSelectAll] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
@@ -63,14 +25,34 @@ const WarehousePage = () => {
   const [showErrorModal, setShowErrorModal] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
 
+  // Fetch danh sách kho
+  const fetchWarehouses = async () => {
+    try {
+      setLoading(true)
+      const response = await getWarehouses()
+      if (response.success) {
+        setWarehouses(response.data)
+      }
+    } catch (error) {
+      setErrorMessage(error.message || 'Lỗi khi lấy danh sách kho')
+      setShowErrorModal(true)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch danh sách kho khi component mount
   useEffect(() => {
-    // Kiểm tra vai trò và quyền từ localStorage
+    fetchWarehouses()
+  }, [])
+
+  // Kiểm tra vai trò và quyền
+  useEffect(() => {
     const userStr = localStorage.getItem('user')
     if (userStr) {
       try {
         const user = JSON.parse(userStr)
         setIsAdmin(user.roleName === 'Admin')
-        // Lưu trữ danh sách quyền của user
         setUserPermissions(user.permissions?.WAREHOUSE || [])
       } catch (error) {
         console.error('Error parsing user data:', error)
@@ -82,8 +64,31 @@ const WarehousePage = () => {
 
   // Kiểm tra quyền thực hiện hành động
   const checkPermission = (action) => {
-    if (isAdmin) return true // Admin luôn có quyền
+    if (isAdmin) return true
     return userPermissions.includes(action)
+  }
+
+  // Xử lý tìm kiếm
+  const handleSearch = async (e) => {
+    const value = e.target.value
+    setSearchTerm(value)
+
+    try {
+      setLoading(true)
+      if (value.trim()) {
+        const response = await searchWarehouses(value)
+        if (response.success) {
+          setWarehouses(response.data)
+        }
+      } else {
+        await fetchWarehouses()
+      }
+    } catch (error) {
+      setErrorMessage(error.message || 'Lỗi khi tìm kiếm kho')
+      setShowErrorModal(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleSelectAll = (e) => {
@@ -131,15 +136,30 @@ const WarehousePage = () => {
     }
   }
 
-  const handleConfirmDelete = () => {
-    const newWarehouses = warehouses.filter(warehouse => !selectedItems.includes(warehouse._id))
-    setWarehouses(newWarehouses)
-    setShowDeleteModal(false)
-    setSelectedAction('')
-    setSelectedItems([])
-    setSelectedMessage('')
-    setSelectAll(false)
-    console.log(`Đã xóa ${selectedItems.length} kho thành công`)
+  const handleConfirmDelete = async () => {
+    try {
+      setLoading(true)
+      const response = await deleteManyWarehouses(selectedItems)
+      if (response.success) {
+        Swal.fire({
+          title: 'Thành công!',
+          text: response.message,
+          icon: 'success',
+          confirmButtonText: 'OK'
+        })
+        await fetchWarehouses()
+        setShowDeleteModal(false)
+        setSelectedAction('')
+        setSelectedItems([])
+        setSelectedMessage('')
+        setSelectAll(false)
+      }
+    } catch (error) {
+      setErrorMessage(error.message || 'Lỗi khi xóa kho')
+      setShowErrorModal(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleShow = () => {
@@ -160,15 +180,6 @@ const WarehousePage = () => {
     navigate(`/apps/warehouse/edit/${id}`)
   }
 
-  // Filter warehouses based on search term
-  const filteredWarehouses = warehouses.filter(warehouse => 
-    warehouse.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    warehouse.address.city.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    warehouse.address.district.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    warehouse.address.ward.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    warehouse.phone.includes(searchTerm)
-  )
-  
   return (
     <>
       <div className='d-flex flex-column gap-7'>
@@ -194,7 +205,7 @@ const WarehousePage = () => {
                     className='form-control form-control-solid w-250px ps-14'
                     placeholder='Tìm kiếm kho'
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    onChange={handleSearch}
                   />
                 </div>
                 {/* End Search */}
@@ -255,7 +266,7 @@ const WarehousePage = () => {
                     <span className='visually-hidden'>Loading...</span>
                   </div>
                 </div>
-              ) : filteredWarehouses.length === 0 ? (
+              ) : warehouses.length === 0 ? (
                 <table className='table align-middle table-row-dashed fs-6 gy-5'>
                   <thead>
                     <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
@@ -319,7 +330,7 @@ const WarehousePage = () => {
                     </tr>
                   </thead>
                   <tbody className='text-gray-600 fw-semibold'>
-                    {filteredWarehouses.map((warehouse) => (
+                    {warehouses.map((warehouse) => (
                       <tr key={warehouse._id}>
                         {/* Hiển thị checkbox nếu có quyền xóa */}
                         {(isAdmin || checkPermission('DELETE')) && (

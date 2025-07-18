@@ -61,7 +61,7 @@ const permissionGroups = [
     groups: [
       {
         name: 'Quản lý kho',
-        module: 'STOCK',
+        module: 'WAREHOUSE',
         permissions: [
           { action: 'VIEW', name: 'Xem danh sách kho' },
           { action: 'STOCK_IN', name: 'Thực hiện nhập kho' },

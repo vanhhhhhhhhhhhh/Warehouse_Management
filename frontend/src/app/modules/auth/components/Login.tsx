@@ -39,16 +39,35 @@ export function Login() {
 
   const navigate = useNavigate()
 
-   const formik = useFormik({
+  const formik = useFormik({
     initialValues,
     validationSchema: loginSchema,
-    onSubmit: async (values, {setStatus, setSubmitting}) => {
+    onSubmit: async (values, { setStatus, setSubmitting }) => {
       setLoading(true)
       try {
-        const response = await fetch('http://localhost:9999/auth/login', {
+        // Chọn API endpoint tùy theo tab
+        const endpoint =
+          activeTab === 'employee'
+            ? 'http://localhost:9999/auth/login/employee'
+            : 'http://localhost:9999/auth/login'
+
+        // Chọn dữ liệu gửi đi phù hợp
+        const payload =
+          activeTab === 'employee'
+            ? {
+              email: values.email,
+              username: values.username,
+              password: values.password,
+            }
+            : {
+              email: values.email,
+              password: values.password,
+            }
+
+        const response = await fetch(endpoint, {
           method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(values),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
         })
 
         const data = await response.json()
@@ -58,37 +77,33 @@ export function Login() {
           throw new Error(data.message || 'Đăng nhập thất bại')
         }
 
-        // Kiểm tra dữ liệu từ response
-        if (!data.token || !data.user) {
+        const user = activeTab === 'employee' ? data.employee : data.user
+
+        if (!data.token || !user) {
           throw new Error('Dữ liệu đăng nhập không hợp lệ')
         }
 
-        // Tạo object auth với thông tin user từ response
         const auth = {
           api_token: data.token,
           user: {
-            id: data.user.id,
-            fullname: data.user.fullname,
-            email: data.user.email,
-            phone: data.user.phone,
-            roleId: data.user.roleId,
-            roleName: data.user.roleName,
-            adminId: data.user.adminId,
-            status: data.user.status,
-            permissions: data.user.permissions
-          }
+            id: user.id,
+            fullname: user.fullname,
+            email: user.email,
+            phone: user.phone,
+            roleId: user.roleId,
+            roleName: user.roleName,
+            adminId: user.adminId,
+            status: user.status,
+            permissions: user.permissions,
+          },
         }
 
-        console.log('Auth object to save:', auth)
-
-        // Lưu auth vào localStorage và state
         saveAuth(auth)
         setCurrentUser(auth.user)
 
-        // Lưu thông tin user và permissions riêng vào localStorage 
         localStorage.setItem('user', JSON.stringify(auth.user))
-        localStorage.setItem('permissions', JSON.stringify(data.user.permissions || {}))
-        
+        localStorage.setItem('permissions', JSON.stringify(user.permissions || {}))
+
         navigate('/dashboard')
       } catch (error) {
         console.error('Login error:', error)
@@ -96,15 +111,15 @@ export function Login() {
           error instanceof Error
             ? error.message
             : typeof error === 'string'
-            ? error
-            : 'Đã xảy ra lỗi khi đăng nhập'
+              ? error
+              : 'Đã xảy ra lỗi khi đăng nhập'
         setStatus(errorMessage)
         saveAuth(undefined)
         setSubmitting(false)
       } finally {
         setLoading(false)
       }
-    },
+    }
   })
 
   return (

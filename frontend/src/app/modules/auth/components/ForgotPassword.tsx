@@ -1,131 +1,177 @@
-import {useState} from 'react'
+import { useState, useEffect } from 'react'
 import * as Yup from 'yup'
 import clsx from 'clsx'
-import {Link} from 'react-router-dom'
-import {useFormik} from 'formik'
-import {requestPassword} from '../core/_requests'
-
-const initialValues = {
-  email: 'admin@demo.com',
-}
-
-const forgotPasswordSchema = Yup.object().shape({
-  email: Yup.string()
-    .email('Wrong email format')
-    .min(3, 'Minimum 3 symbols')
-    .max(50, 'Maximum 50 symbols')
-    .required('Email is required'),
-})
+import { useFormik } from 'formik'
 
 export function ForgotPassword() {
-  const [loading, setLoading] = useState(false)
-  const [hasErrors, setHasErrors] = useState<boolean | undefined>(undefined)
-  const formik = useFormik({
-    initialValues,
-    validationSchema: forgotPasswordSchema,
-    onSubmit: (values, {setStatus, setSubmitting}) => {
-      setLoading(true)
-      setHasErrors(undefined)
-      setTimeout(() => {
-        requestPassword(values.email)
-          .then(() => {
-            setHasErrors(false)
-            setLoading(false)
-          })
-          .catch(() => {
-            setHasErrors(true)
-            setLoading(false)
-            setSubmitting(false)
-            setStatus('The login detail is incorrect')
-          })
-      }, 1000)
+  const [step, setStep] = useState(1)
+  const [email, setEmail] = useState('')
+  const [otp, setOtp] = useState('')
+  const [message, setMessage] = useState('')
+  const [messageType, setMessageType] = useState<'success' | 'error' | ''>('')
+
+  useEffect(() => {
+    if (message) {
+      const timer = setTimeout(() => {
+        setMessage('')
+        setMessageType('')
+      }, 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [message])
+
+  const formikEmail = useFormik({
+    initialValues: { email: '' },
+    validationSchema: Yup.object({
+      email: Yup.string().email('Email không hợp lệ').required('Bắt buộc'),
+    }),
+    onSubmit: async ({ email }) => {
+      try {
+        const res = await fetch('http://localhost:9999/auth/forgot-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email }),
+        })
+        if (!res.ok) throw new Error()
+        setEmail(email)
+        setStep(2)
+        setMessage('✅ OTP đã được gửi tới email của bạn')
+        setMessageType('success')
+      } catch (error) {
+        setMessage('❌ Email không tồn tại hoặc lỗi hệ thống')
+        setMessageType('error')
+      }
+    },
+  })
+
+  const formikOTP = useFormik({
+    initialValues: { otp: '' },
+    validationSchema: Yup.object({
+      otp: Yup.string().length(6, 'Mã OTP gồm 6 chữ số').required('Bắt buộc'),
+    }),
+    onSubmit: async ({ otp }) => {
+      try {
+        const res = await fetch('http://localhost:9999/auth/verify-otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp }),
+        })
+        if (!res.ok) throw new Error()
+        setOtp(otp)
+        setStep(3)
+        setMessage('✅ Mã OTP hợp lệ. Vui lòng đặt lại mật khẩu.')
+        setMessageType('success')
+      } catch (error) {
+        setMessage('❌ OTP không đúng hoặc đã hết hạn')
+        setMessageType('error')
+      }
+    },
+  })
+
+  const formikPassword = useFormik({
+    initialValues: { newPassword: '', confirmPassword: '' },
+    validationSchema: Yup.object({
+      newPassword: Yup.string().min(6, 'Tối thiểu 6 ký tự').required('Bắt buộc'),
+      confirmPassword: Yup.string()
+        .oneOf([Yup.ref('newPassword')], 'Mật khẩu không khớp')
+        .required('Bắt buộc'),
+    }),
+    onSubmit: async ({ newPassword }) => {
+      try {
+        const res = await fetch('http://localhost:9999/auth/reset-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp, newPassword, confirmPassword: newPassword }),
+        })
+        if (!res.ok) throw new Error()
+        setMessage('🎉 Đặt lại mật khẩu thành công. Đang chuyển hướng...')
+        setMessageType('success')
+        setTimeout(() => {
+          window.location.href = 'http://localhost:5173/group3/WarehouseManagement/auth'
+        }, 2000)
+      } catch (error) {
+        setMessage('❌ Lỗi khi đặt lại mật khẩu')
+        setMessageType('error')
+      }
     },
   })
 
   return (
-    <form
-      className='form w-100 fv-plugins-bootstrap5 fv-plugins-framework'
-      noValidate
-      id='kt_login_password_reset_form'
-      onSubmit={formik.handleSubmit}
-    >
-      <div className='text-center mb-10'>
-        {/* begin::Title */}
-        <h1 className='text-gray-900 fw-bolder mb-3'>Forgot Password ?</h1>
-        {/* end::Title */}
+    <div className='container mt-5' style={{ maxWidth: '480px' }}>
+      <h3 className='text-center mb-4'>Quên mật khẩu</h3>
 
-        {/* begin::Link */}
-        <div className='text-gray-500 fw-semibold fs-6'>
-          Enter your email to reset your password.
-        </div>
-        {/* end::Link */}
-      </div>
-
-      {/* begin::Title */}
-      {hasErrors === true && (
-        <div className='mb-lg-15 alert alert-danger'>
-          <div className='alert-text font-weight-bold'>
-            Sorry, looks like there are some errors detected, please try again.
-          </div>
+      {message && (
+        <div
+          className={`alert ${messageType === 'success' ? 'alert-success' : 'alert-danger'} text-center`}
+          role='alert'
+        >
+          {message}
         </div>
       )}
 
-      {hasErrors === false && (
-        <div className='mb-10 bg-light-info p-8 rounded'>
-          <div className='text-info'>Sent password reset. Please check your email</div>
-        </div>
-      )}
-      {/* end::Title */}
-
-      {/* begin::Form group */}
-      <div className='fv-row mb-8'>
-        <label className='form-label fw-bolder text-gray-900 fs-6'>Email</label>
-        <input
-          type='email'
-          placeholder=''
-          autoComplete='off'
-          {...formik.getFieldProps('email')}
-          className={clsx(
-            'form-control bg-transparent',
-            {'is-invalid': formik.touched.email && formik.errors.email},
-            {
-              'is-valid': formik.touched.email && !formik.errors.email,
-            }
-          )}
-        />
-        {formik.touched.email && formik.errors.email && (
-          <div className='fv-plugins-message-container'>
-            <div className='fv-help-block'>
-              <span role='alert'>{formik.errors.email}</span>
-            </div>
-          </div>
-        )}
-      </div>
-      {/* end::Form group */}
-
-      {/* begin::Form group */}
-      <div className='d-flex flex-wrap justify-content-center pb-lg-0'>
-        <button type='submit' id='kt_password_reset_submit' className='btn btn-primary me-4'>
-          <span className='indicator-label'>Submit</span>
-          {loading && (
-            <span className='indicator-progress'>
-              Please wait...
-              <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
-            </span>
-          )}
-        </button>
-        <Link to='/auth/login'>
-          <button
-            type='button'
-            id='kt_login_password_reset_form_cancel_button'
-            className='btn btn-light'
-            disabled={formik.isSubmitting || !formik.isValid}
-          >
-            Cancel
+      {step === 1 && (
+        <form onSubmit={formikEmail.handleSubmit}>
+          <label className='form-label'>Email</label>
+          <input
+            type='email'
+            placeholder='Nhập email'
+            {...formikEmail.getFieldProps('email')}
+            className={clsx('form-control', {
+              'is-invalid': formikEmail.touched.email && formikEmail.errors.email,
+            })}
+          />
+          <div className='text-danger mt-1'>{formikEmail.errors.email}</div>
+          <button className='btn btn-primary w-100 mt-3' type='submit'>
+            Gửi OTP
           </button>
-        </Link>{' '}
-      </div>
-      {/* end::Form group */}
-    </form>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={formikOTP.handleSubmit}>
+          <label className='form-label'>Mã OTP</label>
+          <input
+            type='text'
+            placeholder='Nhập mã OTP'
+            {...formikOTP.getFieldProps('otp')}
+            className={clsx('form-control', {
+              'is-invalid': formikOTP.touched.otp && formikOTP.errors.otp,
+            })}
+          />
+          <div className='text-danger mt-1'>{formikOTP.errors.otp}</div>
+          <button className='btn btn-success w-100 mt-3' type='submit'>
+            Xác minh OTP
+          </button>
+        </form>
+      )}
+
+      {step === 3 && (
+        <form onSubmit={formikPassword.handleSubmit}>
+          <label className='form-label'>Mật khẩu mới</label>
+          <input
+            type='password'
+            placeholder='Nhập mật khẩu mới'
+            {...formikPassword.getFieldProps('newPassword')}
+            className={clsx('form-control mb-2', {
+              'is-invalid': formikPassword.touched.newPassword && formikPassword.errors.newPassword,
+            })}
+          />
+          <label className='form-label'>Nhập lại mật khẩu</label>
+          <input
+            type='password'
+            placeholder='Nhập lại mật khẩu'
+            {...formikPassword.getFieldProps('confirmPassword')}
+            className={clsx('form-control', {
+              'is-invalid':
+                formikPassword.touched.confirmPassword && formikPassword.errors.confirmPassword,
+            })}
+          />
+          <div className='text-danger mt-1'>{formikPassword.errors.confirmPassword}</div>
+          <button className='btn btn-success w-100 mt-3' type='submit'>
+            Đặt lại mật khẩu
+          </button>
+        </form>
+      )}
+    </div>
   )
 }

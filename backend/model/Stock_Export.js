@@ -2,6 +2,12 @@ const mongoose = require('mongoose')
 
 
 const exportSchema = mongoose.Schema({
+    receiptCode: {
+        type: String
+    },
+    receiptName: {
+        type: String
+    },
     wareId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'warehouses'
@@ -24,6 +30,6 @@ const exportSchema = mongoose.Schema({
             unitPrice: Number
         }
     ]
-}, {timestamps: true})
+}, { timestamps: true })
 
 module.exports = mongoose.model('stock_exports', exportSchema)
