@@ -1,7 +1,7 @@
 const XLSX = require('xlsx')
 const { failedResponse, successResponse } = require('../utils')
 const mongoose = require('mongoose')
-const { Product } = require('../model')
+const { Product, Category } = require('../model')
 
 const HEADER = ['Mã sản phẩm', 'Tên sản phẩm', 'Tên danh mục', 'Mô tả', 'Giá', 'Thuộc tính', 'Trạng thái'];
 
@@ -45,8 +45,16 @@ function parseAttributes(attr) {
  * @param {boolean} stopOnError
  */
 function convertAndValidate(data, stopOnError = true) {
-  const documentErrors = [];
-  const documents = [];
+  const ret = {
+    totalRows: 0,
+    validRows: 0,
+    invalidRows: 0,
+    categories: [],
+    documents: [],
+    documentErrors: []
+  }
+
+  const categoriesMap = new Map();
 
   if (data.length === 0) {
     throw new Error('File không có dữ liệu');
@@ -63,7 +71,7 @@ function convertAndValidate(data, stopOnError = true) {
     if (rowData.length !== HEADER.length) {
       documentErrors.push(`Dòng ${i + 1}: Số lượng cột không đúng, cần ${HEADER.length} cột`);
       if (stopOnError) {
-        return { documents: [], documentErrors };
+        return ret;
       } else {
         continue;
       }
@@ -79,9 +87,6 @@ function convertAndValidate(data, stopOnError = true) {
     }
 
     const code = rowData[0];
-    if (!code) {
-      rowErrors.push(`Mã sản phẩm không được để trống`);
-    }
 
     const name = rowData[1];
     if (!name) {
@@ -91,7 +96,7 @@ function convertAndValidate(data, stopOnError = true) {
     const categoryName = rowData[2];
     const description = rowData[3];
 
-    const price = parseInt(rowData[4]);
+    const price = parseFloat(rowData[4]);
     if (isNaN(price) || price < 0) {
       rowErrors.push(`Giá không hợp lệ`);
     }
@@ -104,7 +109,7 @@ function convertAndValidate(data, stopOnError = true) {
       documentErrors.push(`Dòng ${i + 1}: ${rowErrors.join('\n')}`);
 
       if (stopOnError) {
-        return { documents: [], documentErrors };
+        return ret;
       } else {
         continue;
       }
@@ -121,14 +126,84 @@ function convertAndValidate(data, stopOnError = true) {
       lineNumber: i + 1
     };
 
+    if (categoryName) {
+      if (!categoriesMap.has(categoryName)) {
+        categoriesMap.set(categoryName, []);
+      }
+
+      categoriesMap.get(categoryName).push(documents.length);
+    }
+
     documents.push(document);
   }
 
-  return { documents, documentErrors };
+
+  ret.totalRows = data.length - 1;
+  ret.validRows = validRows;
+  ret.invalidRows = invalidRows;
+  ret.categories = categoriesMap.forEach((value, key) => {
+    ret.categories.push({
+      name: key,
+      indices: value
+    });
+  });
+
+  return ret;
 }
 
-function importAll(convertedData) {
+async function importAll(convertedInfo, adminId { stopOnError, merge }) {
+  const ret = {
+    successCount: 0,
+    errorCount: 0,
+    importErrors: []
+  };
 
+  const ignoredList = [];
+  const categoryNameToIdMap = new Map();
+
+  for (const category of convertedInfo.categories) {
+    const existingCategory = await Category.findOne({
+      name: category.name,
+      adminId
+    }).exec();
+
+    if (!existingCategory) {
+      ignoredList.concat(category.indices);
+      importErrors.push(`Danh mục "${category.name}" không tồn tại, bỏ qua ${category.indices.length} sản phẩm`);
+      errorCount += category.indices.length;
+
+      if (stopOnError) {
+        return ret;
+      }
+    }
+
+    categoryNameToIdMap.set(category.name, existingCategory._id);
+  }
+
+  for (let i = 0; i < convertedInfo.documents.length; i++) {
+    const document = convertedInfo.documents[i];
+    if (ignoredList.includes(i)) {
+      continue;
+    }
+
+    const response = await Product.updateMany(
+      { code: document.code, adminId },
+      { $set: {
+        code: document.code,
+        name: document.name,
+        cateId: categoryNameToIdMap.get(document.categoryName),
+        description: document.description,
+        price: document.price,
+        attribute: document.attributes,
+        image: null,
+        isDelete: document.status !== 'Hoạt động',
+        adminId,
+      } },
+      { upsert: true }
+    );
+  }
+
+  return ret;
 }
 
 const defaultOptions = {
@@ -163,24 +238,21 @@ module.exports = {
       }
 
       const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-      let convertedData;
+      let convertedInfo;
 
       try {
-        convertedData = convertAndValidate(data, options.stopOnError);
+        convertedInfo = convertAndValidate(data, options.stopOnError);
       } catch (e) {
         return failedResponse(res, 400, e.message);
       }
 
-      if (options.stopOnError && convertedData.documentErrors > 0) {
-        return failedResponse(res, 400, convertedData.documentErrors.join('\n'));
-      }
-
-      const { successCount, failedCount, errors } = await importAll(convertedData);
+      const { successCount, errorCount, importErrors } = await importAll(convertedInfo, req.user?.adminId, options);
 
       return successResponse(res, 200, {
         successCount,
-        failedCount,
-        errors
+        failedCount: errorCount + convertedInfo.invalidRows,
+        formatErrors: convertedInfo.documentErrors,
+        importErrors
       })
     } catch (error) {
       console.error(error);
