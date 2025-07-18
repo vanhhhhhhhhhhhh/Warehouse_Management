@@ -7,7 +7,11 @@ module.exports = {
       const { limit, skip } = getPaginationParams(req);
       const { name } = req.query;
 
-      const query = {};
+      console.log(req.user)
+
+      const query = {
+        adminId: req.user?.adminId
+      };
 
       if (name) {
         query.name = { $regex: name, $options: 'i' };
@@ -44,7 +48,7 @@ module.exports = {
       const { id } = req.params;
 
       const category = await Category
-        .findById(id)
+        .findOne({ _id: id, adminId: req.user?.adminId })
         .lean()
         .exec();
 
@@ -72,14 +76,14 @@ module.exports = {
     try {
       const { name } = req.body;
 
-      const existingCategory = await Category.findOne({ name, isDelete: false }).lean().exec();
+      const existingCategory = await Category.findOne({ name, adminId: req.user?.adminId }).lean().exec();
       if (existingCategory) {
         return failedResponse(res, 400, 'Tên danh mục đã tồn tại');
       }
 
       const newCategory = new Category({
         name,
-        adminId: req.user?.id
+        adminId: req.user?.adminId
       });
 
       const savedCategory = await newCategory.save();
@@ -105,31 +109,31 @@ module.exports = {
       const { id } = req.params;
       const { name } = req.body;
 
-      const existingCategory = await Category.findById(id).lean().exec();
+      const existingCategory = await Category.findOne({ _id: id, adminId: req.user?.adminId }).exec();
       if (!existingCategory) {
         return failedResponse(res, 404, 'Không tìm thấy danh mục');
       }
 
       if (name && name !== existingCategory.name) {
-        const duplicateCategory = await Category.findOne({ name, _id: { $ne: id }, isDelete: false }).lean().exec();
+        const duplicateCategory = await Category
+          .findOne({ name, _id: { $ne: id }, adminId: req.user?.adminId })
+          .lean()
+          .exec();
         if (duplicateCategory) {
           return failedResponse(res, 400, 'Tên danh mục đã tồn tại');
         }
       }
 
-      const updatedCategory = await Category.findByIdAndUpdate(
-        id,
-        { name },
-        { new: true, runValidators: true }
-      );
+      existingCategory.name = name || existingCategory.name;
+      await existingCategory.save();
 
       const mappedCategory = {
-        _id: updatedCategory._id,
-        name: updatedCategory.name,
-        adminId: updatedCategory.adminId,
-        isDelete: updatedCategory.isDelete,
-        createdAt: updatedCategory.createdAt,
-        updatedAt: updatedCategory.updatedAt
+        _id: existingCategory._id,
+        name: existingCategory.name,
+        adminId: existingCategory.adminId,
+        isDelete: existingCategory.isDelete,
+        createdAt: existingCategory.createdAt,
+        updatedAt: existingCategory.updatedAt
       };
 
       return successResponse(res, 200, mappedCategory);
@@ -143,7 +147,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Category.updateMany({ _id: { $in: ids } }, { isDelete: true }).exec();
+      await Category.updateMany({ _id: { $in: ids }, adminId: req.user?.adminId }, { isDelete: true }).exec();
 
       return successResponse(res, 200, { message: 'Vô hiệu hóa danh mục thành công' });
     } catch (error) {
@@ -156,7 +160,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Category.updateMany({ _id: { $in: ids } }, { isDelete: false }).exec();
+      await Category.updateMany({ _id: { $in: ids }, adminId: req.user?.adminId }, { isDelete: false }).exec();
 
       return successResponse(res, 200, { message: 'Kích hoạt danh mục thành công' });
     } catch (error) {
