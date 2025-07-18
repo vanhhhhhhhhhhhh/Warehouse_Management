@@ -69,7 +69,8 @@ function convertAndValidate(data, stopOnError = true) {
     const rowData = data[i];
     const rowErrors = [];
     if (rowData.length !== HEADER.length) {
-      documentErrors.push(`Dòng ${i + 1}: Số lượng cột không đúng, cần ${HEADER.length} cột`);
+      ret.invalidRows++;
+      ret.documentErrors.push(`Dòng ${i + 1}: Số lượng cột không đúng, cần ${HEADER.length} cột`);
       if (stopOnError) {
         return ret;
       } else {
@@ -87,6 +88,9 @@ function convertAndValidate(data, stopOnError = true) {
     }
 
     const code = rowData[0];
+    if (!code) {
+      rowErrors.push(`Mã sản phẩm không được để trống`);
+    }
 
     const name = rowData[1];
     if (!name) {
@@ -106,7 +110,8 @@ function convertAndValidate(data, stopOnError = true) {
     }
 
     if (rowErrors.length > 0) {
-      documentErrors.push(`Dòng ${i + 1}: ${rowErrors.join('\n')}`);
+      ret.documentErrors.push(`Dòng ${i + 1}: ${rowErrors.join('\n')}`);
+      ret.invalidRows++;
 
       if (stopOnError) {
         return ret;
@@ -131,17 +136,16 @@ function convertAndValidate(data, stopOnError = true) {
         categoriesMap.set(categoryName, []);
       }
 
-      categoriesMap.get(categoryName).push(documents.length);
+      categoriesMap.get(categoryName).push(ret.documents.length);
     }
 
-    documents.push(document);
+    ret.validRows++;
+    ret.documents.push(document);
   }
 
 
   ret.totalRows = data.length - 1;
-  ret.validRows = validRows;
-  ret.invalidRows = invalidRows;
-  ret.categories = categoriesMap.forEach((value, key) => {
+  categoriesMap.forEach((value, key) => {
     ret.categories.push({
       name: key,
       indices: value
@@ -151,7 +155,7 @@ function convertAndValidate(data, stopOnError = true) {
   return ret;
 }
 
-async function importAll(convertedInfo, adminId { stopOnError, merge }) {
+async function importAll(convertedInfo, adminId, { stopOnError, merge }) {
   const ret = {
     successCount: 0,
     errorCount: 0,
@@ -168,16 +172,16 @@ async function importAll(convertedInfo, adminId { stopOnError, merge }) {
     }).exec();
 
     if (!existingCategory) {
-      ignoredList.concat(category.indices);
-      importErrors.push(`Danh mục "${category.name}" không tồn tại, bỏ qua ${category.indices.length} sản phẩm`);
-      errorCount += category.indices.length;
+      ignoredList.push(...category.indices);
+      ret.importErrors.push(`Danh mục "${category.name}" không tồn tại, bỏ qua ${category.indices.length} sản phẩm`);
+      ret.errorCount += category.indices.length;
 
       if (stopOnError) {
         return ret;
       }
+    } else {
+      categoryNameToIdMap.set(category.name, existingCategory._id);
     }
-
-    categoryNameToIdMap.set(category.name, existingCategory._id);
   }
 
   for (let i = 0; i < convertedInfo.documents.length; i++) {
@@ -186,21 +190,30 @@ async function importAll(convertedInfo, adminId { stopOnError, merge }) {
       continue;
     }
 
-    const response = await Product.updateMany(
-      { code: document.code, adminId },
-      { $set: {
-        code: document.code,
-        name: document.name,
-        cateId: categoryNameToIdMap.get(document.categoryName),
-        description: document.description,
-        price: document.price,
-        attribute: document.attributes,
-        image: null,
-        isDelete: document.status !== 'Hoạt động',
-        adminId,
-      } },
-      { upsert: true }
-    );
+    try {
+      await Product.updateOne(
+        { code: document.code, adminId },
+        { $set: {
+          code: document.code,
+          name: document.name,
+          cateId: categoryNameToIdMap.get(document.categoryName),
+          description: document.description,
+          price: document.price,
+          attribute: document.attributes,
+          image: null,
+          isDelete: document.status !== 'Hoạt động',
+          adminId,
+        } },
+        { upsert: true }
+      );
+      ret.successCount++;
+    } catch (error) {
+      ret.errorCount++;
+      ret.importErrors.push(`Dòng ${document.lineNumber}: Lỗi khi nhập sản phẩm "${document.name}": ${error.message}`);
+      if (stopOnError) {
+        return ret;
+      }
+    }
   }
 
   return ret;
