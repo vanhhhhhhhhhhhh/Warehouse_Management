@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const importController = require('../controller/importController')
+const excelController = require('../controller/excelController')
 const middlewareController = require('../controller/middleware')
 const { failedResponse } = require('../utils')
 const multer = require('multer')
@@ -33,6 +33,7 @@ const singleFile = (req, res, next) => {
   });
 }
 
-router.post('/import', middlewareController.verifyToken, singleFile, importController.importFile)
+router.post('/import', middlewareController.verifyToken, singleFile, excelController.importFile)
+router.get('/export', middlewareController.verifyToken, excelController.exportFile)
 
 module.exports = router

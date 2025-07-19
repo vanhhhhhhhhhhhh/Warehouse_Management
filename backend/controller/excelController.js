@@ -277,5 +277,44 @@ module.exports = {
       console.error(error);
       return failedResponse(res, 500, 'Lỗi khi xử lý file')
     }
+  },
+  exportFile: async (req, res) => {
+    try {
+      const products = await Product.find({ adminId: req.user.adminId })
+        .populate('cateId', 'name')
+        .exec();
+
+      if (!products || products.length === 0) {
+        return failedResponse(res, 404, 'Không có sản phẩm nào để xuất');
+      }
+
+      const data = [HEADER];
+
+      for (const product of products) {
+        const attributes = product.attribute.map(attr => `${attr.name}=${attr.value}`).join(';');
+        data.push([
+          product.code,
+          product.name,
+          product.cateId.name,
+          product.description,
+          product.price,
+          attributes,
+          product.isDelete ? 'Không hoạt động' : 'Hoạt động'
+        ]);
+      }
+
+      const worksheet = XLSX.utils.aoa_to_sheet(data);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, 'Products');
+
+      res.setHeader('Content-Disposition', 'attachment; filename=products.xlsx');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+
+      const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+      res.send(buffer);
+    } catch (error) {
+      console.error(error);
+      return failedResponse(res, 500, 'Lỗi khi xuất file');
+    }
   }
 }

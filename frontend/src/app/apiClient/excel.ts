@@ -14,3 +14,16 @@ export async function importFile(request: ImportProductRequest): Promise<ImportP
   )
   return response.data
 }
+
+export async function exportFile(): Promise<void> {
+  const response = await client.get(API_URL.EXCEL.EXPORT, {
+    responseType: 'blob',
+  })
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'products.xlsx')
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}

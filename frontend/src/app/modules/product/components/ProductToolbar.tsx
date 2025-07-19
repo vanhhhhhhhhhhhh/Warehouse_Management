@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import { KTSVG } from '../../../../_metronic/helpers'
 import { StatusFilterValue, useStatusFilter } from '../../../reusableWidgets/useStatusFilter'
 
@@ -20,10 +20,20 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
   onAddProduct
 }) => {
   const {statusFilter, statusFilterElement} = useStatusFilter()
+  const [exporting, setExporting] = useState(false)
 
   useEffect(() => {
     onStatusChange?.(statusFilter);
   }, [statusFilter])
+
+  const exportFile = async () => {
+    try {
+      setExporting(true)
+      await onExportFile()
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <div className='card-header border-0 pt-6'>
@@ -59,9 +69,16 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
             type='button'
             className='btn btn-light-success'
             onClick={onExportFile}
+            disabled={exporting}
           >
-            <i className='bi bi-file-earmark-arrow-down fs-2'></i>
-            Xuất Excel
+            {exporting ? (
+              <span className="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            ) : (
+              <>
+                <i className='bi bi-file-earmark-arrow-down fs-2'></i>
+                Xuất Excel
+              </>
+            )}
           </button>
           <button
             type='button'

@@ -12,7 +12,7 @@ const apiImage = require("./router/apiImage");
 const apiWarehouse = require("./router/apiWarehouse");
 const apiImportWarehouse = require("./router/apiImportWarehouse");
 const apiError = require("./router/apiError")
-const apiExcelImport = require("./router/apiImportProductsExcel");
+const apiExcel = require("./router/apiExcel")
 
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
@@ -70,7 +70,7 @@ app.use("/import", apiImportWarehouse)
 // DECLARE ERROR PRODUCT
 app.use("/error", apiError)
 
-app.use("/excel", apiExcelImport)
+app.use("/excel", apiExcel)
 
 app.listen(port, () => {
   console.log(`Server is running on http://${hostname}:${port}`);

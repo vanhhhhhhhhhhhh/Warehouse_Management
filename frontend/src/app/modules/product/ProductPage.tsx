@@ -17,7 +17,7 @@ import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
 import { ProductToolbar, ImportModal } from "./components";
 import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useStatusFilter";
-import { importFile } from "../../apiClient/excel";
+import { exportFile, importFile } from "../../apiClient/excel";
 import { format } from "path";
 import { FileParsingOptions } from "./components/ImportModal";
 
@@ -152,8 +152,6 @@ const ProductsPage: React.FC = () => {
     [selectedItems, deactivateProductMutation, activateProductMutation],
   );
 
-  const exportFile = async () => {}
-
   if (!products || isLoading) {
     return (
       <span
@@ -230,7 +228,19 @@ const ProductsPage: React.FC = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               onStatusChange={setStatus}
-              onExportFile={exportFile}
+              onExportFile={async () => {
+                try {
+                  await exportFile();
+                } catch (error) {
+                  console.error("Error exporting file:", error);
+                  Swal
+                    .fire({
+                      icon: "error",
+                      title: "Lỗi!",
+                      text: "Không thể xuất file. Vui lòng thử lại sau.",
+                    });
+                }
+              }}
               onShowImportModal={() => setShowImportModal(true)}
               onAddProduct={() => navigate("/apps/products/create")}
             />
