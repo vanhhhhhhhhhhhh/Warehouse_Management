@@ -46,6 +46,7 @@ export const API_URL = {
   EXCEL: {
     IMPORT: `${BASE_URL}/excel/import`,
     EXPORT: `${BASE_URL}/excel/export`,
+    SAMPLE_URL: `${BASE_URL}/static/SampleExcel.xlsx`,
   },
 
   // Products endpoints

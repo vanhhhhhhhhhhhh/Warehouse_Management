@@ -19,6 +19,7 @@ import { ProductToolbar, ImportModal } from "./components";
 import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useStatusFilter";
 import { importFile } from "../../apiClient/excel";
 import { format } from "path";
+import { FileParsingOptions } from "./components/ImportModal";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -151,6 +152,8 @@ const ProductsPage: React.FC = () => {
     [selectedItems, deactivateProductMutation, activateProductMutation],
   );
 
+  const exportFile = async () => {}
+
   if (!products || isLoading) {
     return (
       <span
@@ -166,14 +169,11 @@ const ProductsPage: React.FC = () => {
       <ImportModal
         onClose={() => setShowImportModal(false)}
         show={showImportModal}
-        onUploadFile={async (file: File) => {
+        onUploadFile={async (file: File, options: FileParsingOptions) => {
           try {
             const response = await importFile({
               file,
-              options: {
-                merge: true,
-                stopOnError: true
-              }
+              options
             })
 
             if (response.failedCount > 0) {
@@ -230,7 +230,7 @@ const ProductsPage: React.FC = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               onStatusChange={setStatus}
-              onDownloadTemplate={noop}
+              onExportFile={exportFile}
               onShowImportModal={() => setShowImportModal(true)}
               onAddProduct={() => navigate("/apps/products/create")}
             />

@@ -60,6 +60,8 @@ function convertAndValidate(data, stopOnError = true) {
     throw new Error('File không có dữ liệu');
   }
 
+  ret.totalRows = data.length - 1;
+
   const headerRow = data[0];
   if (!isArraySame(headerRow, HEADER)) {
     throw new Error('Header không đúng định dạng');
@@ -98,6 +100,10 @@ function convertAndValidate(data, stopOnError = true) {
     }
 
     const categoryName = rowData[2];
+    if (!categoryName) {
+      rowErrors.push(`Tên danh mục không được để trống`);
+    }
+
     const description = rowData[3];
 
     const price = parseFloat(rowData[4]);
@@ -144,7 +150,6 @@ function convertAndValidate(data, stopOnError = true) {
   }
 
 
-  ret.totalRows = data.length - 1;
   categoriesMap.forEach((value, key) => {
     ret.categories.push({
       name: key,
@@ -162,7 +167,6 @@ async function importAll(convertedInfo, adminId, { stopOnError, merge }) {
     importErrors: []
   };
 
-  const ignoredList = [];
   const categoryNameToIdMap = new Map();
 
   for (const category of convertedInfo.categories) {
@@ -172,13 +176,13 @@ async function importAll(convertedInfo, adminId, { stopOnError, merge }) {
     }).exec();
 
     if (!existingCategory) {
-      ignoredList.push(...category.indices);
-      ret.importErrors.push(`Danh mục "${category.name}" không tồn tại, bỏ qua ${category.indices.length} sản phẩm`);
-      ret.errorCount += category.indices.length;
+      const newCategory = new Category({
+        name: category.name,
+        adminId
+      });
 
-      if (stopOnError) {
-        return ret;
-      }
+      await newCategory.save();
+      categoryNameToIdMap.set(category.name, newCategory._id);
     } else {
       categoryNameToIdMap.set(category.name, existingCategory._id);
     }
@@ -186,9 +190,6 @@ async function importAll(convertedInfo, adminId, { stopOnError, merge }) {
 
   for (let i = 0; i < convertedInfo.documents.length; i++) {
     const document = convertedInfo.documents[i];
-    if (ignoredList.includes(i)) {
-      continue;
-    }
 
     try {
       await Product.updateOne(
@@ -204,7 +205,7 @@ async function importAll(convertedInfo, adminId, { stopOnError, merge }) {
           isDelete: document.status !== 'Hoạt động',
           adminId,
         } },
-        { upsert: true }
+        { upsert: true, runValidators: true }
       );
       ret.successCount++;
     } catch (error) {
@@ -233,7 +234,10 @@ module.exports = {
 
       const options = {
         ...defaultOptions,
-        ...req.body.options || {}
+        ...{
+          stopOnError: req.body.options.stopOnError === 'true',
+          merge: req.body.options.merge === 'true'
+        }
       };
 
       const workbook = XLSX.read(req.file.buffer);
@@ -258,6 +262,8 @@ module.exports = {
       } catch (e) {
         return failedResponse(res, 400, e.message);
       }
+
+      console.log(convertedInfo)
 
       const { successCount, errorCount, importErrors } = await importAll(convertedInfo, req.user?.adminId, options);
 

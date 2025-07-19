@@ -5,9 +5,9 @@ import { StatusFilterValue, useStatusFilter } from '../../../reusableWidgets/use
 interface ProductToolbarProps {
   searchTerm: string
   onSearchChange: (value: string) => void
-  onDownloadTemplate: () => void
   onStatusChange: (value: StatusFilterValue) => void
   onShowImportModal: () => void
+  onExportFile: () => void
   onAddProduct: () => void
 }
 
@@ -15,7 +15,7 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
   searchTerm,
   onSearchChange,
   onStatusChange,
-  onDownloadTemplate,
+  onExportFile,
   onShowImportModal,
   onAddProduct
 }) => {
@@ -54,6 +54,14 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
           >
             <i className='bi bi-file-earmark-arrow-up fs-2'></i>
             Nhập Excel
+          </button>
+          <button
+            type='button'
+            className='btn btn-light-success'
+            onClick={onExportFile}
+          >
+            <i className='bi bi-file-earmark-arrow-down fs-2'></i>
+            Xuất Excel
           </button>
           <button
             type='button'

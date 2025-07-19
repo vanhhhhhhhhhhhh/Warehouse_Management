@@ -40,6 +40,9 @@ mongoose
   .then(() => console.log("Connected to MongoDB successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
 
+
+app.use("/static", express.static("static"))
+
 // AUTHENTICATION
 app.use("/auth", apiAuth);
 
