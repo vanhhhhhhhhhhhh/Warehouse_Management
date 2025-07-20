@@ -43,6 +43,12 @@ export const API_URL = {
     ACTIVATE: `${BASE_URL}/categories/activate`,
   },
 
+  EXCEL: {
+    IMPORT: `${BASE_URL}/excel/import`,
+    EXPORT: `${BASE_URL}/excel/export`,
+    SAMPLE_URL: `${BASE_URL}/static/SampleExcel.xlsx`,
+  },
+
   // Products endpoints
   PRODUCTS: {
     LIST: `${BASE_URL}/products`,

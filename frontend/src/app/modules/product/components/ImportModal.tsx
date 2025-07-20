@@ -1,38 +1,67 @@
-import React, { useRef, ChangeEvent, DragEvent } from 'react'
+import React, { useRef, ChangeEvent, DragEvent, useState, useMemo } from 'react'
+import { Formik, Form, Field, ErrorMessage, FormikProps } from 'formik'
+import * as Yup from 'yup'
 import { KTSVG } from '../../../../_metronic/helpers'
+import ProperBadge from '../../../reusableWidgets/ProperBadge'
+import { API_URL } from '../../../config/api.config'
 
-interface ImportModalProps {
-  show: boolean
-  onClose: () => void
-  onImport: () => void
-  importFile: File | null
-  setImportFile: (file: File | null) => void
-  importing: boolean
-  isDragging: boolean
-  setIsDragging: (isDragging: boolean) => void
-  overrideExisting: boolean
-  setOverrideExisting: (override: boolean) => void
-  onDownloadTemplate: () => void
-  onFileValidation: (file: File) => void
+export interface FileParsingOptions {
+  merge: boolean,
+  stopOnError: boolean
 }
 
-export const ImportModal: React.FC<ImportModalProps> = ({
-  show,
-  onClose,
-  onImport,
-  importFile,
-  setImportFile,
-  importing,
-  isDragging,
-  setIsDragging,
-  overrideExisting,
-  setOverrideExisting,
-  onDownloadTemplate,
-  onFileValidation
-}) => {
+interface ImportModalProps {
+  show: boolean,
+  onClose: () => void,
+  onUploadFile: (file: File, options: FileParsingOptions) => Promise<void>
+}
+
+const AskForFileScreen: React.FC<{
+  onFileChosen: (file: File, options: FileParsingOptions) => Promise<void>
+  onClose: () => void
+}> = ({ onFileChosen, onClose }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  if (!show) return null
+  const [isDragging, setIsDragging] = useState(false)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [importing, setImporting] = useState(false)
+  const [stopOnError, setStopOnError] = useState(false)
+
+
+  const onFileValidation = (file: File) => {
+    const validTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel',
+    ]
+
+    if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
+      alert('Vui lòng chọn file Excel (.xlsx hoặc .xls)')
+      return
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      alert('File quá lớn. Vui lòng chọn file nhỏ hơn 10MB')
+      return
+    }
+
+    setImportFile(file)
+  }
+
+  const handleImport = async () => {
+    if (!importFile) return
+
+    setImporting(true)
+    try {
+      await onFileChosen(importFile, {
+        merge: true,
+        stopOnError
+      })
+    } catch (error) {
+      console.error('Import error:', error)
+    } finally {
+      setImporting(false)
+    }
+  }
 
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -66,7 +95,6 @@ export const ImportModal: React.FC<ImportModalProps> = ({
 
   const handleClose = () => {
     setImportFile(null)
-    setOverrideExisting(false)
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
@@ -76,7 +104,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
   return (
     <>
       <div
-        className='modal fade show d-block'
+        className="modal fade show d-block"
         style={{
           backgroundColor: 'rgba(0,0,0,0.5)',
           position: 'fixed',
@@ -87,25 +115,23 @@ export const ImportModal: React.FC<ImportModalProps> = ({
           zIndex: 1050,
         }}
       >
-        <div className='modal-dialog modal-dialog-centered' style={{
-          marginTop: '2rem',
-          maxWidth: '700px',
-          opacity: 1,
-          transform: 'translateY(0)',
-          transition: 'all 0.5s ease',
-          animation: 'modal-fade-in 0.5s ease'
-        }}>
-          <div className='modal-content'>
-            <div className='modal-header'>
-              <h5 className='modal-title'>Nhập sản phẩm từ Excel</h5>
-              <button
-                type='button'
-                className='btn-close'
-                onClick={handleClose}
-                disabled={importing}
-              ></button>
+        <div
+          className="modal-dialog modal-dialog-centered"
+          style={{
+            marginTop: '2rem',
+            maxWidth: '700px',
+            opacity: 1,
+            transform: 'translateY(0)',
+            transition: 'all 0.5s ease',
+            animation: 'modal-fade-in 0.5s ease',
+          }}
+        >
+          <div className="modal-content">
+            <div className="modal-header">
+              <h5 className="modal-title">Nhập sản phẩm từ Excel</h5>
+              <button type="button" className="btn-close" onClick={onClose} disabled={importing}></button>
             </div>
-            <div className='modal-body'>
+            <div className="modal-body">
               {/* Drag and drop area */}
               <div
                 className={`border-2 border-dashed d-flex flex-column align-items-center justify-content-center p-7 ${
@@ -116,104 +142,90 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 onDrop={handleDrop}
                 style={{ borderRadius: '8px', minHeight: '200px' }}
               >
-                <KTSVG
-                  path='/media/icons/duotune/files/fil003.svg'
-                  className='svg-icon-3x svg-icon-primary mb-5'
-                />
+                <KTSVG path="/media/icons/duotune/files/fil003.svg" className="svg-icon-3x svg-icon-primary mb-5" />
 
                 {importFile ? (
-                  <div className='text-center'>
-                    <h3 className='fs-5 fw-bold mb-2'>{importFile.name}</h3>
-                    <p className='fs-6 text-gray-600 mb-0'>
-                      {(importFile.size / 1024).toFixed(2)} KB
-                    </p>
+                  <div className="text-center">
+                    <h3 className="fs-5 fw-bold mb-2">{importFile.name}</h3>
+                    <p className="fs-6 text-gray-600 mb-0">{(importFile.size / 1024).toFixed(2)} KB</p>
                     <button
-                      className='btn btn-sm btn-icon btn-light-danger mt-5'
+                      className="btn btn-sm btn-icon btn-light-danger mt-5"
                       onClick={() => {
-                        setImportFile(null)
+                        setImportFile(null);
                         if (fileInputRef.current) {
-                          fileInputRef.current.value = ''
+                          fileInputRef.current.value = '';
                         }
                       }}
                       disabled={importing}
                     >
-                      <i className='bi bi-x fs-2'></i>
+                      <i className="bi bi-x fs-2"></i>
                     </button>
                   </div>
                 ) : (
                   <>
-                    <h3 className='fs-5 fw-bold mb-2'>Kéo thả file vào đây</h3>
-                    <p className='fs-6 text-gray-600 mb-5'>hoặc</p>
-                    <button
-                      className='btn btn-sm btn-primary'
-                      onClick={handleImportClick}
-                      disabled={importing}
-                    >
+                    <h3 className="fs-5 fw-bold mb-2">Kéo thả file vào đây</h3>
+                    <p className="fs-6 text-gray-600 mb-5">hoặc</p>
+                    <button className="btn btn-sm btn-primary" onClick={handleImportClick} disabled={importing}>
                       Chọn file
                     </button>
+
+                    <p className='text-muted text-sm mt-3'>(kích thước tệp tối đa là 3MB)</p>
                   </>
                 )}
 
                 <input
                   ref={fileInputRef}
-                  type='file'
-                  accept='.xlsx,.xls'
-                  className='d-none'
+                  type="file"
+                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                  multiple={false}
+                  required
+                  className="d-none"
                   onChange={handleFileSelect}
                   disabled={importing}
                 />
               </div>
-
-              {/* Override existing option */}
-              <div className='mt-5'>
-                <div className='form-check form-check-custom form-check-solid'>
-                  <input
-                    className='form-check-input'
-                    type='checkbox'
-                    checked={overrideExisting}
-                    onChange={(e) => setOverrideExisting(e.target.checked)}
-                    id='overrideExisting'
-                    disabled={importing}
-                  />
-                  <label className='form-check-label fs-6 text-black' htmlFor='overrideExisting'>
-                    Ghi đè thông tin các sản phẩm đã có
-                  </label>
-                </div>
-                <p className='ms-9 fs-6 text-gray-600 mt-2 mb-0'>
-                  Bắt buộc cần có mã sản phẩm để xác định sản phẩm.
-                </p>
-              </div>
-
-              {/* Template download link */}
-              <div className='mt-8'>
-                <a href='#' className='fs-6 text-primary' onClick={(e) => { e.preventDefault(); onDownloadTemplate() }}>
-                  <i className='bi bi-download fs-2 me-2'></i>
-                  Tải file mẫu sản phẩm
-                </a>
-              </div>
             </div>
-            <div className='modal-footer'>
-              <button
-                type='button'
-                className='btn btn-light'
-                onClick={handleClose}
-                disabled={importing}
-              >
-                Hủy
-              </button>
-              <button
-                type='button'
-                className='btn btn-primary'
-                onClick={onImport}
-                disabled={!importFile || importing}
-              >
-                {importing ? (
-                  <>
-                    <span className='spinner-border spinner-border-sm me-2' role='status' aria-hidden='true'></span>
-                    Đang xử lý...
-                  </>
-                ) : 'Nhập dữ liệu'}
-              </button>
+            <div className="modal-footer flex-column align-items-stretch gap-3">
+              <div>
+                <div className='form-check form-check-solid form-switch fv-row'>
+                  <input
+                    className='form-check-input w-45px h-30px'
+                    type='checkbox'
+                    id='stopOnError'
+                    checked={stopOnError}
+                    onChange={() => {
+                      setStopOnError(!stopOnError)
+                    }}
+                  />
+                  <label className='form-check-label' htmlFor='stopOnError'>Dừng khi có lỗi</label>
+                </div>
+              </div>
+              <div className='d-flex justify-content-between'>
+                <a href={API_URL.EXCEL.SAMPLE_URL} download className="btn m-0 btn-light-primary">
+                  <KTSVG path="/media/icons/duotune/files/fil003.svg" className="svg-icon-2" />
+                  Tải mẫu Excel
+                </a>
+                <div>
+                  <button type="button" className="btn btn-light" onClick={handleClose} disabled={importing}>
+                    Hủy
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleImport}
+                    disabled={!importFile || importing}
+                  >
+                    {importing ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Đang xử lý...
+                      </>
+                    ) : (
+                      'Nhập dữ liệu'
+                    )}
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -227,5 +239,16 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         }
       `}</style>
     </>
-  )
+  );
+}
+
+export const ImportModal: React.FC<ImportModalProps> = ({
+  show,
+  onClose,
+  onUploadFile,
+}) => {
+  if (!show) return null;
+  return <>
+   <AskForFileScreen onFileChosen={onUploadFile} onClose={onClose} />
+  </>
 }

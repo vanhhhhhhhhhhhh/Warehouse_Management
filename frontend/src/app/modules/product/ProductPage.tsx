@@ -15,7 +15,11 @@ import {
 import { ProductListing } from "../../apiClient/api";
 import Swal from "sweetalert2";
 import ProperBadge from "../../reusableWidgets/ProperBadge";
-import { ProductToolbar } from "./components";
+import { ProductToolbar, ImportModal } from "./components";
+import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useStatusFilter";
+import { exportFile, importFile } from "../../apiClient/excel";
+import { format } from "path";
+import { FileParsingOptions } from "./components/ImportModal";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -48,7 +52,7 @@ const columns: ColumnDef<ProductListing, any>[] = [
   }),
 ];
 
-const noop = () => {};
+const noop = () => { };
 
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -57,10 +61,12 @@ async function wait(ms: number) {
 const ProductsPage: React.FC = () => {
   const [pageIndex, setPageIndex] = useState(0);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [status, setStatus] = useState<StatusFilterValue>('active');
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({
-    queryKey: ["products", pageIndex, searchTerm],
+    queryKey: ["products", pageIndex, searchTerm, status],
     queryFn: () =>
       getProducts({
         pagination: {
@@ -69,6 +75,7 @@ const ProductsPage: React.FC = () => {
         },
         search: {
           name: searchTerm,
+          status
         },
       }),
     keepPreviousData: true,
@@ -157,6 +164,57 @@ const ProductsPage: React.FC = () => {
 
   return (
     <>
+      <ImportModal
+        onClose={() => setShowImportModal(false)}
+        show={showImportModal}
+        onUploadFile={async (file: File, options: FileParsingOptions) => {
+          try {
+            const response = await importFile({
+              file,
+              options
+            })
+
+            if (response.failedCount > 0) {
+              const formatErrors = response.formatErrors.join('\n');
+              const importErrors = response.importErrors.join('\n');
+
+              let warningText = `Đã nhập ${response.successCount} sản phẩm thành công.`;
+              if (formatErrors.length > 0) {
+                warningText += `<br><br>Lỗi định dạng:<br>${formatErrors}`;
+              }
+
+              if (importErrors.length > 0) {
+                warningText += `<br><br>Lỗi nhập dữ liệu:<br>${importErrors}`;
+              }
+
+              Swal.fire({
+                icon: "warning",
+                title: "Có lỗi trong quá trình nhập dữ liệu",
+                html: warningText,
+              });
+            } else {
+              Swal.fire({
+                icon: "success",
+                title: "Thành công!",
+                text: "Nhập dữ liệu thành công",
+                showConfirmButton: false,
+                timer: 1500,
+              });
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["products"] });
+          } catch (error: any) {
+            Swal.fire({
+              icon: "error",
+              title: "Lỗi!",
+              text: error.message,
+            });
+          }
+
+          setShowImportModal(false);
+        }}
+      />
+
       <div className="d-flex flex-column gap-7">
         <div className="px-9">
           <div className="card">
@@ -169,8 +227,21 @@ const ProductsPage: React.FC = () => {
             <ProductToolbar
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
-              onDownloadTemplate={noop}
-              onShowImportModal={noop}
+              onStatusChange={setStatus}
+              onExportFile={async () => {
+                try {
+                  await exportFile();
+                } catch (error) {
+                  console.error("Error exporting file:", error);
+                  Swal
+                    .fire({
+                      icon: "error",
+                      title: "Lỗi!",
+                      text: "Không thể xuất file. Vui lòng thử lại sau.",
+                    });
+                }
+              }}
+              onShowImportModal={() => setShowImportModal(true)}
               onAddProduct={() => navigate("/apps/products/create")}
             />
 

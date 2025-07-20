@@ -11,10 +11,16 @@ module.exports = {
     try {
       const { limit, skip } = getPaginationParams(req);
 
-      const query = {};
+      const query = {
+        adminId: req.user?.adminId
+      };
 
       if (req.query.name) {
         query.name = { $regex: req.query.name, $options: "i" };
+      }
+
+      if (req.query.status) {
+        query.isDelete = req.query.status !== 'active';
       }
 
       const products = await Product.find(query)
@@ -22,7 +28,8 @@ module.exports = {
         .select("_id code name price isDelete")
         .skip(skip)
         .limit(limit)
-        .lean();
+        .lean()
+        .exec();
 
       const totalProducts = await Product.countDocuments(query);
       const totalPages = Math.ceil(totalProducts / limit);
@@ -51,9 +58,10 @@ module.exports = {
     try {
       const { id } = req.params;
 
-      const product = await Product.findById(id)
+      const product = await Product.findOne({ _id: id, adminId: req.user?.adminId })
         .populate("cateId", "_id")
-        .lean();
+        .lean()
+        .exec();
 
       if (!product) {
         return failedResponse(res, 404, "Không tìm thấy sản phẩm");
@@ -94,7 +102,7 @@ module.exports = {
       } = req.body;
 
 
-      const existingProduct = await Product.findOne({ code });
+      const existingProduct = await Product.findOne({ code, adminId: req.user?.adminId }).lean().exec();
       if (existingProduct) {
         return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
@@ -153,7 +161,7 @@ module.exports = {
         isDelete,
       } = req.body;
 
-      const existingProduct = await Product.findById(id);
+      const existingProduct = await Product.findOne({ _id: id, adminId: req.user?.adminId }).exec();
       if (!existingProduct) {
         return failedResponse(res, 404, "Không tìm thấy sản phẩm");
       }
@@ -162,7 +170,9 @@ module.exports = {
         const duplicateProduct = await Product.findOne({
           code,
           _id: { $ne: id },
-        });
+          adminId: req.user?.adminId,
+        }).lean().exec();
+
         if (duplicateProduct) {
           return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
         }
@@ -213,7 +223,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Product.updateMany({ _id: { $in: ids } }, { isDelete: true });
+      await Product.updateMany({ _id: { $in: ids }, adminId: req.user?.adminId }, { isDelete: true }).exec();
 
       return successResponse(res, 200, {
         message: "Hủy kích hoạt sản phẩm thành công",
@@ -232,7 +242,7 @@ module.exports = {
     try {
       const { ids } = req.body;
 
-      await Product.updateMany({ _id: { $in: ids } }, { isDelete: false });
+      await Product.updateMany({ _id: { $in: ids }, adminId: req.user?.adminId }, { isDelete: false }).exec();
 
       return successResponse(res, 200, {
         message: "Kích hoạt sản phẩm thành công",

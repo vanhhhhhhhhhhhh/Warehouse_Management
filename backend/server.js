@@ -13,6 +13,8 @@ const apiWarehouse = require("./router/apiWarehouse");
 const apiImportWarehouse = require("./router/apiImportWarehouse");
 const apiExportWarehouse = require("./router/apiExportWarehouse");
 const apiError = require("./router/apiError")
+const apiExcel = require("./router/apiExcel")
+
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
 const url = process.env.URL;
@@ -38,6 +40,9 @@ mongoose
   })
   .then(() => console.log("Connected to MongoDB successfully"))
   .catch((err) => console.error("MongoDB connection error:", err));
+
+
+app.use("/static", express.static("static"))
 
 // AUTHENTICATION
 app.use("/auth", apiAuth);
@@ -68,6 +73,7 @@ app.use("/export", apiExportWarehouse);
 // DECLARE ERROR PRODUCT
 app.use("/error", apiError)
 
+app.use("/excel", apiExcel)
 
 app.listen(port, () => {
   console.log(`Server is running on http://${hostname}:${port}`);

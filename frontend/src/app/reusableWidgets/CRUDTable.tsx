@@ -51,6 +51,18 @@ type CRUDTableComponent = (<TData extends RowData>(
 };
 
 const getTableBody = <TData extends RowData>(table: Table<TData>) => {
+  if (table.getRowModel().rows.length === 0) {
+    return (
+      <tr>
+        <td colSpan={table.getVisibleLeafColumns().length} className="text-center py-5">
+          <span className="text-muted">
+            Không có dữ liệu
+          </span>
+        </td>
+      </tr>
+    )
+  }
+
   return table.getRowModel().rows.map((row) => (
     <tr key={row.id}>
       {row.getVisibleCells().map((cell) => (

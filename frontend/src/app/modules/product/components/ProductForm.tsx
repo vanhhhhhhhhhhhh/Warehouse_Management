@@ -152,6 +152,7 @@ const renderForm = (
         },
         search: {
           name: searchTerm,
+          status: 'active'
         },
       }),
     cacheTime: 0,
