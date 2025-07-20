@@ -21,7 +21,7 @@ const columns: ColumnDef<CategoryListing, any>[] = [
     header: 'Trạng thái',
     cell: (info: CellContext<CategoryListing, boolean>) => {
       return <ProperBadge variant={info.getValue() ? 'danger' : 'success'}>
-        {info.getValue() ? 'Inactive' : 'Active'}
+        {info.getValue() ? 'Ngừng hoạt động' : 'Hoạt động'}
       </ProperBadge>
     }
   }),

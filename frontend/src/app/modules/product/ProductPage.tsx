@@ -45,7 +45,7 @@ const columns: ColumnDef<ProductListing, any>[] = [
     cell: (info: CellContext<ProductListing, boolean>) => {
       return (
         <ProperBadge variant={info.getValue() ? "danger" : "success"}>
-          {info.getValue() ? "Inactive" : "Active"}
+          {info.getValue() ? "Ngừng hoạt động" : "Hoạt động"}
         </ProperBadge>
       );
     },
@@ -173,8 +173,8 @@ const ProductsPage: React.FC = () => {
             })
 
             if (response.failedCount > 0) {
-              const formatErrors = response.formatErrors.join('\n');
-              const importErrors = response.importErrors.join('\n');
+              const formatErrors = response.formatErrors.join('<br><br>');
+              const importErrors = response.importErrors.join('<br><br>');
 
               let warningText = `Đã nhập ${response.successCount} sản phẩm thành công.`;
               if (formatErrors.length > 0) {
