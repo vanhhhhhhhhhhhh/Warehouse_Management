@@ -52,8 +52,6 @@ const columns: ColumnDef<ProductListing, any>[] = [
   }),
 ];
 
-const noop = () => { };
-
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

@@ -14,7 +14,7 @@ import {
   Updater,
   useReactTable,
 } from "@tanstack/react-table";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useIntl } from "react-intl";
 import { KTSVG } from "../../_metronic/helpers";
 import clsx from "clsx";
@@ -126,6 +126,12 @@ const CRUDTable: CRUDTableComponent = ({
   const [globalFilter, setGlobalFilter] = useState("");
   const intl = useIntl();
   const paginationWithDefaults = withPaginationDefaults(pagination);
+
+  useEffect(() => {
+    if (paginationWithDefaults.pageIndex > paginationWithDefaults.totalPages - 1 && paginationWithDefaults.totalPages > 0) {
+      onPageChange?.(paginationWithDefaults.totalPages - 1);
+    }
+  }, [paginationWithDefaults, onPageChange]);
 
   const columnHelper = useMemo(
     () => createColumnHelper<(typeof data)[number]>(),
@@ -339,7 +345,7 @@ const CRUDTable: CRUDTableComponent = ({
             {!isLoading && getTableBody(table)}
           </tbody>
         </table>
-        {(pagination?.totalPages ?? 0) > 1 && renderPaginationControls()}
+        {(pagination?.totalPages ?? 0) > 0 && renderPaginationControls()}
       </div>
     </div>
   );
