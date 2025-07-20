@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import AsyncPicker from '../../../reusableWidgets/AsyncPicker';
 import { useQuery } from 'react-query';
 import { getCategories, getCategory } from '../../../apiClient/categories';
+import { useNavigate, NavigateFunction } from 'react-router-dom';
 
 const productSchemaRequest = Yup.object().shape({
   code: Yup.string().required('Mã sản phẩm là bắt buộc'),
@@ -123,6 +124,7 @@ const renderAttributes: React.FC<FormikProps<ProductFormRequest>> = (
 const renderForm = (
   formikOptions: FormikProps<ProductFormRequest>,
   isEdit: boolean,
+  navigate: NavigateFunction,
   imageUrl?: string,
 ) => {
   const [page, setPage] = useState(1);
@@ -316,6 +318,7 @@ const renderForm = (
           type="button"
           className="btn btn-light me-3"
           disabled={formikOptions.isSubmitting}
+          onClick={() => navigate('/apps/products')}
         >
           Hủy
         </button>
@@ -352,13 +355,15 @@ const ProductForm: React.FC<ProductFormProps> = ({
   isEdit,
   imageUrl,
 }) => {
+  const navigate = useNavigate();
+
   return (
     <Formik
       initialValues={initialValues}
       onSubmit={onSubmit}
       validationSchema={productSchemaRequest}
     >
-      {(formikOptions) => renderForm(formikOptions, isEdit ?? false, imageUrl)}
+      {(formikOptions) => renderForm(formikOptions, isEdit ?? false, navigate, imageUrl)}
     </Formik>
   );
 };
