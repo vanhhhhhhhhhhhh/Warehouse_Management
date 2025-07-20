@@ -137,7 +137,7 @@ const CategoriesPage: React.FC = () => {
                   />
                   <input
                     type='text'
-                    className='form-control form-control-solid w-250px ps-14'
+                    className='form-control form-control-solid w-250px ps-14 me-5'
                     placeholder='Tìm kiếm danh mục'
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}

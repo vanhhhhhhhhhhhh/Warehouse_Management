@@ -330,7 +330,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/inventory/*'
           element={
-              <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_INVENTORY' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_INVENTORY' }]}>
               <SuspensedView>
                 <StockOverview />
               </SuspensedView>
