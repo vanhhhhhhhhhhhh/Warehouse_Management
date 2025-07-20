@@ -11,6 +11,7 @@ const apiUser = require("./router/apiUser");
 const apiImage = require("./router/apiImage");
 const apiWarehouse = require("./router/apiWarehouse");
 const apiImportWarehouse = require("./router/apiImportWarehouse");
+const apiExportWarehouse = require("./router/apiExportWarehouse");
 const apiError = require("./router/apiError")
 const apiExcel = require("./router/apiExcel")
 
@@ -67,6 +68,8 @@ app.use("/warehouses", apiWarehouse);
 // IMPORT PRODUCT INTO WAREHOUSE
 app.use("/import", apiImportWarehouse)
 
+// EXPORT PRODUCT FROM WAREHOUSE
+app.use("/export", apiExportWarehouse);
 // DECLARE ERROR PRODUCT
 app.use("/error", apiError)
 
