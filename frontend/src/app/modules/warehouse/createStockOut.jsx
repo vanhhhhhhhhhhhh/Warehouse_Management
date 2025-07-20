@@ -170,30 +170,29 @@ const CreateStockInPage = () => {
                             </div>
                         </div>
 
-                        <div className='card-body'>
-                            {/* Form content */}
-                            <div className='row mb-6'>
-                                <div className='col-md-6'>
-                                    <label className='form-label required'>Mã phiếu</label>
-                                    <input
-                                        type='text'
-                                        className='form-control'
-                                        placeholder='Mã sinh tự động nếu để trống'
-                                        value={formData.code}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, code: e.target.value }))}
-                                    />
-                                </div>
-                                <div className='col-md-6'>
-                                    <label className='form-label required'>Tên phiếu</label>
-                                    <input
-                                        type='text'
-                                        className='form-control'
-                                        placeholder='Nhập tên phiếu'
-                                        value={formData.name}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                                    />
-                                </div>
-                            </div>
+            <div className='card-body'>
+              <div className='row mb-6'>
+                <div className='col-md-6'>
+                  <label className='form-label required'>Mã phiếu</label>
+                  <input
+                    type='text'
+                    className='form-control'
+                    placeholder='Nhập mã phiếu'
+                    value={code}
+                    onChange={(e) => setCode(e.target.value)}
+                  />
+                </div>
+                <div className='col-md-6'>
+                  <label className='form-label required'>Tên phiếu</label>
+                  <input
+                    type='text'
+                    className='form-control'
+                    placeholder='Nhập tên phiếu'
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                  />
+                </div>
+              </div>
 
                             <div className='row mb-6'>
                                 <div className='col-md-12'>

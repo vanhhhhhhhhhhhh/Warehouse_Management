@@ -27,7 +27,7 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
           />
           <input
             type='text'
-            className='form-control form-control-solid w-250px ps-14'
+            className='form-control form-control-solid w-250px ps-14 me-4'
             placeholder='Tìm kiếm sản phẩm'
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
