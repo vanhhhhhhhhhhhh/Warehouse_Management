@@ -8,7 +8,7 @@ module.exports = {
       const { name, status } = req.query;
 
       const query = {
-        adminId: req.user?.adminId
+        adminId: req.user?.adminId || req.user?._id
       };
 
       if (name) {

@@ -12,7 +12,7 @@ module.exports = {
       const { limit, skip } = getPaginationParams(req);
 
       const query = {
-        adminId: req.user?.adminId
+        adminId: req.user?.adminId || req.user?._id
       };
 
       if (req.query.name) {

@@ -42,6 +42,7 @@ interface CRUDTableProps<TData extends RowData> {
   showDelete?: boolean;
   isLoading?: boolean;
   pagination?: Partial<Pagination>;
+  readOnly?: boolean;
 }
 
 type CRUDTableComponent = (<TData extends RowData>(
@@ -121,6 +122,7 @@ const CRUDTable: CRUDTableComponent = ({
   pagination,
   onPageChange,
   selectedItems,
+  readOnly = false
 }) => {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
@@ -143,23 +145,24 @@ const CRUDTable: CRUDTableComponent = ({
       {
         id: "select",
         header: ({ table }: { table: Table<(typeof data)[number]> }) => (
-          <div className="form-check form-check-custom form-check-solid">
+          <div className={clsx("form-check form-check-custom form-check-solid", readOnly ? "cursor-not-allowed" : "")}>
             <input
               className="form-check-input"
               type="checkbox"
               checked={table.getIsAllRowsSelected()}
               onChange={table.getToggleAllRowsSelectedHandler()}
+              disabled={readOnly}
             />
           </div>
         ),
         cell: ({ row }) => (
-          <div className="form-check form-check-custom form-check-solid">
+          <div className={clsx("form-check form-check-custom form-check-solid", readOnly ? "cursor-not-allowed" : "")}>
             <input
               className="form-check-input"
               type="checkbox"
               checked={row.getIsSelected()}
               onChange={row.getToggleSelectedHandler()}
-              disabled={!row.getCanSelect()}
+              disabled={!row.getCanSelect() || readOnly}
             />
           </div>
         ),
