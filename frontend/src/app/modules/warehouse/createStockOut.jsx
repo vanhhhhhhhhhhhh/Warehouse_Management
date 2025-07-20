@@ -198,7 +198,7 @@ const handleSubmitExport = async () => {
                   <input
                     type='text'
                     className='form-control'
-                    placeholder='Mã sinh tự động nếu để trống'
+                    placeholder='Nhập mã phiếu'
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
                   />

@@ -209,7 +209,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/warehouse/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'VIEW' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW' }]}>
               <SuspensedView>
                 <WarehousePage />
               </SuspensedView>
@@ -220,7 +220,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/warehouse/create'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'CREATE' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'CREATE' }]}>
               <SuspensedView>
                 <CreateWarehouse />
               </SuspensedView>
@@ -231,7 +231,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/warehouse/edit/:id'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'UPDATE' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'UPDATE' }]}>
               <SuspensedView>
                 <EditWarehouse />
               </SuspensedView>
@@ -243,7 +243,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockIn/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_IN' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_IN' }]}>
               <SuspensedView>
                 <StockInPage />
               </SuspensedView>
@@ -254,7 +254,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockOut/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_OUT' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_OUT' }]}>
               <SuspensedView>
                 <StockOutPage />
               </SuspensedView>
@@ -265,7 +265,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockIn/create'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_IN' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_IN' }]}>
               <SuspensedView>
                 <CreateStockInPage />
               </SuspensedView>
@@ -276,7 +276,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockOut/create'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_OUT' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_OUT' }]}>
               <SuspensedView>
                 <CreateStockOutPage />
               </SuspensedView>
@@ -287,7 +287,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/importHistory/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'VIEW_STOCK_IN_HISTORY' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_STOCK_IN_HISTORY' }]}>
               <SuspensedView>
                 <StockInHistory />
               </SuspensedView>
@@ -298,7 +298,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/exportHistory/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'VIEW_STOCK_OUT_HISTORY' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_STOCK_OUT_HISTORY' }]}>
               <SuspensedView>
                 <StockOutHistory />
               </SuspensedView>
@@ -309,7 +309,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockIn/print/:id'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_IN' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_IN' }]}>
               <SuspensedView>
                 <StockImportPrint />
               </SuspensedView>
@@ -319,7 +319,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/stockOut/print/:id'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'STOCK_OUT' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'STOCK_OUT' }]}>
               <SuspensedView>
                 <StockExportPrint />
               </SuspensedView>
@@ -330,7 +330,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/inventory/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'VIEW_INVENTORY' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_INVENTORY' }]}>
               <SuspensedView>
                 <StockOverview />
               </SuspensedView>
@@ -341,7 +341,7 @@ const PrivateRoutes = () => {
         <Route
           path='apps/report/*'
           element={
-            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSES', action: 'VIEW_STOCK_REPORT' }]}>
+            <PermissionGuard requiredPermissions={[{ module: 'WAREHOUSE', action: 'VIEW_STOCK_REPORT' }]}>
               <SuspensedView>
                 <InventoryReport />
               </SuspensedView>

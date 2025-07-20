@@ -126,7 +126,7 @@ const CreateStockInPage = () => {
                             <div className='row mb-6'>
                                 <div className='col-md-6'>
                                     <label className='form-label required'>Mã phiếu</label>
-                                    <input type='text' className='form-control' placeholder='Mã sinh tự động nếu để trống'
+                                    <input type='text' className='form-control' placeholder='Nhập mã phiếu'
                                      value={code} onChange={(e) => setCode(e.target.value)} />
                                 </div>
                                 <div className='col-md-6'>
