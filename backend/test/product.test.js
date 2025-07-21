@@ -20,7 +20,7 @@ describe("Product Tests", () => {
   });
 
   describe("Product Fetching", () => {
-    it("should fetch all products", async () => {
+    it("should fetch all products in the user's store only", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`);
@@ -32,14 +32,15 @@ describe("Product Tests", () => {
           expect.objectContaining({
             _id: expect.any(String),
             code: expect.any(String),
-            name: expect.any(String),
-            isDelete: expect.any(Boolean)
+            name: expect.any(String), 
+            isDelete: expect.any(Boolean),
+            adminId: user.adminId
           })
         )
       );
     });
 
-    it("should fetch products with name filter", async () => {
+    it("should fetch products with name filter in the user's store only", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -47,10 +48,20 @@ describe("Product Tests", () => {
         
       expect(response.status).toBe(200);
       expect(response.body.totalPages).toEqual(expect.any(Number));
-      expect(response.body.data).toEqual(expect.any(Array));
+      expect(response.body.data).toEqual(
+        expect.arrayOf(
+          expect.objectContaining({
+            _id: expect.any(String),
+            code: expect.any(String),
+            name: expect.any(String),
+            isDelete: expect.any(Boolean),
+            adminId: user.adminId
+          })
+        )
+      );
     });
 
-    it("should fetch products with status filter", async () => {
+    it("should fetch products with status filter in the user's store only", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -64,7 +75,8 @@ describe("Product Tests", () => {
             _id: expect.any(String),
             code: expect.any(String),
             name: expect.any(String),
-            isDelete: false
+            isDelete: false,
+            adminId: user.adminId
           })
         )
       );

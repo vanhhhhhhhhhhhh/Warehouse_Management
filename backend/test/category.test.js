@@ -9,7 +9,7 @@ const { token, user } = generateAuthInfoForUsername("doanything");
 describe("Category Tests", () => {
 
   describe("Category Fetching", () => {
-    it("should fetch all categories", async () => {
+    it("should fetch all categories in the user's store only", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`);
@@ -22,13 +22,14 @@ describe("Category Tests", () => {
             _id: expect.any(String),
             name: expect.any(String),
             isDelete: expect.any(Boolean),
+            adminId: user.adminId,
             createdAt: expect.any(String)
           })
         )
       )
     });
 
-    it("should fetch categories with name filter", async () => {
+    it("should fetch categories with name filter in the user's store only", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -42,13 +43,14 @@ describe("Category Tests", () => {
             _id: expect.any(String),
             name: 'Nước giải khát',
             isDelete: expect.any(Boolean),
+            adminId: user.adminId,
             createdAt: expect.any(String)
           })
         )
       )
     });
 
-    it("should fetch categories with status filter", async () => {
+    it("should fetch categories with status filter in the user's store only", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -62,6 +64,7 @@ describe("Category Tests", () => {
             _id: expect.any(String),
             name: expect.any(String),
             isDelete: false,
+            adminId: user.adminId,
             createdAt: expect.any(String)
           })
         )

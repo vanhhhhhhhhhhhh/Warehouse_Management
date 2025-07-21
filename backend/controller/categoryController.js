@@ -22,7 +22,6 @@ module.exports = {
 
       const categories = await Category
         .find(query)
-        .select('_id name isDelete createdAt')
         .skip(skip)
         .limit(limit)
         .lean()
@@ -34,6 +33,7 @@ module.exports = {
       const mappedCategories = categories.map(category => ({
         _id: category._id,
         name: category.name,
+        adminId: category.adminId,
         isDelete: category.isDelete,
         createdAt: category.createdAt
       }));

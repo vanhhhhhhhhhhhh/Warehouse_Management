@@ -1,4 +1,21 @@
-[{
+[
+  {
+    "_id": {
+      "$oid": "682f5ab72ae602f40e97328d"
+    },
+    "name": "Nước giải khát",
+    "adminId": {
+      "$oid": "687e029c081f4b13aa1e586b"
+    },
+    "isDelete": false,
+    "createdAt": {
+      "$date": "2025-07-21T09:04:28.263Z"
+    },
+    "updatedAt": {
+      "$date": "2025-07-21T09:04:28.263Z"
+    },
+    "__v": 0
+  }, {
   "_id": {
     "$oid": "687e029c081f4b13aa1e586b"
   },

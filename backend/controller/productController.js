@@ -26,7 +26,6 @@ module.exports = {
 
       const products = await Product.find(query)
         .populate("cateId", "name")
-        .select("_id code name price isDelete")
         .skip(skip)
         .limit(limit)
         .lean()
@@ -42,6 +41,7 @@ module.exports = {
         category: product.cateId.name,
         price: product.price,
         isDelete: product.isDelete,
+        adminId: product.adminId,
       }));
 
       const paginatedResponse = formatPaginatedResponse(
@@ -60,7 +60,6 @@ module.exports = {
       const { id } = req.params;
 
       const product = await Product.findOne({ _id: id, adminId: req.user?.adminId })
-        .populate("cateId", "_id")
         .lean()
         .exec();
 
@@ -72,7 +71,7 @@ module.exports = {
         _id: product._id,
         code: product.code,
         name: product.name,
-        categoryId: product.cateId?._id,
+        categoryId: product.cateId,
         description: product.description,
         price: product.price,
         attributes: product.attribute,
