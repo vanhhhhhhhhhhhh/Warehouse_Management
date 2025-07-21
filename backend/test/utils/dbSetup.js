@@ -3,23 +3,56 @@ const mongoose = require("mongoose");
 const path = require("path");
 const fs = require("fs");
 
-function readAndParseJSON(path) {
-  const rawData = fs.readFileSync(path, "utf8");
-  const parsed = JSON.parse(rawData);
+function transformValue(value) {
+  if (Array.isArray(value)) {
+    return value.map(transformValue);
+  }
 
-  return parsed.map(doc => {
-    for (const [key, value] of Object.entries(doc)) {
-      const keys = Object.keys(value);
-      if (keys[0] && keys[0].startsWith("$")) {
-        if (keys[0] === "$oid") {
-          doc[key] = mongoose.Types.ObjectId.createFromHexString(value[keys[0]]);
-        } else {
-          doc[key] = value[keys[0]];
-        }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value);
+    if (keys.length === 1 && keys[0].startsWith('$')) {
+      const key = keys[0];
+      const inner = value[key];
+
+      switch (key) {
+        case '$oid':
+          return mongoose.Types.ObjectId.createFromHexString(inner);
+        case '$date':
+          if (typeof inner === 'string') {
+            return new Date(inner);
+          } else if (inner.$numberLong) {
+            return new Date(parseInt(inner.$numberLong, 10));
+          }
+          return new Date(inner);
+        case '$numberInt':
+        case '$numberLong':
+        case '$numberDouble':
+          return Number(inner);
+        case '$binary':
+          return Buffer.from(inner.base64, 'base64');
+        default:
+          return inner;
       }
     }
-    return doc;
-  });
+
+    const ret = {};
+    for (const [k, v] of Object.entries(value)) {
+      ret[k] = transformValue(v);
+    }
+    return ret;
+  }
+
+  return value;
+}
+
+function readAndParseJSON(path) {
+  const raw = fs.readFileSync(path, 'utf8');
+  const docs = JSON.parse(raw);
+  if (!Array.isArray(docs)) {
+    throw new Error('Expected top‑level JSON array');
+  }
+
+  return docs.map(transformValue);
 }
 
 async function setupDatabase() {
@@ -43,7 +76,7 @@ async function tearDownDatabase() {
   const collections = await db.listCollections();
 
   for (const collection of collections) {
-    await db.collection(collection.name).deleteMany({});
+    await db.collection(collection.name).drop();
   }
 }
 

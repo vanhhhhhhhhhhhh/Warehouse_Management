@@ -1,0 +1,400 @@
+[{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3901"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-101",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "TH",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5876"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "1L",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5877"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586b"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.280Z"
+  },
+  "description": "Hương vị truyền thống",
+  "image": "687e02f7081f4b13aa1e58ea",
+  "isDelete": false,
+  "name": "TH True Milk",
+  "price": 9495,
+  "updatedAt": {
+    "$date": "2025-07-21T09:05:59.459Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3902"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-102",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "Vinamilk",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5879"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "250ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e587a"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586b"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.292Z"
+  },
+  "description": "Hương vị truyền thống",
+  "image": null,
+  "isDelete": false,
+  "name": "7Up",
+  "price": 29735,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.292Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3903"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-103",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "TH",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e587c"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "1L",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e587d"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586e"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.296Z"
+  },
+  "description": "Hương vị truyền thống",
+  "image": null,
+  "isDelete": false,
+  "name": "Fanta",
+  "price": 24144,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.296Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3904"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-104",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "PepsiCo",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e587f"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "100ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5880"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e5871"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.299Z"
+  },
+  "description": "Không đường, tốt cho sức khỏe",
+  "image": null,
+  "isDelete": true,
+  "name": "Sprite",
+  "price": 18434,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.299Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3905"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-105",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "Nestlé",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5882"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "100ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5883"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586e"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.302Z"
+  },
+  "description": "Không đường, tốt cho sức khỏe",
+  "image": null,
+  "isDelete": false,
+  "name": "Ovaltine",
+  "price": 16265,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.302Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3906"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-106",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "PepsiCo",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5885"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "100ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5886"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586e"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.304Z"
+  },
+  "description": "Không đường, tốt cho sức khỏe",
+  "image": null,
+  "isDelete": false,
+  "name": "Coca Cola",
+  "price": 13560,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.304Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3907"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-107",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "Nestlé",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5888"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "330ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5889"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e5874"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.306Z"
+  },
+  "description": "Hương vị tự nhiên",
+  "image": null,
+  "isDelete": true,
+  "name": "Pepsi",
+  "price": 19010,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.306Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3908"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-108",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "Vinamilk",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e588b"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "330ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e588c"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586b"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.309Z"
+  },
+  "description": "Sản phẩm chất lượng cao",
+  "image": null,
+  "isDelete": false,
+  "name": "7Up",
+  "price": 9510,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.309Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d3909"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-109",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "Nutifood",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e588e"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "500ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e588f"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e586b"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.311Z"
+  },
+  "description": "Hương vị tự nhiên",
+  "image": null,
+  "isDelete": true,
+  "name": "Sprite",
+  "price": 11082,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.311Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "687e029c45f8929a4f5d390a"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "code": "PRO-110",
+  "__v": 0,
+  "attribute": [
+    {
+      "name": "Hãng",
+      "value": "PepsiCo",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5891"
+      }
+    },
+    {
+      "name": "Dung tích",
+      "value": "100ml",
+      "_id": {
+        "$oid": "687e029c081f4b13aa1e5892"
+      }
+    }
+  ],
+  "cateId": {
+    "$oid": "687e029c081f4b13aa1e5874"
+  },
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.314Z"
+  },
+  "description": "Sản phẩm chất lượng cao",
+  "image": null,
+  "isDelete": true,
+  "name": "TH True Milk",
+  "price": 12015,
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.314Z"
+  }
+}]

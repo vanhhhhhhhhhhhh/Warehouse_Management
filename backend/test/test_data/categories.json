@@ -1,0 +1,102 @@
+[{
+  "_id": {
+    "$oid": "687e029c081f4b13aa1e586b"
+  },
+  "name": "Nước giải khát",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.263Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.263Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687e029c081f4b13aa1e586e"
+  },
+  "name": "Sữa",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.270Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.270Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687e029c081f4b13aa1e5871"
+  },
+  "name": "Nước trái cây",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.274Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.274Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687e029c081f4b13aa1e5874"
+  },
+  "name": "Sữa hạt",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:04:28.278Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:28.278Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687e02ba081f4b13aa1e58ac"
+  },
+  "name": "Nước chè",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:04:58.299Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:04:58.299Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687e02c3081f4b13aa1e58b3"
+  },
+  "name": "Nước mắm",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-21T09:05:07.765Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-21T09:05:07.765Z"
+  },
+  "__v": 0
+}]

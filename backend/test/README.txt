@@ -10,3 +10,6 @@ Khi export từ MongoDB compass vui lòng đặt tên lại cho đúng.
 Chạy test bằng cách gõ npm run test
 
 Nếu không muốn hiện console.log / error thì npm run test:silent
+
+Nếu bị lỗi duplicate _id, chờ MongoDB load lại một tí rồi thử lại
+tại vì MongoDB lưu trữ Index một lúc

@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "test:silent": "jest --silent",
+    "test": "jest -i",
+    "test:silent": "jest --silent -i",
     "start": "nodemon server.js"
   },
   "author": "",

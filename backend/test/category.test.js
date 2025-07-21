@@ -1,19 +1,10 @@
 const request = require('supertest');
 const mongoose = require('mongoose');
-const { setupDatabase, tearDownDatabase } = require("./utils/dbSetup");
 const { generateAuthInfoForUsername } = require("./utils/auth");
 const { Category } = require('../model');
 const app = require('../server');
 
 const { token, user } = generateAuthInfoForUsername("doanything");
-
-beforeEach(async () => {
-  await setupDatabase();
-});
-
-afterEach(async () => {
-  await tearDownDatabase();
-});
 
 describe("Category Tests", () => {
   
