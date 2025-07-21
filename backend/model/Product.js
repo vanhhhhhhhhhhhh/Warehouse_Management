@@ -4,7 +4,6 @@ const mongoose = require('mongoose')
 const productSchema = mongoose.Schema({
     code: {
         type: String,
-        unique: true,
         required: true,
         minlength: [3, 'Mã sản phẩm phải có ít nhất 3 ký tự'],
         maxlength: [255, 'Mã sản phẩm không được vượt quá 255 ký tự'],

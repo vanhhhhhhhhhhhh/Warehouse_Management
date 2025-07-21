@@ -147,9 +147,6 @@ module.exports = {
 
       return successResponse(res, 201, mappedProduct);
     } catch (error) {
-      if (error.code === 11000) {
-        return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
-      }
       if (error instanceof mongoose.Error.ValidationError) {
         return failedResponse(res, 400, error.message);
       }
@@ -228,9 +225,6 @@ module.exports = {
 
       return successResponse(res, 200, mappedProduct);
     } catch (error) {
-      if (error.code === 11000) {
-        return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
-      }
       if (error instanceof mongoose.Error.ValidationError) {
         return failedResponse(res, 400, error.message);
       }
