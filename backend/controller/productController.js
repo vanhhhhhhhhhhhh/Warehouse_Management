@@ -4,7 +4,7 @@ const {
   getPaginationParams,
   formatPaginatedResponse,
 } = require("../utils");
-const { Product } = require("../model");
+const { Product, Category } = require("../model");
 const mongoose = require("mongoose");
 
 module.exports = {
@@ -102,6 +102,12 @@ module.exports = {
         isDelete,
       } = req.body;
 
+      if (mongoose.Types.ObjectId.isValid(categoryId)) {
+        const existingCategory = await Category.findById(categoryId).lean().exec();
+        if (!existingCategory) {
+          return failedResponse(res, 400, "Danh mục sản phẩm không tồn tại");
+        }
+      }
 
       const existingProduct = await Product.findOne({ code, adminId: req.user?.adminId }).lean().exec();
       if (existingProduct) {
@@ -164,6 +170,13 @@ module.exports = {
         attributes,
         isDelete,
       } = req.body;
+
+      if (mongoose.Types.ObjectId.isValid(categoryId)) {
+        const existingCategory = await Category.findById(categoryId).lean().exec();
+        if (!existingCategory) {
+          return failedResponse(res, 400, "Danh mục sản phẩm không tồn tại");
+        }
+      }
 
       const existingProduct = await Product.findOne({ _id: id, adminId: req.user?.adminId }).exec();
       if (!existingProduct) {

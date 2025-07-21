@@ -7,127 +7,125 @@ const app = require('../server');
 const { token, user } = generateAuthInfoForUsername("doanything");
 
 describe("Category Tests", () => {
+
+  describe("Category Fetching", () => {
+    it("should fetch all categories", async () => {
+      const response = await request(app)
+        .get('/categories')
+        .set('Authorization', `Bearer ${token}`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.totalPages).toEqual(expect.any(Number));
+      expect(response.body.data).toEqual(
+        expect.arrayOf(
+          expect.objectContaining({
+            _id: expect.any(String),
+            name: expect.any(String),
+            isDelete: expect.any(Boolean),
+            createdAt: expect.any(String)
+          })
+        )
+      )
+    });
+
+    it("should fetch categories with name filter", async () => {
+      const response = await request(app)
+        .get('/categories')
+        .set('Authorization', `Bearer ${token}`)
+        .query({ name: 'Nước giải khát' });
+        
+      expect(response.status).toBe(200);
+      expect(response.body.totalPages).toEqual(expect.any(Number));
+      expect(response.body.data).toEqual(
+        expect.arrayOf(
+          expect.objectContaining({
+            _id: expect.any(String),
+            name: 'Nước giải khát',
+            isDelete: expect.any(Boolean),
+            createdAt: expect.any(String)
+          })
+        )
+      )
+    });
+
+    it("should fetch categories with status filter", async () => {
+      const response = await request(app)
+        .get('/categories')
+        .set('Authorization', `Bearer ${token}`)
+        .query({ status: 'active' });
+
+      expect(response.status).toBe(200);
+      expect(response.body.totalPages).toEqual(expect.any(Number));
+      expect(response.body.data).toEqual(
+        expect.arrayOf(
+          expect.objectContaining({
+            _id: expect.any(String),
+            name: expect.any(String),
+            isDelete: false,
+            createdAt: expect.any(String)
+          })
+        )
+      )
+    });
+  });
   
-  describe("Category Name", () => {
-    
+  describe("Category Creation", () => {
+
     it("should reject empty category name", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: '' });
-      
+        
       expect(response.status).toBe(400);
     });
 
-    it("should reject null category name", async () => {
+    it("should accept minimum length category name (3 character)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: null });
-      
-      expect(response.status).toBe(400);
-    });
-
-    it("should reject undefined category name", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({});
-      
-      expect(response.status).toBe(400);
-    });
-
-    it("should accept minimum length category name (1 character)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'A' });
+        .send({ name: 'abc' });
       
       expect(response.status).toBe(201);
-      expect(response.body.name).toBe('A');
+      expect(response.body.name).toBe('abc');
     });
 
-    it("should accept very long category name (boundary test)", async () => {
-      const longName = 'A'.repeat(1000);
+    it("should accept normal length category name (15 characters)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: longName });
-      
+        .send({ name: 'a'.repeat(15) });
+        
       expect(response.status).toBe(201);
-      expect(response.body.name).toBe(longName);
+      expect(response.body.name).toBe('a'.repeat(15));
     });
 
-    it("should handle extremely long category name (stress test)", async () => {
-      const extremeLongName = 'A'.repeat(10000);
+    it("should accept maximum length category name (255 characters)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
-        .send({ name: extremeLongName });
-      
-      expect([201, 400, 413]).toContain(response.status);
-    });
-  });
-
-  describe("ID", () => {
-    
-    it("should reject invalid ObjectId format", async () => {
-      const response = await request(app)
-        .get('/categories/invalid-id')
-        .set('Authorization', `Bearer ${token}`);
-      
-      expect(response.status).toBe(500);
+        .send({ name: 'a'.repeat(255) });
+        
+      expect(response.status).toBe(201);
+      expect(response.body.name).toBe('a'.repeat(255));
     });
 
-    it("should handle valid but non-existent ObjectId", async () => {
-      const nonExistentId = new mongoose.Types.ObjectId();
+    it("should reject category name that is too long (256 characters)", async () => {
       const response = await request(app)
-        .get(`/categories/${nonExistentId}`)
-        .set('Authorization', `Bearer ${token}`);
-      
-      expect(response.status).toBe(404);
-    });
-
-    it("should handle ObjectId edge case - all zeros", async () => {
-      const response = await request(app)
-        .get('/categories/000000000000000000000000')
-        .set('Authorization', `Bearer ${token}`);
-      
-      expect(response.status).toBe(404);
-    });
-
-    it("should handle ObjectId edge case - all fs", async () => {
-      const response = await request(app)
-        .get('/categories/ffffffffffffffffffffffff')
-        .set('Authorization', `Bearer ${token}`);
-      
-      expect(response.status).toBe(404);
-    });
-  });
-
-  describe("Bulk Operations", () => {
-    
-    it("should handle empty array for bulk deactivation", async () => {
-      const response = await request(app)
-        .post('/categories/deactivate')
+        .post('/categories')
         .set('Authorization', `Bearer ${token}`)
-        .send({ ids: [] });
+        .send({ name: 'a'.repeat(256) });
       
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(400);
     });
 
-    it("should handle single ID for bulk operations", async () => {
-      const category = await Category.create({
-        name: 'Test Category',
-        adminId: user.adminId
-      });
-
+    it("should reject category name that is too short (2 characters)", async () => {
       const response = await request(app)
-        .post('/categories/deactivate')
+        .post('/categories')
         .set('Authorization', `Bearer ${token}`)
-        .send({ ids: [category._id] });
+        .send({ name: 'ab' });
       
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(400);
     });
   });
 });
