@@ -1,5 +1,6 @@
 const { successResponse, failedResponse, getPaginationParams, formatPaginatedResponse } = require("../utils");
 const { Category } = require("../model");
+const mongoose = require("mongoose");
 
 module.exports = {
   listCategory: async (req, res) => {
@@ -41,6 +42,7 @@ module.exports = {
 
       return successResponse(res, 200, paginatedResponse);
     } catch (error) {
+      console.error(error);
       return failedResponse(res, 500, error.message);
     }
   },
@@ -102,6 +104,9 @@ module.exports = {
       return successResponse(res, 201, mappedCategory);
     } catch (error) {
       console.error(error);
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       return failedResponse(res, 500, 'Có lỗi xảy ra khi tạo danh mục');
     }
   },
@@ -141,6 +146,9 @@ module.exports = {
       return successResponse(res, 200, mappedCategory);
     } catch (error) {
       console.error(error);
+      if (typeof error === "ValidationError") {
+        return failedResponse(res, 400, error.message);
+      }
       return failedResponse(res, 500, 'Có lỗi xảy ra khi cập nhật danh mục');
     }
   },
@@ -154,6 +162,9 @@ module.exports = {
       return successResponse(res, 200, { message: 'Vô hiệu hóa danh mục thành công' });
     } catch (error) {
       console.error(error);
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       return failedResponse(res, 500, 'Có lỗi xảy ra khi vô hiệu hóa danh mục');
     }
   },
@@ -167,6 +178,9 @@ module.exports = {
       return successResponse(res, 200, { message: 'Kích hoạt danh mục thành công' });
     } catch (error) {
       console.error(error);
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       return failedResponse(res, 500, 'Có lỗi xảy ra khi kích hoạt danh mục');
     }
   }

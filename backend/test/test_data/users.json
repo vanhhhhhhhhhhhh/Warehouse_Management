@@ -1,0 +1,46 @@
+[{
+  "_id": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "fullname": "Quan Tri Vien",
+  "email": "domdom@gmail.com",
+  "password": "$argon2id$v=19$m=16,t=2,p=1$ZHBTaDZYY0VJcTF3eDNKdA$aB+qN27PmsxUNDWJftGF5A",
+  "phone": "0987654321",
+  "roleId": {
+    "$oid": "682f5579f87dcf5d413d22d3"
+  },
+  "isActive": true,
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-05-22T17:11:19.049Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-22T17:11:19.049Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "fullName": "Do anything",
+  "username": "doanything",
+  "email": "doanything@gmail.com",
+  "password": "$argon2id$v=19$m=65536,t=3,p=4$ZGeMymsPqDYU4DncNrn4jw$Yjz1Q9D12q75S4DuvYLD70sDgo1Iwo34GeVEN09g8AE",
+  "phone": "0123456789",
+  "roleId": {
+    "$oid": "687a44fe98bfc3565529771a"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "status": true,
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-18T12:59:41.289Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-20T11:50:27.754Z"
+  },
+  "__v": 0
+}]

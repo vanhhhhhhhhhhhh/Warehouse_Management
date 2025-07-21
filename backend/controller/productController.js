@@ -5,6 +5,7 @@ const {
   formatPaginatedResponse,
 } = require("../utils");
 const { Product } = require("../model");
+const mongoose = require("mongoose");
 
 module.exports = {
   listProduct: async (req, res) => {
@@ -143,6 +144,9 @@ module.exports = {
       if (error.code === 11000) {
         return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       console.error(error);
       return failedResponse(res, 500, "Có lỗi xảy ra khi tạo sản phẩm");
     }
@@ -214,6 +218,9 @@ module.exports = {
       if (error.code === 11000) {
         return failedResponse(res, 400, "Mã sản phẩm đã tồn tại");
       }
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       console.error(error);
       return failedResponse(res, 500, "Có lỗi xảy ra khi cập nhật sản phẩm");
     }
@@ -229,6 +236,9 @@ module.exports = {
         message: "Hủy kích hoạt sản phẩm thành công",
       });
     } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       console.error(error);
       return failedResponse(
         res,
@@ -248,6 +258,9 @@ module.exports = {
         message: "Kích hoạt sản phẩm thành công",
       });
     } catch (error) {
+      if (error instanceof mongoose.Error.ValidationError) {
+        return failedResponse(res, 400, error.message);
+      }
       console.error(error);
       return failedResponse(res, 500, "Có lỗi xảy ra khi kích hoạt sản phẩm");
     }

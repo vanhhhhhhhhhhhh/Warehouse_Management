@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
+    "test:silent": "jest --silent",
     "start": "nodemon server.js"
   },
   "author": "",
@@ -24,7 +25,9 @@
   },
   "devDependencies": {
     "@types/multer": "^1.4.13",
+    "jest": "^30.0.4",
     "nodemailer": "^7.0.3",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "supertest": "^7.1.3"
   }
 }
