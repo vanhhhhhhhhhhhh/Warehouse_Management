@@ -1,0 +1,268 @@
+[{
+  "_id": {
+    "$oid": "682f5579f87dcf5d413d22d3"
+  },
+  "name": "Admin",
+  "permissions": {
+    "USERS": [
+      "VIEW",
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ],
+    "PRODUCTS": [
+      "VIEW"
+    ],
+    "ROLES": [
+      "VIEW",
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ],
+    "CATEGORIES": [
+      "VIEW"
+    ],
+    "DEFECT_PRODUCTS": [
+      "VIEW"
+    ],
+    "STOCK": [
+      "VIEW",
+      "VIEW_STOCK_IN_HISTORY",
+      "VIEW_STOCK_OUT_HISTORY",
+      "VIEW_INVENTORY",
+      "VIEW_STOCK_REPORT"
+    ],
+    "WAREHOUSE": [
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ]
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-05-22T16:48:57.107Z"
+  },
+  "updatedAt": {
+    "$date": "2025-05-22T16:48:57.107Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68410c62dc5c76937c4d99b7"
+  },
+  "name": "test phân quyền",
+  "permissions": {
+    "STOCK": [
+      "VIEW_INVENTORY",
+      "VIEW_STOCK_OUT_HISTORY",
+      "VIEW_STOCK_REPORT",
+      "VIEW_STOCK_IN_HISTORY",
+      "VIEW",
+      "STOCK_IN",
+      "STOCK_OUT"
+    ],
+    "PRODUCTS": [
+      "VIEW",
+      "UPDATE"
+    ],
+    "CATEGORIES": [
+      "VIEW",
+      "CREATE",
+      "UPDATE"
+    ],
+    "DEFECT_PRODUCTS": []
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": true,
+  "createdAt": {
+    "$date": "2025-06-05T03:17:54.089Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-18T12:57:08.069Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "684110c3dc5c76937c4d99cd"
+  },
+  "name": "nhập kho",
+  "permissions": {
+    "PRODUCTS": [
+      "CREATE"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": true,
+  "createdAt": {
+    "$date": "2025-06-05T03:36:35.166Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-18T12:57:08.070Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "684116409cc73863cfd2bcc1"
+  },
+  "name": "xuất kho",
+  "permissions": {
+    "STOCK": [
+      "STOCK_OUT",
+      "VIEW_STOCK_OUT_HISTORY"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": true,
+  "createdAt": {
+    "$date": "2025-06-05T04:00:00.830Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-18T12:57:08.061Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68412255a2eaa4e3d3207d5b"
+  },
+  "name": "quản lý sản phẩm",
+  "permissions": {
+    "CATEGORIES": [
+      "VIEW",
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ],
+    "PRODUCTS": [
+      "VIEW",
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ],
+    "DEFECT_PRODUCTS": [
+      "VIEW"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": true,
+  "createdAt": {
+    "$date": "2025-06-05T04:51:33.632Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-18T12:57:08.067Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "68431619dc67d8e4f6c3cc68"
+  },
+  "name": "Nhập kho",
+  "permissions": {
+    "STOCK": [
+      "STOCK_IN",
+      "VIEW_STOCK_IN_HISTORY",
+      "VIEW_INVENTORY",
+      "VIEW_STOCK_REPORT"
+    ],
+    "PRODUCTS": [
+      "VIEW"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "683df295d91b5b09b576ddd0"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-06-06T16:23:53.576Z"
+  },
+  "updatedAt": {
+    "$date": "2025-06-06T16:23:53.576Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "684340d222cce4e9c8cb157e"
+  },
+  "name": "nhân viên kiểm kho",
+  "permissions": {
+    "STOCK": [
+      "VIEW_INVENTORY",
+      "VIEW_STOCK_REPORT"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": true,
+  "createdAt": {
+    "$date": "2025-06-06T19:26:10.550Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-18T12:57:08.068Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "687a44fe98bfc3565529771a"
+  },
+  "name": "Do Anything",
+  "permissions": {
+    "CATEGORIES": [
+      "VIEW",
+      "CREATE",
+      "DELETE",
+      "UPDATE"
+    ],
+    "PRODUCTS": [
+      "VIEW",
+      "CREATE",
+      "UPDATE",
+      "DELETE"
+    ],
+    "DEFECT_PRODUCTS": [
+      "VIEW",
+      "CREATE",
+      "DELETE"
+    ],
+    "WAREHOUSE": [
+      "VIEW",
+      "STOCK_IN",
+      "STOCK_OUT",
+      "VIEW_STOCK_IN_HISTORY",
+      "VIEW_STOCK_OUT_HISTORY",
+      "VIEW_INVENTORY",
+      "VIEW_STOCK_REPORT"
+    ]
+  },
+  "status": true,
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-18T12:58:38.347Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-20T11:43:57.098Z"
+  },
+  "__v": 0
+}]
