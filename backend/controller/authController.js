@@ -135,7 +135,7 @@ const authController = {
             }).populate('roleId').populate('adminId')
 
             if (!user) {
-                return res.status(401).json({
+                return res.status(400).json({
                     success: false,
                     message: 'Email hoặc mật khẩu không chính xác'
                 })
@@ -147,16 +147,9 @@ const authController = {
 
             const validPassword = await argon2.verify(user.password, password)
             if (!validPassword) {
-                return res.status(401).json({
+                return res.status(400).json({
                     success: false,
                     message: 'Email hoặc mật khẩu không chính xác'
-                })
-            }
-
-            if (!user.status) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Tài khoản đã bị vô hiệu hóa'
                 })
             }
 
