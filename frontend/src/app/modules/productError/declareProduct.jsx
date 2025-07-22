@@ -3,31 +3,47 @@ import { Content } from '../../../_metronic/layout/components/content'
 import { Link } from 'react-router-dom'
 import Swal from 'sweetalert2'
 import axios from 'axios'
+import { useAuth } from '../../modules/auth'
 
 const DeclareProduct = () => {
-
+    const { auth } = useAuth()
     const [stockImports, setStockImports] = useState([])
     const [selectedImportId, setSelectedImportId] = useState(null)
+    const [loading, setLoading] = useState(false)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await axios.get('http://localhost:9999/error/stockImport')
-                setStockImports(response.data.data)
+                setLoading(true)
+                setError(null)
+                const response = await axios.get('http://localhost:9999/error/stockImport', {
+                    headers: {
+                        'Authorization': `Bearer ${auth?.api_token}`
+                    }
+                })
+                if (response.data.success) {
+                    setStockImports(response.data.data)
+                } else {
+                    setError(response.data.message || 'Có lỗi xảy ra khi tải dữ liệu')
+                }
             } catch (error) {
-                console.log(error);
+                console.error('Fetch stock imports error:', error)
+                setError(error.response?.data?.message || 'Có lỗi xảy ra khi tải dữ liệu')
+            } finally {
+                setLoading(false)
             }
         }
-        fetchData()
-    }, [])
+        if (auth?.api_token) {
+            fetchData()
+        }
+    }, [auth])
 
     const selectedImport = stockImports.find((stock) => stock.importId === selectedImportId)
     const listProductByReceipt = selectedImport ? selectedImport.items : []
 
-
     const [formData, setFormData] = useState({
         importId: '',
-        wareId: '',
         proId: '',
         quantity: 0,
         reason: '',
@@ -36,47 +52,91 @@ const DeclareProduct = () => {
     const handleSubmit = async (e) => {
         e.preventDefault()
         try {
-            const response = await axios.post(`http://localhost:9999/error/declare`, formData,
+            setLoading(true)
+            setError(null)
+            const response = await axios.post('http://localhost:9999/error/declare', 
+                formData,
                 {
                     headers: {
-                        Authorization: `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${auth?.api_token}`
                     }
                 }
             )
-            if (response.status === 201) {
+            if (response.data.success) {
                 Swal.fire({
                     icon: 'success',
                     title: 'Thành công!',
-                    text: 'Khai báo sản phẩm lỗi thành công',
+                    text: response.data.message,
                     showConfirmButton: false,
                     timer: 1500
                 })
+                // Reset form
                 setFormData({
                     importId: '',
-                    wareId: '',
                     proId: '',
                     quantity: 0,
                     reason: '',
                 })
+                setSelectedImportId(null)
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: response.data.message,
+                    confirmButtonText: 'Đóng'
+                })
             }
         } catch (error) {
+            console.error('Declare error stock error:', error)
             Swal.fire({
                 icon: 'error',
                 title: 'Lỗi!',
-                text: error.response.data.message,
+                text: error.response?.data?.message || 'Có lỗi xảy ra khi khai báo sản phẩm lỗi',
                 confirmButtonText: 'Đóng'
             })
+        } finally {
+            setLoading(false)
         }
     }
 
     const handleReset = () => {
         setFormData({
             importId: '',
-            wareId: '',
             proId: '',
             quantity: 0,
             reason: '',
         })
+        setSelectedImportId(null)
+    }
+
+    if (loading) {
+        return (
+            <div className='d-flex flex-column gap-7'>
+                <div className='px-9'>
+                    <div className='card'>
+                        <div className='card-body py-4 text-center'>
+                            <div className='spinner-border text-primary' role='status'>
+                                <span className='visually-hidden'>Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className='d-flex flex-column gap-7'>
+                <div className='px-9'>
+                    <div className='card'>
+                        <div className='card-body py-4 text-center text-danger'>
+                            {error}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -118,11 +178,11 @@ const DeclareProduct = () => {
                                             }}
                                         >
                                             <option value=''>Chọn phiếu</option>
-                                            {
-                                                stockImports.map((stock) => {
-                                                    return <option value={stock.importId}>{stock.receiptCode}</option>
-                                                })
-                                            }
+                                            {stockImports.map((stock) => (
+                                                <option key={stock.importId} value={stock.importId}>
+                                                    {stock.receiptCode}
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -134,13 +194,14 @@ const DeclareProduct = () => {
                                             required
                                             value={formData.proId}
                                             onChange={(e) => setFormData({ ...formData, proId: e.target.value })}
+                                            disabled={!formData.importId}
                                         >
                                             <option value=''>Chọn sản phẩm</option>
-                                            {
-                                                listProductByReceipt.map((product) => {
-                                                    return <option value={product.proId}>{product.proName}</option>
-                                                })
-                                            }
+                                            {listProductByReceipt.map((product) => (
+                                                <option key={product.proId} value={product.proId}>
+                                                    {product.proName} (Số lượng: {product.quantity})
+                                                </option>
+                                            ))}
                                         </select>
                                     </div>
 
@@ -153,7 +214,8 @@ const DeclareProduct = () => {
                                             min={1}
                                             required
                                             value={formData.quantity}
-                                            onChange={(e) => setFormData({ ...formData, quantity: e.target.value })}
+                                            onChange={(e) => setFormData({ ...formData, quantity: parseInt(e.target.value) })}
+                                            disabled={!formData.proId}
                                         />
                                     </div>
 
@@ -167,6 +229,7 @@ const DeclareProduct = () => {
                                             value={formData.reason}
                                             onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                                             placeholder='Nhập nguyên nhân chi tiết...'
+                                            disabled={!formData.proId}
                                         />
                                     </div>
                                 </div>
@@ -177,15 +240,21 @@ const DeclareProduct = () => {
                                         type='button'
                                         className='btn btn-light'
                                         onClick={handleReset}
+                                        disabled={loading}
                                     >
                                         Hủy
                                     </button>
                                     <button
                                         type='submit'
                                         className='btn btn-primary'
-                                        onSubmit={handleSubmit}
+                                        disabled={loading || !formData.proId}
                                     >
-                                        Lưu
+                                        {loading ? (
+                                            <>
+                                                <span className='spinner-border spinner-border-sm' role='status' aria-hidden='true'></span>
+                                                <span className='ms-2'>Đang xử lý...</span>
+                                            </>
+                                        ) : 'Lưu'}
                                     </button>
                                 </div>
                             </form>

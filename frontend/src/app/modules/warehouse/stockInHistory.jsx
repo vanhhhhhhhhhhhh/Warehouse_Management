@@ -7,11 +7,18 @@ const StockInHistory = () => {
   const [stockImports, setStockImports] = useState([])
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedWarehouse, setSelectedWarehouse] = useState(null)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const importsResponse = await axios.get('http://localhost:9999/import/history')
+        const token = localStorage.getItem('token')
+        const user = JSON.parse(localStorage.getItem('user'))
+        setIsAdmin(!user?.adminId) // If no adminId, user is an admin
+
+        const importsResponse = await axios.get('http://localhost:9999/import/history', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
         setStockImports(importsResponse.data.data)
       } catch (error) {
         console.log(error);
@@ -125,7 +132,7 @@ const StockInHistory = () => {
                     <th>STT</th>
                     <th>Thời gian</th>
                     <th>Kho</th>
-                    <th>Người nhập</th>
+                    {isAdmin && <th>Người tạo</th>}
                     <th>Sản phẩm</th>
                     <th>Số lượng</th>
                     <th>Thao tác</th>
@@ -139,7 +146,7 @@ const StockInHistory = () => {
                         <td>{key + 1}</td>
                         <td>{formatDateOnly(imports.importDate)}</td>
                         <td>{imports.wareId.name}</td>
-                        <td>{imports.adminId.fullName}</td>
+                        {isAdmin && <td>{imports.staffId?.fullName}</td>}
                         <td>
                           {
                             imports.items.map((item, i) => {

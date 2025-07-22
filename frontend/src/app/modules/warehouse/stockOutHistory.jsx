@@ -10,6 +10,7 @@ const StockOutHistory = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState('')
   const [selectedReason, setSelectedReason] = useState('')
   const [loading, setLoading] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     fetchData()
@@ -18,8 +19,12 @@ const StockOutHistory = () => {
   const fetchData = async () => {
     setLoading(true)
     try {
+      const token = localStorage.getItem('token')
+      const user = JSON.parse(localStorage.getItem('user'))
+      setIsAdmin(!user?.adminId) // If no adminId, user is an admin
+
       const exportsResponse = await axios.get('http://localhost:9999/export/history', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${token}` }
       })
       setStockExports(exportsResponse.data.data || [])
     } catch (error) {
@@ -161,12 +166,6 @@ const StockOutHistory = () => {
             <div className='card-title'>
               <h3 className='fw-bold m-0'>Lịch sử xuất kho</h3>
             </div>
-            <div className='card-toolbar'>
-              <Link to='/apps/stockOut/create' className='btn btn-primary'>
-                <i className='ki-duotone ki-plus fs-2'></i>
-                Thêm phiếu xuất
-              </Link>
-            </div>
           </div>
 
           {/* Filters Section */}
@@ -197,21 +196,6 @@ const StockOutHistory = () => {
                   <option value=''>Tất cả kho</option>
                   {uniqueWarehouses.map((warehouse, index) => (
                     <option key={index} value={warehouse}>{warehouse}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Lý do filter */}
-              <div className='d-flex align-items-center position-relative'>
-                <i className='ki-duotone ki-tag fs-3 position-absolute ms-4'></i>
-                <select 
-                  className='form-select form-select-solid w-200px ps-12'
-                  value={selectedReason}
-                  onChange={(e) => handleReasonChange(e.target.value)}
-                >
-                  <option value=''>Tất cả lý do</option>
-                  {uniqueReasons.map((reason, index) => (
-                    <option key={index} value={reason}>{reason}</option>
                   ))}
                 </select>
               </div>
@@ -317,8 +301,7 @@ const StockOutHistory = () => {
                       <th>Tên phiếu</th>
                       <th>Thời gian</th>
                       <th>Kho</th>
-                      <th>Người xuất</th>
-                      <th>Lý do</th>
+                      {isAdmin && <th>Người tạo</th>}
                       <th>Sản phẩm</th>
                       <th>Số lượng</th>
                       <th>Giá trị</th>
@@ -351,12 +334,7 @@ const StockOutHistory = () => {
                               {exportItem.wareId?.name || 'N/A'}
                             </div>
                           </td>
-                          <td>{exportItem.adminId?.fullName || 'N/A'}</td>
-                          <td>
-                            <span className={`badge ${getReasonBadgeClass(exportItem.reason)}`}>
-                              {exportItem.reason}
-                            </span>
-                          </td>
+                          {isAdmin && <td>{exportItem.staffId?.fullName}</td>}
                           <td>
                             <div className='d-flex flex-column'>
                               {exportItem.items?.slice(0, 2).map((item, i) => (

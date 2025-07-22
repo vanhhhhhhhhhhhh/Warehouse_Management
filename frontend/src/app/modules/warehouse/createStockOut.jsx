@@ -36,30 +36,41 @@ export default function CreateStockOutPage() {
     const fetchInventory = async () => {
       try {
         // Gọi API inventory với filter theo wareId
-        const res = await axios.get(`http://localhost:9999/inventory?warehouseId=${wareId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
+        const [inventoryRes, productsRes] = await Promise.all([
+          axios.get(`http://localhost:9999/inventory?warehouseId=${wareId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+          }),
+          axios.get('http://localhost:9999/products', {
+            headers: { Authorization: `Bearer ${token}` }
+          })
+        ]);
         
+        // Tạo map giá sản phẩm
+        const productPrices = {};
+        productsRes.data.data.forEach(product => {
+          productPrices[product._id] = product.price;
+        });
+
         // Format lại data để phù hợp với cấu trúc hiện tại
-        const formattedData = res.data.data.map(item => ({
+        const formattedData = inventoryRes.data.data.map(item => ({
           product: {
             _id: item.productId,
             name: item.productName,
             code: item.productCode,
-            price: item.originalPrice || 0
+            price: productPrices[item.productId] || 0
           },
           quantity: item.currentStock
-        })).filter(item => item.quantity > 0) // Chỉ lấy những sản phẩm còn tồn
+        })).filter(item => item.quantity > 0); // Chỉ lấy những sản phẩm còn tồn
 
-        setStockProducts(formattedData)
+        setStockProducts(formattedData);
       } catch (err) {
-        console.error('Lỗi khi lấy thông tin tồn kho:', err)
-        setStockProducts([])
+        console.error('Lỗi khi lấy thông tin tồn kho:', err);
+        setStockProducts([]);
       }
     }
 
-    fetchInventory()
-  }, [wareId, token])
+    fetchInventory();
+  }, [wareId, token]);
 
 
   const filterProducts = stockProducts.filter(p =>
@@ -130,10 +141,11 @@ const handleSubmitExport = async () => {
     const token = localStorage.getItem('token');
     const items = selectedProducts.map(item => ({
       proId: item._id,
-      quantity: item.quantity
+      quantity: item.quantity,
+      unitPrice: item.price || 0  // Thêm đơn giá
     }));
 
-    await axios.post('http://localhost:9999/export/fromWarehouse', {
+    const response = await axios.post('http://localhost:9999/export/fromWarehouse', {
       receiptCode: code,
       receiptName: name,
       wareId,
@@ -152,11 +164,11 @@ const handleSubmitExport = async () => {
 
     navigate('/apps/stockOut');
   } catch (error) {
-    console.error(error);
+    console.error('Export error:', error);
     Swal.fire({
       icon: 'error',
       title: 'Lỗi!',
-      text: 'Có lỗi xảy ra khi xuất kho. Vui lòng thử lại.',
+      text: error.response?.data?.message || 'Có lỗi xảy ra khi xuất kho. Vui lòng thử lại.',
       confirmButtonText: 'Đóng'
     });
   }
@@ -232,7 +244,7 @@ const handleSubmitExport = async () => {
                 <span className='card-label fw-bold fs-3 mb-1'>Thông tin sản phẩm</span>
                 {wareId && (
                   <span className='text-muted mt-1 fw-semibold fs-7'>
-                    Tổng {stockProducts.length} sản phẩm trong kho
+                    (Tổng {stockProducts.length} sản phẩm trong kho)
                   </span>
                 )}
               </h3>

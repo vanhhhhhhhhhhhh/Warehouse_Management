@@ -9,12 +9,14 @@ const StockOverview = () => {
     const [selectedDate, setSelectedDate] = useState('')
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
     const [selectedCategory, setSelectedCategory] = useState('')
+    const [selectedProduct, setSelectedProduct] = useState('')
     const [searchTerm, setSearchTerm] = useState('')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState(null)
     const [inventoryData, setInventoryData] = useState([])
     const [warehouses, setWarehouses] = useState([])
     const [categories, setCategories] = useState([])
+    const [products, setProducts] = useState([])
     const [summary, setSummary] = useState({
         totalImport: 0,
         totalExport: 0,
@@ -104,12 +106,54 @@ const StockOverview = () => {
         }
     }
 
+    // Fetch danh sách sản phẩm
+    const fetchProducts = async () => {
+        try {
+            if (!user?.id) {
+                console.error('No user ID found')
+                return
+            }
+
+            setLoading(true)
+            const response = await client.get(API_URL.PRODUCTS.LIST, {
+                params: {
+                    page: 1,
+                    limit: 100,
+                    name: searchTerm || '',
+                    status: 'active'
+                }
+            })
+
+            if (response.data && Array.isArray(response.data.data)) {
+                setProducts(response.data.data)
+            } else {
+                console.error('Invalid products data format:', response.data)
+                throw new Error('Dữ liệu sản phẩm không hợp lệ')
+            }
+        } catch (error) {
+            console.error('Error fetching products:', error)
+            let errorMessage = 'Lỗi khi tải danh sách sản phẩm'
+            if (error.response) {
+                errorMessage = error.response.data?.message || errorMessage
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: errorMessage,
+                confirmButtonText: 'OK'
+            })
+        } finally {
+            setLoading(false)
+        }
+    }
+
     // Fetch initial data
     useEffect(() => {
         if (user) {
             console.log('Fetching initial data...')
             fetchWarehouses()
             fetchCategories()
+            fetchProducts()
         }
     }, [])
 
@@ -157,17 +201,53 @@ const StockOverview = () => {
         }
     }, [selectedDate, selectedWarehouse, selectedCategory])
 
-    // Filter data by search term
-    const filteredData = inventoryData.filter(item =>
-        item.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.productCode.toLowerCase().includes(searchTerm.toLowerCase())
-    )
+    // Tính toán summary cho dữ liệu đã lọc
+    const calculateFilteredSummary = (filteredData) => {
+        const newSummary = {
+            totalImport: 0,
+            totalExport: 0,
+            totalError: 0,
+            totalStock: 0,
+            totalValue: 0
+        }
+
+        filteredData.forEach(item => {
+            newSummary.totalImport += item.totalImport || 0
+            newSummary.totalExport += item.totalExport || 0
+            newSummary.totalError += item.totalError || 0
+            newSummary.totalStock += item.currentStock || 0
+            newSummary.totalValue += (item.currentStock * item.price) || 0
+        })
+
+        return newSummary
+    }
+
+    // Filter data
+    const filteredData = inventoryData.filter(item => {
+        const productMatch = selectedProduct
+            ? item.productId === selectedProduct
+            : true
+
+        const searchMatch = searchTerm
+            ? item.productCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            item.productName.toLowerCase().includes(searchTerm.toLowerCase())
+            : true
+
+        return productMatch && searchMatch
+    })
+
+    // Cập nhật summary khi dữ liệu được lọc
+    useEffect(() => {
+        const newSummary = calculateFilteredSummary(filteredData)
+        setSummary(newSummary)
+    }, [filteredData])
 
     // Reset filters
     const handleReset = () => {
         setSelectedDate('')
         setSelectedWarehouse('')
         setSelectedCategory('')
+        setSelectedProduct('')
         setSearchTerm('')
     }
 
@@ -195,7 +275,13 @@ const StockOverview = () => {
     return (
         <Content>
             <div className='card'>
-                <div className='card-header border-0 pt-6'>
+                {/* Header Section */}
+                <div className='card-header border-0' style={{ marginBottom: '-10px' }}>
+                    <div className='card-title'>
+                        <h3 className='fw-bold m-0'>Tồn kho</h3>
+                    </div>
+                </div>
+                <div className='card-header border-0'>
                     <div className='card-title'>
                         <div className='d-flex align-items-center position-relative my-1'>
                             <KTSVG
@@ -256,6 +342,22 @@ const StockOverview = () => {
                                 </select>
                             </div>
 
+                            {/* Filter Sản phẩm */}
+                            <div className='w-250px'>
+                                <select
+                                    className='form-select form-select-solid'
+                                    value={selectedProduct}
+                                    onChange={(e) => setSelectedProduct(e.target.value)}
+                                >
+                                    <option value=''>Tất cả sản phẩm</option>
+                                    {products.map(product => (
+                                        <option key={product._id} value={product._id}>
+                                            {product.code} - {product.name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+
                             {/* Reset Filters Button */}
                             <button
                                 type='button'
@@ -279,7 +381,7 @@ const StockOverview = () => {
                             <div className='card h-100'>
                                 <div className='card-body d-flex flex-column p-9'>
                                     <div className='fs-2hx fw-bold text-primary mb-2'>
-                                        {summary.totalImport}
+                                        {summary.totalImport.toLocaleString('vi-VN')}
                                     </div>
                                     <div className='fs-4 fw-semibold text-gray-400'>Tổng số nhập</div>
                                 </div>
@@ -290,7 +392,7 @@ const StockOverview = () => {
                             <div className='card h-100'>
                                 <div className='card-body d-flex flex-column p-9'>
                                     <div className='fs-2hx fw-bold text-success mb-2'>
-                                        {summary.totalExport}
+                                        {summary.totalExport.toLocaleString('vi-VN')}
                                     </div>
                                     <div className='fs-4 fw-semibold text-gray-400'>Tổng số xuất</div>
                                 </div>
@@ -301,7 +403,7 @@ const StockOverview = () => {
                             <div className='card h-100'>
                                 <div className='card-body d-flex flex-column p-9'>
                                     <div className='fs-2hx fw-bold text-danger mb-2'>
-                                        {summary.totalError}
+                                        {summary.totalError.toLocaleString('vi-VN')}
                                     </div>
                                     <div className='fs-4 fw-semibold text-gray-400'>Tổng số hỏng</div>
                                 </div>
@@ -312,25 +414,11 @@ const StockOverview = () => {
                             <div className='card h-100'>
                                 <div className='card-body d-flex flex-column p-9'>
                                     <div className='fs-2hx fw-bold text-dark mb-2'>
-                                        {summary.totalStock}
+                                        {summary.totalStock.toLocaleString('vi-VN')}
                                     </div>
                                     <div className='fs-4 fw-semibold text-gray-400'>Tổng số tồn kho</div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Total Value Alert */}
-                    <div className='alert alert-primary d-flex align-items-center p-5 mb-8'>
-                        <i className='ki-duotone ki-information-5 fs-2qx text-primary me-4'></i>
-                        <div className='d-flex flex-column'>
-                            <span className='fs-4 fw-semibold text-primary'>
-                                Tổng giá trị tồn kho: {new Intl.NumberFormat('vi-VN', {
-                                    style: 'currency',
-                                    currency: 'VND'
-                                }).format(summary.totalValue)}
-                            </span>
-                            <span className='fs-6 text-gray-600'>(Tính theo giá gốc)</span>
                         </div>
                     </div>
 
