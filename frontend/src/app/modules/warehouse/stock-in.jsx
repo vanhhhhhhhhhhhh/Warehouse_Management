@@ -2,23 +2,38 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { KTSVG } from '../../../_metronic/helpers'
 import axios from 'axios'
+import { useAuth } from '../../modules/auth'
 
 const StockInPage = () => {
     const navigate = useNavigate()
     const [searchTerm, setSearchTerm] = useState('')
     const [stockImports, setStockImports] = useState([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState(null)
+    const { auth } = useAuth()
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const imports = await axios.get('http://localhost:9999/import/history')
+                setLoading(true)
+                setError(null)
+                const imports = await axios.get('http://localhost:9999/import/history', {
+                    headers: {
+                        'Authorization': `Bearer ${auth?.api_token}`
+                    }
+                })
                 setStockImports(imports.data.data)
             } catch (error) {
-                console.log(error);
+                console.error('Error fetching imports:', error)
+                setError(error.response?.data?.message || 'Có lỗi xảy ra khi tải dữ liệu')
+            } finally {
+                setLoading(false)
             }
         }
-        fetchData()
-    }, [])
+        if (auth?.api_token) {
+            fetchData()
+        }
+    }, [auth])
 
     function formatDateOnly(isoString) {
         const date = new Date(isoString)
@@ -37,7 +52,6 @@ const StockInPage = () => {
         imp.receiptCode.toLowerCase().includes(searchTerm.toLowerCase())
     )
 
-
     function countTotalProduct(items) {
         return items.reduce((total, item) => total + item.quantity, 0)
     }
@@ -46,8 +60,35 @@ const StockInPage = () => {
         return items.reduce((total, item) => total + item.unitPrice, 0)
     }
 
+    if (loading) {
+        return (
+            <div className='d-flex flex-column gap-7'>
+                <div className='px-9'>
+                    <div className='card'>
+                        <div className='card-body py-4 text-center'>
+                            <div className='spinner-border text-primary' role='status'>
+                                <span className='visually-hidden'>Đang tải...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
-
+    if (error) {
+        return (
+            <div className='d-flex flex-column gap-7'>
+                <div className='px-9'>
+                    <div className='card'>
+                        <div className='card-body py-4 text-center text-danger'>
+                            {error}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className='d-flex flex-column gap-7'>
@@ -98,32 +139,37 @@ const StockInPage = () => {
                                     <th className='min-w-100px text-black'>Thời gian nhập</th>
                                     <th className='min-w-100px text-black'>Mã phiếu</th>
                                     <th className='min-w-150px text-black'>Kho nhập</th>
-                                    <th className='min-w-100px text-black'>Người tạo</th>
                                     <th className='min-w-100px text-black'>Số lượng SP</th>
                                     <th className='min-w-100px text-black'>Tổng giá trị</th>
                                     <th className='min-w-100px text-black'>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody className='text-gray-600 fw-semibold'>
-                                {
-                                    filterImports.map((imports) => {
-                                        return <tr>
+                                {filterImports.length === 0 ? (
+                                    <tr>
+                                        <td colSpan='8' className='text-center'>
+                                            Không có dữ liệu
+                                        </td>
+                                    </tr>
+                                ) : (
+                                    filterImports.map((imports) => (
+                                        <tr key={imports._id}>
                                             <td>{formatDateOnly(imports.importDate)}</td>
                                             <td>{imports.receiptCode}</td>
                                             <td>{imports.wareId.name}</td>
-                                            <td>{imports.adminId.fullName}</td>
                                             <td>{countTotalProduct(imports.items)}</td>
-                                            <td>{calculateTotalValue(imports.items)}</td>
+                                            <td>{calculateTotalValue(imports.items).toLocaleString('vi-VN')} đ</td>
                                             <td>
                                                 <button
-                                                onClick={() => navigate(`/apps/stockIn/print/${imports._id}`)}
-                                                    className='btn btn-icon btn-bg-light btn-active-color-success btn-sm ms-5'>
+                                                    onClick={() => navigate(`/apps/stockIn/print/${imports._id}`)}
+                                                    className='btn btn-icon btn-bg-light btn-active-color-success btn-sm ms-5'
+                                                >
                                                     <i className='fas fa-print'></i>
                                                 </button>
                                             </td>
                                         </tr>
-                                    })
-                                }
+                                    ))
+                                )}
                             </tbody>
                         </table>
                     </div>
