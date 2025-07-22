@@ -29,6 +29,13 @@ function parseAttributes(attr) {
     if (!rightSide) {
       throw new Error(`Thuộc tính thứ ${i + 1} không hợp lệ: Không tìm thấy giá trị thuộc tính`);
     }
+    
+    if (leftSide.length > 255) {
+      throw new Error(`Tên thuộc tính thứ ${i + 1} không được vượt quá 255 ký tự`);
+    }
+    if (rightSide.length > 255) {
+      throw new Error(`Giá trị thuộc tính thứ ${i + 1} không được vượt quá 255 ký tự`);
+    }
 
     ret.push({
       name: leftSide,
@@ -94,14 +101,38 @@ function convertAndValidate(data, stopOnError = true) {
       rowErrors.push(`Mã sản phẩm không được để trống`);
     }
 
+    if (code.length < 3) {
+      rowErrors.push(`Mã sản phẩm phải có ít nhất 3 ký tự`);
+    }
+
+    if (code.length > 255) {
+      rowErrors.push(`Mã sản phẩm không được vượt quá 255 ký tự`);
+    }
+
     const name = rowData[1];
     if (!name) {
       rowErrors.push(`Tên sản phẩm không được để trống`);
     }
 
+    if (name.length < 3) {
+      rowErrors.push(`Tên sản phẩm phải có ít nhất 3 ký tự`);
+    }
+
+    if (name.length > 255) {
+      rowErrors.push(`Tên sản phẩm không được vượt quá 255 ký tự`);
+    }
+
     const categoryName = rowData[2];
     if (!categoryName) {
       rowErrors.push(`Tên danh mục không được để trống`);
+    }
+
+    if (categoryName.length < 3) {
+      rowErrors.push(`Tên danh mục phải có ít nhất 3 ký tự`);
+    }
+
+    if (categoryName.length > 255) {
+      rowErrors.push(`Tên danh mục không được vượt quá 255 ký tự`);
     }
 
     const description = rowData[3];
@@ -265,7 +296,7 @@ module.exports = {
 
       console.log(convertedInfo)
 
-      const { successCount, errorCount, importErrors } = await importAll(convertedInfo, req.user?.adminId, options);
+      const { successCount, errorCount, importErrors } = await importAll(convertedInfo, req.user?.adminId || req.user._id, options);
 
       return successResponse(res, 200, {
         successCount,
@@ -280,7 +311,7 @@ module.exports = {
   },
   exportFile: async (req, res) => {
     try {
-      const products = await Product.find({ adminId: req.user.adminId })
+      const products = await Product.find({ adminId: req.user.adminId || req.user._id })
         .populate('cateId', 'name')
         .exec();
 

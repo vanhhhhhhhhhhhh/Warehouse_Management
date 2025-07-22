@@ -38,7 +38,7 @@ const columns: ColumnDef<ProductListing, any>[] = [
   }),
   columnHelper.accessor("price", {
     header: "Giá",
-    cell: (info: CellContext<ProductListing, number>) => info.getValue(),
+    cell: (info: CellContext<ProductListing, number>) => formatter.format(info.getValue()),
   }),
   columnHelper.accessor("isDelete", {
     header: "Trạng thái",
@@ -51,6 +51,11 @@ const columns: ColumnDef<ProductListing, any>[] = [
     },
   }),
 ];
+
+const formatter = new Intl.NumberFormat('vi-VN', {
+  style: 'currency',
+  currency: 'VND'
+})
 
 async function wait(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));

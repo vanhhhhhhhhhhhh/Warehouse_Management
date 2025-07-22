@@ -1,9 +1,14 @@
 import { Formik, FormikProps } from "formik";
 import * as Yup from 'yup';
 import React from "react";
+import { LineController } from "chart.js";
+import { Link } from "react-router-dom";
 
 const categorySchemaRequest = Yup.object().shape({
-  name: Yup.string().required('Tên danh mục là bắt buộc')
+  name: Yup.string()
+    .required('Tên danh mục là bắt buộc')
+    .min(3, 'Tên danh mục phải có ít nhất 3 ký tự')
+    .max(255, 'Tên danh mục không được vượt quá 255 ký tự')
 });
 
 export type CategoryFormRequest = Yup.InferType<typeof categorySchemaRequest>;
@@ -38,9 +43,11 @@ const renderForm = (formikOptions: FormikProps<CategoryFormRequest>, isEdit: boo
       </div>
 
       <div className="d-flex justify-content-end">
-        <button type="button" className="btn btn-light me-3" disabled={formikOptions.isSubmitting}>
-          Hủy
-        </button>
+        <Link to="/apps/categories">
+          <button type="button" className="btn btn-light me-3" disabled={formikOptions.isSubmitting}>
+            Hủy
+          </button>
+        </Link>
         <button type="submit" className="btn btn-primary" disabled={formikOptions.isSubmitting}>
           {getLabel(formikOptions.isSubmitting, isEdit)}
         </button>

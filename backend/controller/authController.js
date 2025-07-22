@@ -14,13 +14,35 @@ const authController = {
                 return res.status(400).json({ message: 'Vui lòng điền đầy đủ tất cả các trường' })
             }
 
-            if (password !== confirmPassword) {
-                return res.status(400).json({ message: 'Mật khẩu không khớp' })
+            if (fullName.length < 3 || fullName.length > 50) {
+                return res.status(400).json({ message: 'Họ tên phải từ 3 đến 50 ký tự' })
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ message: 'Email không hợp lệ. Vui lòng thử lại' })
             }
 
             const existingUser = await User.findOne({ email })
             if (existingUser) {
                 return res.status(400).json({ message: 'Email đã tồn tại' })
+            }
+
+            if(password.length < 6){
+                return res.status(400).json({message: 'Mật khẩu phải chứa ít nhất 6 ký tự'})
+            }
+
+            if (password !== confirmPassword) {
+                return res.status(400).json({ message: 'Mật khẩu không khớp' })
+            }
+
+            const phoneRegex = /^[0-9]+$/
+            if (!phoneRegex.test(phone)) {
+                return res.status(400).json({ message: 'Số điện thoại không hợp lệ. Chỉ được chứa chữ số.' })
+            }
+
+            if(phone.length < 9 || phone.length > 11){
+                return res.status(400).json({message: 'Số điện thoại chỉ tối thiểu 9 số và tối đa 11 số'})
             }
 
             const hashPassword = await argon2.hash(password)
@@ -113,28 +135,21 @@ const authController = {
             }).populate('roleId').populate('adminId')
 
             if (!user) {
-                return res.status(401).json({
+                return res.status(400).json({
                     success: false,
                     message: 'Email hoặc mật khẩu không chính xác'
                 })
             }
 
-            if(user.adminId){
-                return res.status(403).json({message: 'Tài khoản này không được phép đăng nhập tại trang quản trị'})
+            if (user.adminId) {
+                return res.status(403).json({ message: 'Tài khoản này không được phép đăng nhập tại trang quản trị' })
             }
 
             const validPassword = await argon2.verify(user.password, password)
             if (!validPassword) {
-                return res.status(401).json({
+                return res.status(400).json({
                     success: false,
                     message: 'Email hoặc mật khẩu không chính xác'
-                })
-            }
-
-            if (!user.status) {
-                return res.status(403).json({
-                    success: false,
-                    message: 'Tài khoản đã bị vô hiệu hóa'
                 })
             }
 
@@ -171,23 +186,23 @@ const authController = {
         }
     },
 
-    loginEmployee: async(req, res) => {
+    loginEmployee: async (req, res) => {
         try {
-            const {email, username, password} = req.body
-            const employee = await User.findOne({username:  username, isDelete: false}).populate('adminId').populate('roleId')
-            if(!employee){
-                return res.status(400).json({message: 'Tên người dùng hoặc mật khẩu không chính xác'})
+            const { email, username, password } = req.body
+            const employee = await User.findOne({ username: username, isDelete: false }).populate('adminId').populate('roleId')
+            if (!employee) {
+                return res.status(400).json({ message: 'Tên người dùng hoặc mật khẩu không chính xác' })
             }
-            if(employee.adminId.email !== email){
-                return res.status(400).json({message: 'Email quản trị viên không khớp'})
+            if (employee.adminId.email !== email) {
+                return res.status(400).json({ message: 'Email quản trị viên không khớp' })
             }
             const validPassword = await argon2.verify(employee.password, password);
-            if(!validPassword){
-                return res.status(400).json({message: 'Tên người dùng hoặc mật khẩu không chính xác'})
+            if (!validPassword) {
+                return res.status(400).json({ message: 'Tên người dùng hoặc mật khẩu không chính xác' })
             }
 
-            if(!employee.status){
-                return res.status(403).json({message: 'Tài khoản đã bị vô hiệu hóa'})
+            if (!employee.status) {
+                return res.status(403).json({ message: 'Tài khoản đã bị vô hiệu hóa' })
             }
             const accessToken = jwt.sign(
                 {
@@ -196,10 +211,10 @@ const authController = {
                     adminId: employee.adminId._id
                 },
                 process.env.ACCESS_TOKEN_SECRET,
-                {expiresIn: '1d'}
+                { expiresIn: '1d' }
             )
 
-                return res.status(200).json({
+            return res.status(200).json({
                 success: true,
                 message: 'Đăng nhập thành công',
                 token: accessToken,
@@ -221,22 +236,22 @@ const authController = {
             return res.status(500).json({
                 success: false,
                 message: 'Lỗi server khi đăng nhập'
-            })  
+            })
         }
     },
 
 
     forgotPassword: async (req, res) => {
         try {
-            const {email} = req.body
+            const { email } = req.body
 
-            if(!email){
-                return res.status(500).json({message: 'Vui lòng nhập email'})
+            if (!email) {
+                return res.status(500).json({ message: 'Vui lòng nhập email' })
             }
 
-            const user = await User.findOne({email: email.trim().toLowerCase()})
-            if(!user){
-                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            const user = await User.findOne({ email: email.trim().toLowerCase() })
+            if (!user) {
+                return res.status(404).json({ message: 'Email không tồn tại trong hệ thống' })
             }
 
             const otp = Math.floor(100000 + Math.random() * 900000).toString()
@@ -258,7 +273,7 @@ const authController = {
                         <p>Trân trọng,<br/>Đội ngũ Metronic</p>
                 `
             })
-            return res.status(200).json({message: 'OTP đã được gửi tới email của bạn'})
+            return res.status(200).json({ message: 'OTP đã được gửi tới email của bạn' })
         } catch (error) {
             return res.status(500).json({ message: error.message || 'Internal server error' })
         }
@@ -267,25 +282,25 @@ const authController = {
 
     verifyOTP: async (req, res) => {
         try {
-            const {email, otp} = req.body
+            const { email, otp } = req.body
 
-            if(!email || !otp){
-                return res.status(500).json({message: 'Thiếu email hoặc mã otp'})
+            if (!email || !otp) {
+                return res.status(500).json({ message: 'Thiếu email hoặc mã otp' })
             }
 
-            const user = await User.findOne({email: email.trim().toLowerCase()})
-            if(!user){
-                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            const user = await User.findOne({ email: email.trim().toLowerCase() })
+            if (!user) {
+                return res.status(404).json({ message: 'Email không tồn tại trong hệ thống' })
             }
 
-            if(user.resetPasswordOtp !== otp){
-                return res.status(400).json({message: 'Mã OTP không đúng'})
+            if (user.resetPasswordOtp !== otp) {
+                return res.status(400).json({ message: 'Mã OTP không đúng' })
             }
 
-            if(user.resetPasswordOtpExpire < Date.now()){
-                return res.status(400).json({message: 'Mã OTP đã hết hạn'})
+            if (user.resetPasswordOtpExpire < Date.now()) {
+                return res.status(400).json({ message: 'Mã OTP đã hết hạn' })
             }
-            return res.status(200).json({message: 'Xác minh OTP thành công'})
+            return res.status(200).json({ message: 'Xác minh OTP thành công' })
         } catch (error) {
             return res.status(500).json({ message: error.message || 'Internal server error' })
         }
@@ -294,30 +309,30 @@ const authController = {
 
     resetPassword: async (req, res) => {
         try {
-            const {email, otp, newPassword, confirmPassword} = req.body
+            const { email, otp, newPassword, confirmPassword } = req.body
 
-            if(!email || !otp || !newPassword || !confirmPassword){
-                return res.status(400).json({message: 'Vui lòng nhập đầy đủ thông tin'})
+            if (!email || !otp || !newPassword || !confirmPassword) {
+                return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' })
             }
 
-            if(newPassword !== confirmPassword){
-                return res.status(400).json({message: 'Mật khẩu không khớp'})
+            if (newPassword !== confirmPassword) {
+                return res.status(400).json({ message: 'Mật khẩu không khớp' })
             }
 
-            const user = await User.findOne({email: email.trim().toLowerCase()})
-            if(!user){
-                return res.status(404).json({message: 'Email không tồn tại trong hệ thống'})
+            const user = await User.findOne({ email: email.trim().toLowerCase() })
+            if (!user) {
+                return res.status(404).json({ message: 'Email không tồn tại trong hệ thống' })
             }
 
-            if(user.resetPasswordOtp !== otp || user.resetPasswordOtpExpire < Date.now()){
-                 return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' })
+            if (user.resetPasswordOtp !== otp || user.resetPasswordOtpExpire < Date.now()) {
+                return res.status(400).json({ message: 'OTP không hợp lệ hoặc đã hết hạn' })
             }
 
             user.password = await argon2.hash(newPassword)
             user.resetPasswordOtp = undefined
             user.resetPasswordOtpExpire = undefined
             await user.save()
-            return res.status(200).json({message: 'Đặt lại mật khẩu thành công'})
+            return res.status(200).json({ message: 'Đặt lại mật khẩu thành công' })
         } catch (error) {
             return res.status(500).json({ message: error.message || 'Internal server error' })
         }
