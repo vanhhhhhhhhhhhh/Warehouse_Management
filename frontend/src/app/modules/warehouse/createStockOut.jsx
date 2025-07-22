@@ -27,46 +27,39 @@ export default function CreateStockOutPage() {
   }, [])
 
   // Fetch sản phẩm trong kho khi chọn kho
- useEffect(() => {
-  if (!wareId) {
-    setStockProducts([])
-    return
-  }
-
-  const fetchImportedHistory = async () => {
-    try {
-      const res = await axios.get('http://localhost:9999/import/history', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-      const importList = res.data.data || []
-
-      // Lọc phiếu nhập theo kho
-      const listInWare = importList.filter(r => r.wareId._id === wareId)
-
-      const accum = {}
-      listInWare.forEach(r => {
-        r.items.forEach(item => {
-          const id = item.proId._id
-          if (!accum[id]) {
-            accum[id] = {
-              product: item.proId,
-              quantity: item.quantity
-            }
-          } else {
-            accum[id].quantity += item.quantity
-          }
-        })
-      })
-
-      setStockProducts(Object.values(accum))
-    } catch (err) {
-      console.error('Lỗi khi fetch lịch sử nhập:', err)
+  useEffect(() => {
+    if (!wareId) {
       setStockProducts([])
+      return
     }
-  }
 
-  fetchImportedHistory()
-}, [wareId, token])
+    const fetchInventory = async () => {
+      try {
+        // Gọi API inventory với filter theo wareId
+        const res = await axios.get(`http://localhost:9999/inventory?warehouseId=${wareId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        
+        // Format lại data để phù hợp với cấu trúc hiện tại
+        const formattedData = res.data.data.map(item => ({
+          product: {
+            _id: item.productId,
+            name: item.productName,
+            code: item.productCode,
+            price: item.originalPrice || 0
+          },
+          quantity: item.currentStock
+        })).filter(item => item.quantity > 0) // Chỉ lấy những sản phẩm còn tồn
+
+        setStockProducts(formattedData)
+      } catch (err) {
+        console.error('Lỗi khi lấy thông tin tồn kho:', err)
+        setStockProducts([])
+      }
+    }
+
+    fetchInventory()
+  }, [wareId, token])
 
 
   const filterProducts = stockProducts.filter(p =>

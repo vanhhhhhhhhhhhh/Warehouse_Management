@@ -68,23 +68,28 @@ export const API_URL = {
 
   // Warehouse endpoints
   WAREHOUSE: {
-    LIST: `${BASE_URL}/warehouse`,
-    DETAIL: (id) => `${BASE_URL}/warehouse/${id}`,
-    CREATE: `${BASE_URL}/warehouse`,
-    UPDATE: (id) => `${BASE_URL}/warehouse/${id}`,
-    DELETE: (id) => `${BASE_URL}/warehouse/${id}`,
-    STOCK: {
-      IN: {
-        CREATE: `${BASE_URL}/warehouse/stock-in`,
-        HISTORY: `${BASE_URL}/warehouse/stock-in/history`,
-      },
-      OUT: {
-        CREATE: `${BASE_URL}/warehouse/stock-out`,
-        HISTORY: `${BASE_URL}/warehouse/stock-out/history`,
-      },
-      INVENTORY: `${BASE_URL}/warehouse/inventory`,
-      REPORT: `${BASE_URL}/warehouse/report`,
+    LIST: `${BASE_URL}/warehouses`,
+    DETAIL: (id) => `${BASE_URL}/warehouses/${id}`,
+    CREATE: `${BASE_URL}/warehouses`,
+    UPDATE: (id) => `${BASE_URL}/warehouses/${id}`,
+    DELETE: (id) => `${BASE_URL}/warehouses/${id}`,
+    IMPORT: {
+      LIST: `${BASE_URL}/import/warehouse`,
+      PRODUCTS: `${BASE_URL}/import/product`,
+      CREATE: `${BASE_URL}/import/intoWarehouse`,
+      HISTORY: `${BASE_URL}/import/history`,
+      RECEIPT: (id) => `${BASE_URL}/import/receipt/${id}`
     },
+    EXPORT: {
+      LIST: `${BASE_URL}/export/warehouse`,
+      CREATE: `${BASE_URL}/export/fromWarehouse`,
+      HISTORY: `${BASE_URL}/export/history`,
+      RECEIPT: (id) => `${BASE_URL}/export/receipt/${id}`
+    },
+    STOCK: {
+      INVENTORY: `${BASE_URL}/inventory`
+    },
+    REPORT: `${BASE_URL}/warehouse/report`,
   },
 
   // Common endpoints for file handling

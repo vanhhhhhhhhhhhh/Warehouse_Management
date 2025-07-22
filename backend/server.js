@@ -14,6 +14,7 @@ const apiImportWarehouse = require("./router/apiImportWarehouse");
 const apiExportWarehouse = require("./router/apiExportWarehouse");
 const apiError = require("./router/apiError")
 const apiExcel = require("./router/apiExcel")
+const apiInventory = require('./router/apiInventory')
 
 const hostname = process.env.HOSTNAME;
 const port = process.env.PORT;
@@ -74,6 +75,7 @@ app.use("/export", apiExportWarehouse);
 app.use("/error", apiError)
 
 app.use("/excel", apiExcel)
+app.use('/inventory', apiInventory)
 
 app.listen(port, () => {
   console.log(`Server is running on http://${hostname}:${port}`);

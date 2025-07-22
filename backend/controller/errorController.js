@@ -1,6 +1,7 @@
 const Stock_Error = require('../model/Stock_Error')
 const Stock_Import = require('../model/Stock_Import')
 const User = require('../model/User')
+const inventoryController = require('./inventoryController')
 
 const errorController = {
 
@@ -28,7 +29,7 @@ const errorController = {
 
     declareErrorStock: async (req, res) => {
         try {
-            const admin = req.userId
+            const userId = req.userId
             const { importId, proId, quantity, reason } = req.body
             if (!importId || !proId || !quantity || !reason) {
                 return res.status(400).json({ message: 'Vui lòng nhập đầy đủ các trường' })
@@ -38,12 +39,15 @@ const errorController = {
                 return res.status(400).json({ message: 'Số lương khai báo phải lớn hơn 0' })
             }
 
+            // Lấy adminId từ thông tin user trong request
+            const actualAdminId = req.user.adminId || req.userId
+
             const checkExistProduct = await Stock_Error.findOne({importId: importId, proId: proId})
             if(checkExistProduct){
                 return res.status(400).json({message: 'Sản phẩm đã được khai báo lỗi trước đó'})
             }
 
-            const stock_import = await Stock_Import.findOne({ _id: importId, adminId: admin, 'items.proId': proId }).populate('wareId').populate('items.proId')
+            const stock_import = await Stock_Import.findOne({ _id: importId, adminId: userId, 'items.proId': proId }).populate('wareId').populate('items.proId')
             if (!stock_import) {
                 return res.status(404).json({ message: 'Không tìm thấy phiếu nhập này' })
             }
@@ -63,11 +67,15 @@ const errorController = {
                 importId,
                 wareId: stock_import.wareId,
                 proId,
-                adminId: admin,
+                adminId: userId,
                 quantity,
                 reason
             })
-            newDeclareError.save()
+            await newDeclareError.save()
+
+            // Cập nhật số lượng tồn kho khi có hàng lỗi
+            await inventoryController.updateStockError(stock_import.wareId._id, proId, quantity, actualAdminId)
+
             return res.status(201).json({ data: newDeclareError })
         } catch (error) {
             return res.status(500).json(error.message)

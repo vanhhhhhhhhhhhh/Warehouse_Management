@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { KTSVG } from '../../../_metronic/helpers'
 import Swal from 'sweetalert2'
 import axios from 'axios'
+import { API_URL } from '../../config/api.config'
 
 const CreateStockInPage = () => {
     const navigate = useNavigate()
@@ -15,16 +16,30 @@ const CreateStockInPage = () => {
     const [code, setCode] = useState('')
     const [name, setName] = useState('')
     const [wareId, setWareId] = useState('')
+    const [loading, setLoading] = useState(false)
+
+    const token = localStorage.getItem('token')
+    const config = {
+        headers: { Authorization: `Bearer ${token}` }
+    }
 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const warehousesResponse = await axios.get('http://localhost:9999/import/warehouse')
-                const productsResponse = await axios.get('http://localhost:9999/import/product')
+                const [warehousesResponse, productsResponse] = await Promise.all([
+                    axios.get(`${API_URL.WAREHOUSE.IMPORT.LIST}`, config),
+                    axios.get(`${API_URL.WAREHOUSE.IMPORT.PRODUCTS}`, config)
+                ])
                 setWarehouses(warehousesResponse.data.data)
                 setProducts(productsResponse.data.data)
             } catch (error) {
-                console.log(error);
+                console.error('Error fetching data:', error)
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Lỗi!',
+                    text: error.response?.data?.message || 'Không thể tải dữ liệu. Vui lòng thử lại sau.',
+                    confirmButtonText: 'Đóng'
+                })
             }
         }
         fetchData()
@@ -64,38 +79,55 @@ const CreateStockInPage = () => {
     const handleSubmitImport = async() => {
         if(!code || !name || !wareId || selectedProducts.length === 0){
             Swal.fire({
-                    icon: 'error',
-                    title: 'Lỗi!',
-                    text: 'Vui lòng nhập đầy đủ thông tin và chọn ít nhất một sản phẩm',
-                    confirmButtonText: 'Đóng'
-                  })
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Vui lòng nhập đầy đủ thông tin và chọn ít nhất một sản phẩm',
+                confirmButtonText: 'Đóng'
+            })
             return
         }
 
         try {
+            setLoading(true)
             const items = selectedProducts.map((item) => ({
                 proId: item._id,
                 quantity: item.quantity
             }))
 
-            await axios.post('http://localhost:9999/import/intoWarehouse', {
+            const response = await axios.post(`${API_URL.WAREHOUSE.IMPORT.CREATE}`, {
                 receiptCode: code,
                 receiptName: name,
                 wareId: wareId,
                 items
             }, {
-                headers: {Authorization: `Bearer ${localStorage.getItem('token')}`}
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
             })
-            Swal.fire({
-                      icon: 'success',
-                      title: 'Thành công!',
-                      text: 'Nhập sản phẩm vào kho thành công',
-                      showConfirmButton: false,
-                      timer: 1500
-                    })
-            navigate('/apps/stockIn')
+
+            if (response.data.success) {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Thành công!',
+                    text: response.data.message || 'Nhập sản phẩm vào kho thành công',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+                navigate('/apps/stockIn')
+            } else {
+                throw new Error(response.data.message || 'Có lỗi xảy ra')
+            }
         } catch (error) {
-            console.log(error);
+            console.error('Error importing products:', error)
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: error.response?.data?.message || 'Có lỗi xảy ra khi nhập kho. Vui lòng thử lại.',
+                confirmButtonText: 'Đóng'
+            })
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -231,8 +263,17 @@ const CreateStockInPage = () => {
                                 <button type='button' className='btn btn-light' onClick={() => navigate('/apps/stockIn')}>
                                     Hủy
                                 </button>
-                                <button type='button' className='btn btn-primary' onClick={handleSubmitImport}>
-                                    Nhập kho
+                                <button 
+                                    type='button' 
+                                    className='btn btn-primary' 
+                                    onClick={handleSubmitImport}
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <span className='spinner-border spinner-border-sm' role='status' aria-hidden='true'></span>
+                                    ) : (
+                                        'Nhập kho'
+                                    )}
                                 </button>
                             </div>
                         </div>

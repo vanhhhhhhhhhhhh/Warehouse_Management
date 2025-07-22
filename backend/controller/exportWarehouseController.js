@@ -2,26 +2,46 @@
 const Export = require('../model/Stock_Export')
 const Product = require('../model/Product') 
 const Warehouse = require('../model/Warehouse')
+const User = require('../model/User')
+const inventoryController = require('./inventoryController')
+
 exports.createExport = async (req, res) => {
   try {
-    const adminId = req.userId; // an toàn hơn
+    const userId = req.userId;
 
     const { receiptCode, receiptName, wareId, items } = req.body
 
-    // Kiểm tra số lượng tồn kho nếu cần
+    // Validate input
+    if (!receiptCode || !receiptName || !wareId || !items || !items.length) {
+      return res.status(400).json({ message: 'Vui lòng nhập đầy đủ thông tin' })
+    }
+
+    // Lấy adminId từ thông tin user trong request
+    const actualAdminId = req.user.adminId || req.userId
+
+    // Kiểm tra số lượng tồn kho trước khi xuất
+    for (const item of items) {
+      const { proId, quantity } = item
+      if (!proId || !quantity || quantity <= 0) {
+        return res.status(400).json({ message: 'Thông tin sản phẩm không hợp lệ' })
+      }
+    }
 
     const newExport = new Export({
       receiptCode,
       receiptName,
       wareId,
-      adminId: adminId,
+      adminId: userId,
       items
     })
 
     await newExport.save()
 
-    // Trừ tồn kho của từng sản phẩm (nếu có schema tồn kho riêng)
-    // Lặp qua items để xử lý
+    // Cập nhật số lượng tồn kho cho từng sản phẩm
+    for (const item of items) {
+      const { proId, quantity } = item
+      await inventoryController.updateStockOut(wareId, proId, quantity, actualAdminId)
+    }
 
     return res.status(201).json({
       message: 'Tạo phiếu xuất kho thành công',
