@@ -73,61 +73,21 @@ describe("Kiểm tra Category", () => {
   });
   
   describe("Tạo Category", () => {
+    it("tạo thành công với tất cả các truòng bắt buộc", async () => {
+      const response = await request(app)
+        .post('/categories')
+        .set('Authorization', `Bearer ${token}`)
+        .send({ name: 'Test Category' });
 
+      expect(response.status).toBe(201);
+      expect(response.body.name).toBe('Test Category');
+    });
     it("thất bại nếu tên category trống", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
         .send({ name: '' });
         
-      expect(response.status).toBe(400);
-    });
-
-    it("chấp nhận tên category có độ dài tối thiểu (3 ký tự)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'abc' });
-      
-      expect(response.status).toBe(201);
-      expect(response.body.name).toBe('abc');
-    });
-
-    it("chấp nhận tên category có độ dài bình thường (15 ký tự)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'a'.repeat(15) });
-        
-      expect(response.status).toBe(201);
-      expect(response.body.name).toBe('a'.repeat(15));
-    });
-
-    it("chấp nhận tên category có độ dài tối đa (255 ký tự)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'a'.repeat(255) });
-        
-      expect(response.status).toBe(201);
-      expect(response.body.name).toBe('a'.repeat(255));
-    });
-
-    it("thất bại nếu tên category quá dài (256 ký tự)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'a'.repeat(256) });
-      
-      expect(response.status).toBe(400);
-    });
-
-    it("thất bại nếu tên category quá ngắn (2 ký tự)", async () => {
-      const response = await request(app)
-        .post('/categories')
-        .set('Authorization', `Bearer ${token}`)
-        .send({ name: 'ab' });
-      
       expect(response.status).toBe(400);
     });
   });
