@@ -1,76 +1,8 @@
 import { useState, useEffect } from 'react'
 import { Content } from '../../../_metronic/layout/components/content'
+import axios from 'axios'
+import Swal from 'sweetalert2'
 import '../../../_metronic/assets/sass/exportPage.scss';
-
-// Mock data
-const warehouses = [
-  { id: 'hanoi', name: 'Kho Hà Nội' },
-  { id: 'hcm', name: 'Kho HCM' }
-]
-
-const products = [
-  { id: '1', name: 'Honda Wave Alpha' },
-  { id: '2', name: 'Honda Vision' },
-  { id: '3', name: 'Honda Air Blade' }
-]
-
-const mockReportData = [
-  {
-    warehouseId: 'hanoi',
-    warehouseName: 'Kho Hà Nội',
-    productId: '1',
-    productName: 'Honda Wave Alpha',
-    date: '2024-03-15',
-    totalIn: 100,
-    totalOut: 80,
-    totalDamaged: 2,
-    pendingOut: 5
-  },
-  {
-    warehouseId: 'hanoi',
-    warehouseName: 'Kho Hà Nội',
-    productId: '2',
-    productName: 'Honda Vision',
-    date: '2024-03-16',
-    totalIn: 150,
-    totalOut: 120,
-    totalDamaged: 3,
-    pendingOut: 8
-  },
-  {
-    warehouseId: 'hanoi',
-    warehouseName: 'Kho Hà Nội',
-    productId: '3',
-    productName: 'Honda Air Blade',
-    date: '2024-03-17',
-    totalIn: 80,
-    totalOut: 60,
-    totalDamaged: 1,
-    pendingOut: 4
-  },
-  {
-    warehouseId: 'hcm',
-    warehouseName: 'Kho HCM',
-    productId: '1',
-    productName: 'Honda Wave Alpha',
-    date: '2024-03-18',
-    totalIn: 200,
-    totalOut: 160,
-    totalDamaged: 4,
-    pendingOut: 10
-  },
-  {
-    warehouseId: 'hcm',
-    warehouseName: 'Kho HCM',
-    productId: '2',
-    productName: 'Honda Vision',
-    date: '2024-03-19',
-    totalIn: 180,
-    totalOut: 150,
-    totalDamaged: 2,
-    pendingOut: 7
-  },
-]
 
 const InventoryReport = () => {
   const [timeRange, setTimeRange] = useState({
@@ -79,64 +11,247 @@ const InventoryReport = () => {
   })
   const [selectedWarehouse, setSelectedWarehouse] = useState('')
   const [selectedProduct, setSelectedProduct] = useState('')
-  const [reportData, setReportData] = useState(mockReportData)
+  const [loading, setLoading] = useState(false)
+  
+  // State for data
+  const [stockImports, setStockImports] = useState([])
+  const [stockExports, setStockExports] = useState([])
+  const [defectiveProducts, setDefectiveProducts] = useState([])
+  const [warehouses, setWarehouses] = useState([])
+  const [products, setProducts] = useState([])
 
-  // Hàm lọc dữ liệu
-  const getFilteredData = () => {
-    return reportData.filter(item => {
-      // Lọc theo kho
-      if (selectedWarehouse && item.warehouseId !== selectedWarehouse) {
-        return false
-      }
+  useEffect(() => {
+    fetchAllData()
+  }, [])
 
-      // Lọc theo sản phẩm
-      if (selectedProduct && item.productId !== selectedProduct) {
-        return false
-      }
+  const fetchAllData = async () => {
+    setLoading(true)
+    try {
+      const token = localStorage.getItem('token')
+      const headers = { Authorization: `Bearer ${token}` }
 
-      // Lọc theo thời gian
-      if (timeRange.start && timeRange.end) {
-        const itemDate = new Date(item.date).getTime()
-        const startDate = new Date(timeRange.start).getTime()
-        const endDate = new Date(timeRange.end).getTime()
+      // Fetch all data in parallel
+      const [importsResponse, exportsResponse, defectiveResponse] = await Promise.all([
+        axios.get('http://localhost:9999/import/history', { headers }),
+        axios.get('http://localhost:9999/export/history', { headers }),
+        axios.get('http://localhost:9999/error/stockError', { headers })
+      ])
 
-        console.log('Item date:', item.date, itemDate)
-        console.log('Start date:', timeRange.start, startDate)
-        console.log('End date:', timeRange.end, endDate)
+      const imports = importsResponse.data.data || []
+      const exports = exportsResponse.data.data || []
+      const defective = defectiveResponse.data.data || []
 
-        // Kiểm tra xem ngày của item có nằm trong khoảng thời gian đã chọn không
-        if (itemDate < startDate || itemDate > endDate) {
-          return false
-        }
-      }
+      setStockImports(imports)
+      setStockExports(exports)
+      setDefectiveProducts(defective)
 
-      return true
-    })
+      // Extract unique warehouses from all data
+      const warehouseSet = new Set()
+      imports.forEach(item => warehouseSet.add(JSON.stringify({ id: item.wareId._id, name: item.wareId.name })))
+      exports.forEach(item => warehouseSet.add(JSON.stringify({ id: item.wareId._id, name: item.wareId.name })))
+      defective.forEach(item => warehouseSet.add(JSON.stringify({ id: item.wareId._id, name: item.wareId.name })))
+      
+      const uniqueWarehouses = Array.from(warehouseSet).map(item => JSON.parse(item))
+      setWarehouses(uniqueWarehouses)
+
+      // Extract unique products from all data
+      const productSet = new Set()
+      imports.forEach(item => {
+        item.items?.forEach(product => {
+          productSet.add(JSON.stringify({ id: product.proId._id, name: product.proId.name }))
+        })
+      })
+      exports.forEach(item => {
+        item.items?.forEach(product => {
+          productSet.add(JSON.stringify({ id: product.proId._id, name: product.proId.name }))
+        })
+      })
+      defective.forEach(item => {
+        productSet.add(JSON.stringify({ id: item.proId._id, name: item.proId.name }))
+      })
+
+      const uniqueProducts = Array.from(productSet).map(item => JSON.parse(item))
+      setProducts(uniqueProducts)
+
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Không thể tải dữ liệu báo cáo',
+        confirmButtonText: 'Đóng'
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Thêm useEffect để theo dõi thay đổi của timeRange
-  useEffect(() => {
-    console.log('Time range changed:', timeRange)
-    // Khi timeRange thay đổi, getFilteredData() sẽ tự động chạy lại
-  }, [timeRange])
+  const formatDateOnly = (isoString) => {
+    const date = new Date(isoString)
+    const utc = date.getTime() + (date.getTimezoneOffset() * 60000)
+    const vnTime = new Date(utc + 7 * 60 * 60000)
+    const year = vnTime.getFullYear()
+    const month = String(vnTime.getMonth() + 1).padStart(2, '0')
+    const day = String(vnTime.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
-  // Lấy dữ liệu đã lọc
-  const filteredData = getFilteredData()
+  const isDateInRange = (dateString) => {
+    if (!timeRange.start || !timeRange.end) return true
+    
+    const itemDate = new Date(dateString).getTime()
+    const startDate = new Date(timeRange.start).getTime()
+    const endDate = new Date(timeRange.end).getTime()
+    
+    return itemDate >= startDate && itemDate <= endDate
+  }
 
-  // Tính tổng dựa trên dữ liệu đã lọc
-  const totals = filteredData.reduce((acc, item) => ({
+  // Generate report data by combining all sources
+  const generateReportData = () => {
+    const reportMap = new Map()
+
+    // Process imports
+    stockImports.forEach(importItem => {
+      if (!isDateInRange(importItem.importDate)) return
+      if (selectedWarehouse && importItem.wareId._id !== selectedWarehouse) return
+
+      importItem.items?.forEach(item => {
+        if (selectedProduct && item.proId._id !== selectedProduct) return
+
+        const key = `${importItem.wareId._id}-${item.proId._id}`
+        if (!reportMap.has(key)) {
+          reportMap.set(key, {
+            warehouseId: importItem.wareId._id,
+            warehouseName: importItem.wareId.name,
+            productId: item.proId._id,
+            productName: item.proId.name,
+            productPrice: item.proId?.price || 0,
+            totalIn: 0,
+            totalOut: 0,
+            totalDamaged: 0,
+            pendingOut: 0,
+            totalInValue: 0,
+            totalOutValue: 0,
+            totalDamagedValue: 0,
+            pendingOutValue: 0
+          })
+        }
+        
+        const report = reportMap.get(key)
+        const quantity = item.quantity || 0
+        const price = item.proId?.price || 0
+        
+        report.totalIn += quantity
+        report.totalInValue += quantity * price
+      })
+    })
+
+    // Process exports
+    stockExports.forEach(exportItem => {
+      if (!isDateInRange(exportItem.exportDate)) return
+      if (selectedWarehouse && exportItem.wareId._id !== selectedWarehouse) return
+
+      exportItem.items?.forEach(item => {
+        if (selectedProduct && item.proId._id !== selectedProduct) return
+
+        const key = `${exportItem.wareId._id}-${item.proId._id}`
+        if (!reportMap.has(key)) {
+          reportMap.set(key, {
+            warehouseId: exportItem.wareId._id,
+            warehouseName: exportItem.wareId.name,
+            productId: item.proId._id,
+            productName: item.proId.name,
+            productPrice: item.proId?.price || 0,
+            totalIn: 0,
+            totalOut: 0,
+            totalDamaged: 0,
+            pendingOut: 0,
+            totalInValue: 0,
+            totalOutValue: 0,
+            totalDamagedValue: 0,
+            pendingOutValue: 0
+          })
+        }
+        
+        const report = reportMap.get(key)
+        const quantity = item.quantity || 0
+        const price = item.proId?.price || 0
+        
+        report.totalOut += quantity
+        report.totalOutValue += quantity * price
+      })
+    })
+
+    // Process defective products
+    defectiveProducts.forEach(defectiveItem => {
+      if (!isDateInRange(defectiveItem.declareDate)) return
+      if (selectedWarehouse && defectiveItem.wareId._id !== selectedWarehouse) return
+      if (selectedProduct && defectiveItem.proId._id !== selectedProduct) return
+
+      const key = `${defectiveItem.wareId._id}-${defectiveItem.proId._id}`
+      if (!reportMap.has(key)) {
+        reportMap.set(key, {
+          warehouseId: defectiveItem.wareId._id,
+          warehouseName: defectiveItem.wareId.name,
+          productId: defectiveItem.proId._id,
+          productName: defectiveItem.proId.name,
+          productPrice: defectiveItem.proId?.price || 0,
+          totalIn: 0,
+          totalOut: 0,
+          totalDamaged: 0,
+          pendingOut: 0,
+          totalInValue: 0,
+          totalOutValue: 0,
+          totalDamagedValue: 0,
+          pendingOutValue: 0
+        })
+      }
+      
+      const report = reportMap.get(key)
+      const quantity = defectiveItem.quantity || 0
+      const price = defectiveItem.proId?.price || 0
+      
+      report.totalDamaged += quantity
+      report.totalDamagedValue += quantity * price
+    })
+
+    return Array.from(reportMap.values())
+  }
+
+  const reportData = generateReportData()
+
+  // Calculate totals
+  const totals = reportData.reduce((acc, item) => ({
     totalIn: acc.totalIn + item.totalIn,
     totalOut: acc.totalOut + item.totalOut,
     totalDamaged: acc.totalDamaged + item.totalDamaged,
-    pendingOut: acc.pendingOut + item.pendingOut
+    pendingOut: acc.pendingOut + item.pendingOut,
+    totalInValue: acc.totalInValue + item.totalInValue,
+    totalOutValue: acc.totalOutValue + item.totalOutValue,
+    totalDamagedValue: acc.totalDamagedValue + item.totalDamagedValue,
+    pendingOutValue: acc.pendingOutValue + item.pendingOutValue
   }), {
     totalIn: 0,
     totalOut: 0,
     totalDamaged: 0,
-    pendingOut: 0
+    pendingOut: 0,
+    totalInValue: 0,
+    totalOutValue: 0,
+    totalDamagedValue: 0,
+    pendingOutValue: 0
   })
 
-  // Reset tất cả các bộ lọc
+  // Calculate remaining stock (pending out could be calculated as totalIn - totalOut - totalDamaged)
+  reportData.forEach(item => {
+    item.pendingOut = Math.max(0, item.totalIn - item.totalOut - item.totalDamaged)
+    item.pendingOutValue = item.pendingOut * item.productPrice
+  })
+
+  // Recalculate totals with updated pending out
+  totals.pendingOut = reportData.reduce((acc, item) => acc + item.pendingOut, 0)
+  totals.pendingOutValue = reportData.reduce((acc, item) => acc + item.pendingOutValue, 0)
+
+  // Reset all filters
   const handleReset = () => {
     setTimeRange({ start: '', end: '' })
     setSelectedWarehouse('')
@@ -153,7 +268,8 @@ const InventoryReport = () => {
             </h3>
           </div>
         </div>
-        {/* Phần filters */}
+
+        {/* Filters Section */}
         <div className='card-header border-0 pt-6'>
           <div className='card-title'>
             <div className='d-flex align-items-center position-relative'>
@@ -229,42 +345,213 @@ const InventoryReport = () => {
           </div>
         </div>
 
-        {/* Phần bảng báo cáo */}
+        {/* Statistics Cards */}
         <div className='card-body py-4'>
+          <div className='row g-6 g-xl-9 mb-6'>
+            <div className='col-md-6 col-xl-3'>
+              <div className='card h-md-100'>
+                <div className='card-body d-flex flex-column flex-center'>
+                  <div className='mb-2'>
+                    <i className='ki-duotone ki-arrow-down-left fs-3hx text-success'>
+                      <span className='path1'></span>
+                      <span className='path2'></span>
+                    </i>
+                  </div>
+                  <div className='fs-2hx fw-bold text-gray-800 mb-2 lh-1 ls-n1'>{totals.totalIn}</div>
+                  <div className='text-gray-500 fw-semibold fs-6'>Tổng nhập kho</div>
+                  <div className='text-success fw-bold fs-7 mt-1'>
+                    {totals.totalInValue.toLocaleString()}đ
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='col-md-6 col-xl-3'>
+              <div className='card h-md-100'>
+                <div className='card-body d-flex flex-column flex-center'>
+                  <div className='mb-2'>
+                    <i className='ki-duotone ki-arrow-up-right fs-3hx text-danger'>
+                      <span className='path1'></span>
+                      <span className='path2'></span>
+                    </i>
+                  </div>
+                  <div className='fs-2hx fw-bold text-gray-800 mb-2 lh-1 ls-n1'>{totals.totalOut}</div>
+                  <div className='text-gray-500 fw-semibold fs-6'>Tổng xuất kho</div>
+                  <div className='text-danger fw-bold fs-7 mt-1'>
+                    {totals.totalOutValue.toLocaleString()}đ
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='col-md-6 col-xl-3'>
+              <div className='card h-md-100'>
+                <div className='card-body d-flex flex-column flex-center'>
+                  <div className='mb-2'>
+                    <i className='ki-duotone ki-cross fs-3hx text-warning'>
+                      <span className='path1'></span>
+                      <span className='path2'></span>
+                    </i>
+                  </div>
+                  <div className='fs-2hx fw-bold text-gray-800 mb-2 lh-1 ls-n1'>{totals.totalDamaged}</div>
+                  <div className='text-gray-500 fw-semibold fs-6'>SP hỏng, lỗi</div>
+                  <div className='text-warning fw-bold fs-7 mt-1'>
+                    {totals.totalDamagedValue.toLocaleString()}đ
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className='col-md-6 col-xl-3'>
+              <div className='card h-md-100'>
+                <div className='card-body d-flex flex-column flex-center'>
+                  <div className='mb-2'>
+                    <i className='ki-duotone ki-package fs-3hx text-primary'>
+                      <span className='path1'></span>
+                      <span className='path2'></span>
+                      <span className='path3'></span>
+                    </i>
+                  </div>
+                  <div className='fs-2hx fw-bold text-gray-800 mb-2 lh-1 ls-n1'>{totals.pendingOut}</div>
+                  <div className='text-gray-500 fw-semibold fs-6'>Tồn kho hiện tại</div>
+                  <div className='text-primary fw-bold fs-7 mt-1'>
+                    {totals.pendingOutValue.toLocaleString()}đ
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Report Table */}
           <div className='table-responsive'>
-            <table className='table align-middle table-row-dashed fs-6 gy-5'>
-              <thead>
-                <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
-                  <th>Kho</th>
-                  <th>Sản phẩm</th>
-                  <th>Tổng số nhập</th>
-                  <th>Tổng số xuất</th>
-                  <th>Tổng số SP hỏng, rơi vỡ, lỗi</th>
-                  <th>Số lượng SP đang chờ xuất kho</th>
-                </tr>
-              </thead>
-              <tbody className='text-gray-600 fw-semibold'>
-                {filteredData.map((item) => (
-                  <tr key={`${item.warehouseId}-${item.productId}`}>
-                    <td>{item.warehouseName}</td>
-                    <td>{item.productName}</td>
-                    <td>{item.totalIn}</td>
-                    <td>{item.totalOut}</td>
-                    <td>{item.totalDamaged}</td>
-                    <td>{item.pendingOut}</td>
+            {loading ? (
+              <div className='d-flex justify-content-center py-10'>
+                <div className='spinner-border text-primary' role='status'>
+                  <span className='visually-hidden'>Đang tải...</span>
+                </div>
+              </div>
+            ) : (
+              <table className='table align-middle table-row-dashed fs-6 gy-5'>
+                <thead>
+                  <tr className='text-start text-muted fw-bold fs-7 text-uppercase gs-0'>
+                    <th>STT</th>
+                    <th>Kho</th>
+                    <th>Sản phẩm</th>
+                    <th>Đơn giá</th>
+                    <th>Nhập kho</th>
+                    <th>Giá trị nhập</th>
+                    <th>Xuất kho</th>
+                    <th>Giá trị xuất</th>
+                    <th>SP hỏng/lỗi</th>
+                    <th>Giá trị hỏng</th>
+                    <th>Tồn kho</th>
+                    <th>Giá trị tồn</th>
                   </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr className='fw-bold'>
-                  <td colSpan={2}>Tổng cộng:</td>
-                  <td>{totals.totalIn}</td>
-                  <td>{totals.totalOut}</td>
-                  <td>{totals.totalDamaged}</td>
-                  <td>{totals.pendingOut}</td>
-                </tr>
-              </tfoot>
-            </table>
+                </thead>
+                <tbody className='text-gray-600 fw-semibold'>
+                  {reportData.length === 0 ? (
+                    <tr>
+                      <td colSpan={12} className='text-center py-10'>
+                        <div className='text-muted fs-4'>
+                          Không có dữ liệu báo cáo trong khoảng thời gian đã chọn
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.map((item, index) => (
+                      <tr key={`${item.warehouseId}-${item.productId}`}>
+                        <td>{index + 1}</td>
+                        <td>
+                          <div className='d-flex align-items-center'>
+                            <i className='ki-duotone ki-home fs-3 text-primary me-2'></i>
+                            {item.warehouseName}
+                          </div>
+                        </td>
+                        <td>
+                          <div className='fw-bold text-gray-800'>{item.productName}</div>
+                        </td>
+                        <td>
+                          <span className='fw-bold text-primary'>
+                            {item.productPrice.toLocaleString()}đ
+                          </span>
+                        </td>
+                        <td>
+                          <span className='badge badge-light-success'>{item.totalIn}</span>
+                        </td>
+                        <td>
+                          <span className='fw-bold text-success'>
+                            {item.totalInValue.toLocaleString()}đ
+                          </span>
+                        </td>
+                        <td>
+                          <span className='badge badge-light-danger'>{item.totalOut}</span>
+                        </td>
+                        <td>
+                          <span className='fw-bold text-danger'>
+                            {item.totalOutValue.toLocaleString()}đ
+                          </span>
+                        </td>
+                        <td>
+                          <span className='badge badge-light-warning'>{item.totalDamaged}</span>
+                        </td>
+                        <td>
+                          <span className='fw-bold text-warning'>
+                            {item.totalDamagedValue.toLocaleString()}đ
+                          </span>
+                        </td>
+                        <td>
+                          <span className='badge badge-light-primary'>{item.pendingOut}</span>
+                        </td>
+                        <td>
+                          <span className='fw-bold text-primary'>
+                            {item.pendingOutValue.toLocaleString()}đ
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+                {reportData.length > 0 && (
+                  <tfoot>
+                    <tr className='fw-bold border-top'>
+                      <td colSpan={4}>Tổng cộng:</td>
+                      <td>
+                        <span className='badge badge-success'>{totals.totalIn}</span>
+                      </td>
+                      <td>
+                        <span className='fw-bold text-success'>
+                          {totals.totalInValue.toLocaleString()}đ
+                        </span>
+                      </td>
+                      <td>
+                        <span className='badge badge-danger'>{totals.totalOut}</span>
+                      </td>
+                      <td>
+                        <span className='fw-bold text-danger'>
+                          {totals.totalOutValue.toLocaleString()}đ
+                        </span>
+                      </td>
+                      <td>
+                        <span className='badge badge-warning'>{totals.totalDamaged}</span>
+                      </td>
+                      <td>
+                        <span className='fw-bold text-warning'>
+                          {totals.totalDamagedValue.toLocaleString()}đ
+                        </span>
+                      </td>
+                      <td>
+                        <span className='badge badge-primary'>{totals.pendingOut}</span>
+                      </td>
+                      <td>
+                        <span className='fw-bold text-primary'>
+                          {totals.pendingOutValue.toLocaleString()}đ
+                        </span>
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            )}
           </div>
         </div>
       </div>
