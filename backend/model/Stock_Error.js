@@ -18,6 +18,10 @@ const errorSchema = mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'
     },
+    staffId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'users'
+    },
     quantity: Number,
     reason: String,
     declareDate: {
