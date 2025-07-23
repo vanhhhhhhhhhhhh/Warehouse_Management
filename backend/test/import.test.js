@@ -7,7 +7,7 @@ const app = require('../server')
 
 const { token, user } = generateAuthInfoForUsername('doanything')
 
-describe('', () => {
+describe('Nhập kho', () => {
     let testWareId
     let testWareIdNotExist = '687e029c45f8929a4f5d3922'
     let testProIdNotExist = '527e029c45f8929a4f5d390a'
