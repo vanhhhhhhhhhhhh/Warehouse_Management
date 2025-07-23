@@ -2,6 +2,15 @@ const nodemailer = require('nodemailer')
 require('dotenv').config()
 
 const sendMail = async({email, subject, html}) => {
+    if (process.env.NODE_ENV === 'test') {
+        console.log('Email:', email)
+        console.log('Subject:', subject)
+        console.log('HTML:', html)
+
+        console.log('Email sent successfully')
+        return
+    }
+
     const transporter = nodemailer.createTransport({
         host: 'smtp.gmail.com',
         service: 'Gmail',

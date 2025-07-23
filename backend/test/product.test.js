@@ -7,7 +7,7 @@ const app = require('../server');
 const { token, user } = generateAuthInfoForUsername("doanything");
 const VALID_BUT_NON_EXISTENT_CATEGORY_ID = "687a44fe98bfc3565529771a";
 
-describe("Product Tests", () => {
+describe("Kiểm tra Product", () => {
   let testCategoryId;
 
   beforeEach(async () => {
@@ -19,8 +19,8 @@ describe("Product Tests", () => {
     testCategoryId = savedCategory._id;
   });
 
-  describe("Product Fetching", () => {
-    it("should fetch all products", async () => {
+  describe("Lấy dữ liệu Product", () => {
+    it("lấy được tất cả products", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`);
@@ -39,7 +39,7 @@ describe("Product Tests", () => {
       );
     });
 
-    it("should fetch products with name filter", async () => {
+    it("lấy được products với bộ lọc tên", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -50,7 +50,7 @@ describe("Product Tests", () => {
       expect(response.body.data).toEqual(expect.any(Array));
     });
 
-    it("should fetch products with status filter", async () => {
+    it("lấy được products với bộ lọc trạng thái", async () => {
       const response = await request(app)
         .get('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -71,8 +71,8 @@ describe("Product Tests", () => {
     });
   });
   
-  describe("Product Creation - Code Validation", () => {
-    it("should reject empty product code", async () => {
+  describe("Tạo Product - Kiểm tra mã sản phẩm", () => {
+    it("thất bại nếu mã sản phẩm trống", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -86,7 +86,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should accept minimum length product code (3 characters)", async () => {
+    it("chấp nhận mã sản phẩm có độ dài tối thiểu (3 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -101,7 +101,7 @@ describe("Product Tests", () => {
       expect(response.body.code).toBe('abc');
     });
 
-    it("should accept normal length product code (15 characters)", async () => {
+    it("chấp nhận mã sản phẩm có độ dài bình thường (15 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -116,7 +116,7 @@ describe("Product Tests", () => {
       expect(response.body.code).toBe('c'.repeat(15));
     });
 
-    it("should accept maximum length product code (255 characters)", async () => {
+    it("chấp nhận mã sản phẩm có độ dài tối đa (255 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -131,7 +131,7 @@ describe("Product Tests", () => {
       expect(response.body.code).toBe('d'.repeat(255));
     });
 
-    it("should reject product code that is too long (256 characters)", async () => {
+    it("thất bại nếu mã sản phẩm quá dài (256 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -145,7 +145,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject product code that is too short (2 characters)", async () => {
+    it("thất bại nếu mã sản phẩm quá ngắn (2 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -159,7 +159,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject duplicate product code", async () => {
+    it("thất bại nếu mã sản phẩm bị trùng lặp", async () => {
       const duplicateCode = 'DUPLICATE123';
       
       await request(app)
@@ -186,8 +186,8 @@ describe("Product Tests", () => {
     });
   });
 
-  describe("Product Creation - Name Validation", () => {
-    it("should reject empty product name", async () => {
+  describe("Tạo Product - Kiểm tra tên sản phẩm", () => {
+    it("thất bại nếu tên sản phẩm trống", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -201,7 +201,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should accept minimum length product name (3 characters)", async () => {
+    it("chấp nhận tên sản phẩm có độ dài tối thiểu (3 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -216,7 +216,7 @@ describe("Product Tests", () => {
       expect(response.body.name).toBe('abc');
     });
 
-    it("should accept normal length product name (15 characters)", async () => {
+    it("chấp nhận tên sản phẩm có độ dài bình thường (15 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -231,7 +231,7 @@ describe("Product Tests", () => {
       expect(response.body.name).toBe('n'.repeat(15));
     });
 
-    it("should accept maximum length product name (255 characters)", async () => {
+    it("chấp nhận tên sản phẩm có độ dài tối đa (255 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -246,7 +246,7 @@ describe("Product Tests", () => {
       expect(response.body.name).toBe('x'.repeat(255));
     });
 
-    it("should reject product name that is too long (256 characters)", async () => {
+    it("thất bại nếu tên sản phẩm quá dài (256 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -260,7 +260,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject product name that is too short (2 characters)", async () => {
+    it("thất bại nếu tên sản phẩm quá ngắn (2 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -275,8 +275,8 @@ describe("Product Tests", () => {
     });
   });
 
-  describe("Product Creation - Description Validation", () => {
-    it("should accept empty description", async () => {
+  describe("Tạo Product - Kiểm tra mô tả sản phẩm", () => {
+    it("chấp nhận mô tả trống", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -291,7 +291,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(201);
     });
 
-    it("should accept normal length description (100 characters)", async () => {
+    it("chấp nhận mô tả có độ dài bình thường (100 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -307,7 +307,7 @@ describe("Product Tests", () => {
       expect(response.body.description).toBe('d'.repeat(100));
     });
 
-    it("should accept maximum length description (1000 characters)", async () => {
+    it("chấp nhận mô tả có độ dài tối đa (1000 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -323,7 +323,7 @@ describe("Product Tests", () => {
       expect(response.body.description).toBe('z'.repeat(1000));
     });
 
-    it("should reject description that is too long (1001 characters)", async () => {
+    it("thất bại nếu mô tả quá dài (1001 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -339,8 +339,8 @@ describe("Product Tests", () => {
     });
   });
 
-  describe("Product Creation - Price Validation", () => {
-    it("should accept zero price", async () => {
+  describe("Tạo Product - Kiểm tra giá sản phẩm", () => {
+    it("chấp nhận giá bằng không", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -355,7 +355,7 @@ describe("Product Tests", () => {
       expect(response.body.price).toBe(0);
     });
 
-    it("should accept positive price", async () => {
+    it("chấp nhận giá dương", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -370,7 +370,7 @@ describe("Product Tests", () => {
       expect(response.body.price).toBe(99.99);
     });
 
-    it("should reject negative price", async () => {
+    it("thất bại nếu giá âm", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -384,7 +384,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should handle string price conversion", async () => {
+    it("xử lý chuyển đổi giá từ chuỗi", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -399,7 +399,7 @@ describe("Product Tests", () => {
       expect(response.body.price).toBe(50.5);
     });
 
-    it("should reject non-numeric price", async () => {
+    it("thất bại nếu giá không phải số", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -414,8 +414,8 @@ describe("Product Tests", () => {
     });
   });
 
-  describe("Product Creation - Category Validation", () => {
-    it("should accept valid category ID", async () => {
+  describe("Tạo Product - Kiểm tra category", () => {
+    it("chấp nhận category ID hợp lệ", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -430,7 +430,7 @@ describe("Product Tests", () => {
       expect(response.body.categoryId).toBe(testCategoryId.toString());
     });
 
-    it("should reject product without category", async () => {
+    it("thất bại nếu sản phẩm không có category", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -443,7 +443,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject product with non-existent category ID", async () => {
+    it("thất bại nếu sản phẩm có category ID không tồn tại", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -457,7 +457,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject invalid category ID format", async () => {
+    it("thất bại nếu định dạng category ID không hợp lệ", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -472,8 +472,8 @@ describe("Product Tests", () => {
     });
   });
 
-  describe("Product Creation - Attributes Validation", () => {
-    it("should accept valid attributes", async () => {
+  describe("Tạo Product - Kiểm tra thuộc tính sản phẩm", () => {
+    it("chấp nhận thuộc tính hợp lệ", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -492,7 +492,7 @@ describe("Product Tests", () => {
       expect(response.body.attributes).toHaveLength(2);
     });
 
-    it("should accept product without attributes", async () => {
+    it("chấp nhận sản phẩm không có thuộc tính", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -506,7 +506,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(201);
     });
 
-    it("should accept empty attributes array", async () => {
+    it("chấp nhận mảng thuộc tính trống", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -521,7 +521,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(201);
     });
 
-    it("should accept maximum length attribute names and values (255 characters)", async () => {
+    it("chấp nhận tên và giá trị thuộc tính có độ dài tối đa (255 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -538,7 +538,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(201);
     });
 
-    it("should reject attribute name that is too long (256 characters)", async () => {
+    it("thất bại nếu tên thuộc tính quá dài (256 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -555,7 +555,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject attribute value that is too long (256 characters)", async () => {
+    it("thất bại nếu giá trị thuộc tính quá dài (256 ký tự)", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -572,7 +572,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject attributes with missing name", async () => {
+    it("thất bại nếu thuộc tính thiếu tên", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)
@@ -589,7 +589,7 @@ describe("Product Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject attributes with missing value", async () => {
+    it("thất bại nếu thuộc tính thiếu giá trị", async () => {
       const response = await request(app)
         .post('/products')
         .set('Authorization', `Bearer ${token}`)

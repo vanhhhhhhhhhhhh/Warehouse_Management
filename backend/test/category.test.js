@@ -6,10 +6,10 @@ const app = require('../server');
 
 const { token, user } = generateAuthInfoForUsername("doanything");
 
-describe("Category Tests", () => {
+describe("Kiểm tra Category", () => {
 
-  describe("Category Fetching", () => {
-    it("should fetch all categories", async () => {
+  describe("Lấy dữ liệu Category", () => {
+    it("lấy được tất cả categories", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`);
@@ -28,7 +28,7 @@ describe("Category Tests", () => {
       )
     });
 
-    it("should fetch categories with name filter", async () => {
+    it("lấy được categories với bộ lọc tên", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -48,7 +48,7 @@ describe("Category Tests", () => {
       )
     });
 
-    it("should fetch categories with status filter", async () => {
+    it("lấy được categories với bộ lọc trạng thái", async () => {
       const response = await request(app)
         .get('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -69,9 +69,9 @@ describe("Category Tests", () => {
     });
   });
   
-  describe("Category Creation", () => {
+  describe("Tạo Category", () => {
 
-    it("should reject empty category name", async () => {
+    it("thất bại nếu tên category trống", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -80,7 +80,7 @@ describe("Category Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should accept minimum length category name (3 character)", async () => {
+    it("chấp nhận tên category có độ dài tối thiểu (3 ký tự)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -90,7 +90,7 @@ describe("Category Tests", () => {
       expect(response.body.name).toBe('abc');
     });
 
-    it("should accept normal length category name (15 characters)", async () => {
+    it("chấp nhận tên category có độ dài bình thường (15 ký tự)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -100,7 +100,7 @@ describe("Category Tests", () => {
       expect(response.body.name).toBe('a'.repeat(15));
     });
 
-    it("should accept maximum length category name (255 characters)", async () => {
+    it("chấp nhận tên category có độ dài tối đa (255 ký tự)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -110,7 +110,7 @@ describe("Category Tests", () => {
       expect(response.body.name).toBe('a'.repeat(255));
     });
 
-    it("should reject category name that is too long (256 characters)", async () => {
+    it("thất bại nếu tên category quá dài (256 ký tự)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
@@ -119,7 +119,7 @@ describe("Category Tests", () => {
       expect(response.status).toBe(400);
     });
 
-    it("should reject category name that is too short (2 characters)", async () => {
+    it("thất bại nếu tên category quá ngắn (2 ký tự)", async () => {
       const response = await request(app)
         .post('/categories')
         .set('Authorization', `Bearer ${token}`)
