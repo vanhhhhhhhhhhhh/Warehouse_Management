@@ -1,0 +1,94 @@
+[{
+  "_id": {
+    "$oid": "68803bff6df7faf1a603e224"
+  },
+  "receiptCode": "IMP001",
+  "receiptName": "Phieu nhap kho Ha Noi",
+  "wareId": {
+    "$oid": "68803916471c32671f68145d"
+  },
+  "staffId": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "items": [
+    {
+      "proId": {
+        "$oid": "687e029c45f8929a4f5d3901"
+      },
+      "quantity": 1,
+      "unitPrice": 9495,
+      "_id": {
+        "$oid": "68803bff6df7faf1a603e222"
+      }
+    },
+    {
+      "proId": {
+        "$oid": "687e029c45f8929a4f5d3904"
+      },
+      "quantity": 3,
+      "unitPrice": 55302,
+      "_id": {
+        "$oid": "68803bff6df7faf1a603e223"
+      }
+    }
+  ],
+  "importDate": {
+    "$date": "2025-07-23T01:33:51.464Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-23T01:33:51.464Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T01:33:51.464Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68803d3799fcc341d1a7abfd"
+  },
+  "receiptCode": "IMP002",
+  "receiptName": "Phieu nhap kho Ho Chi Minh",
+  "wareId": {
+    "$oid": "68803c8699fcc341d1a7abfa"
+  },
+  "staffId": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "items": [
+    {
+      "proId": {
+        "$oid": "687e029c45f8929a4f5d3908"
+      },
+      "quantity": 10,
+      "unitPrice": 95100,
+      "_id": {
+        "$oid": "68803d3799fcc341d1a7abfb"
+      }
+    },
+    {
+      "proId": {
+        "$oid": "687e029c45f8929a4f5d3909"
+      },
+      "quantity": 7,
+      "unitPrice": 77574,
+      "_id": {
+        "$oid": "68803d3799fcc341d1a7abfc"
+      }
+    }
+  ],
+  "importDate": {
+    "$date": "2025-07-23T01:39:03.556Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-23T01:39:03.556Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T01:39:03.556Z"
+  }
+}]

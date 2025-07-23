@@ -73,7 +73,6 @@ const authController = {
             })
             return res.status(201).json({ message: 'Đăng ký thành công' })
         } catch (error) {
-            console.error(error)
             return res.status(500).json({ message: error.message || 'Internal server error' })
         }
     },
@@ -189,6 +188,11 @@ const authController = {
     loginEmployee: async (req, res) => {
         try {
             const { email, username, password } = req.body
+
+            if(!email || !username || !password){
+                return res.status(400).json({message: 'Vui lòng nhập đầy đủ các trường'})
+            }
+
             const employee = await User.findOne({ username: username, isDelete: false }).populate('adminId').populate('roleId')
             if (!employee) {
                 return res.status(400).json({ message: 'Tên người dùng hoặc mật khẩu không chính xác' })
