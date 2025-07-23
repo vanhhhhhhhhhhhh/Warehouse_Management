@@ -7,11 +7,17 @@ const StockOutPage = () => {
   const navigate = useNavigate()
   const [searchTerm, setSearchTerm] = useState('')
   const [stockExports, setStockExports] = useState([])
+  const unitPrice = 500000
+  const quantity = 3
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await axios.get('http://localhost:9999/export/history')
+        const token = localStorage.getItem('token')
+        const res = await axios.get('http://localhost:9999/export/history', {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        console.log('Export data:', res.data.data) // Debug log
         setStockExports(res.data.data)
       } catch (error) {
         console.log(error)
@@ -40,22 +46,19 @@ const StockOutPage = () => {
     return items.reduce((total, item) => total + item.quantity, 0)
   }
 
-function calculateTotalValue(items) {
-  return items.reduce((total, item) => {
-    const price = Number(item.unitPrice || item.proId?.price || 0)
-    const qty = Number(item.quantity || 0)
-    return total + price * qty
-  }, 0)
-}
+  function calculateTotalValue(exp) {
+    if (!exp || !exp.items || exp.items.length === 0) return 0;
+    const firstItem = exp.items[0];
+    return firstItem.unitPrice;  // Return just the unitPrice without multiplying
+  }
 
-
-function formatCurrency(value) {
-  return new Intl.NumberFormat('vi-VN', {
-    style: 'currency',
-    currency: 'VND',
-    minimumFractionDigits: 0,
-  }).format(value)
-}
+  function formatCurrency(value) {
+    return new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+      minimumFractionDigits: 0,
+    }).format(value)
+  }
 
   return (
     <div className='d-flex flex-column gap-7'>
@@ -106,7 +109,6 @@ function formatCurrency(value) {
                   <th className='min-w-100px text-black'>Thời gian xuất</th>
                   <th className='min-w-100px text-black'>Mã phiếu</th>
                   <th className='min-w-150px text-black'>Kho xuất</th>
-                  <th className='min-w-100px text-black'>Người tạo</th>
                   <th className='min-w-100px text-black'>Số lượng SP</th>
                   <th className='min-w-100px text-black'>Tổng giá trị</th>
                   <th className='min-w-100px text-black'>Thao tác</th>
@@ -114,16 +116,12 @@ function formatCurrency(value) {
               </thead>
               <tbody className='text-gray-600 fw-semibold'>
                 {filterExports.map((exp) => (
-                    
                   <tr key={exp._id}>
                     <td>{formatDateOnly(exp.exportDate)}</td>
                     <td>{exp.receiptCode}</td>
-                    <td>{exp.wareId?.name || ''}</td>
-                    <td>{exp.adminId?.fullName || ''}</td>
+                    <td>{exp.wareId?.name}</td>
                     <td>{countTotalProduct(exp.items)}</td>
-                    <td>{formatCurrency(calculateTotalValue(exp.items))}</td>
-
-
+                    <td>{formatCurrency(calculateTotalValue(exp))}</td>
                     <td>
                       <button
                         onClick={() => navigate(`/apps/stockOut/print/${exp._id}`)}

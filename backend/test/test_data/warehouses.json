@@ -1,0 +1,54 @@
+[{
+  "_id": {
+    "$oid": "68803916471c32671f68145d"
+  },
+  "name": "Kho Trung Tâm Hà Nội",
+  "address": {
+    "city": "Thành phố Hà Nội",
+    "district": "Quận Long Biên",
+    "ward": "Phường Thượng Thanh",
+    "detail": "Số 123, đường Trần Thái Tông"
+  },
+  "phone": "0987654321",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "staffId": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "isActive": true,
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-23T01:21:26.335Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T01:21:26.335Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "68803c8699fcc341d1a7abfa"
+  },
+  "name": "Kho Ho Chi Minh",
+  "address": {
+    "city": "Thành phố Ho Chi Minh",
+    "district": "Quận 1",
+    "ward": "Phường Bến Nghé",
+    "detail": "Số 456, đường Lê Lợi"
+  },
+  "phone": "0927614862",
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "staffId": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "isActive": true,
+  "isDelete": false,
+  "createdAt": {
+    "$date": "2025-07-23T01:36:06.564Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T01:36:06.564Z"
+  }
+}]

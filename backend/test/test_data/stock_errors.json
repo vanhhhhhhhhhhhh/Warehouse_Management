@@ -1,0 +1,31 @@
+[{
+  "_id": {
+    "$oid": "68807f6a2e32bd4950f60cfb"
+  },
+  "importId": {
+    "$oid": "68803bff6df7faf1a603e224"
+  },
+  "wareId": {
+    "$oid": "68803916471c32671f68145d"
+  },
+  "proId": {
+    "$oid": "687e029c45f8929a4f5d3904"
+  },
+  "adminId": {
+    "$oid": "682f5ab72ae602f40e97328d"
+  },
+  "staffId": {
+    "$oid": "687a453d98bfc35655297728"
+  },
+  "quantity": 1,
+  "reason": "Thất lạc",
+  "declareDate": {
+    "$date": "2025-07-23T06:21:30.100Z"
+  },
+  "createdAt": {
+    "$date": "2025-07-23T06:21:30.100Z"
+  },
+  "updatedAt": {
+    "$date": "2025-07-23T06:21:30.100Z"
+  }
+}]

@@ -163,7 +163,7 @@ const DefectiveProductPage = () => {
                                             return <tr>
                                                 <td>{key + 1}</td>
                                                 <td>{formatDateOnly(error.declareDate)}</td>
-                                                <td>{error.adminId.fullName}</td>
+                                                <td>{error.staffId.fullName}</td>
                                                 <td>{error.wareId.name}</td>
                                                 <td>{error.proId.name}</td>
                                                 <td>{error.quantity}</td>

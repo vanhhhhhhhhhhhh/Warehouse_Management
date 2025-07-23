@@ -13,6 +13,8 @@ const apiImportWarehouse = require("./router/apiImportWarehouse");
 const apiExportWarehouse = require("./router/apiExportWarehouse");
 const apiError = require("./router/apiError")
 const apiExcel = require("./router/apiExcel")
+const apiInventory = require('./router/apiInventory')
+
 const dotenv = require("dotenv");
 const path = require("path");
 
@@ -88,6 +90,7 @@ app.use("/export", apiExportWarehouse);
 app.use("/error", apiError)
 
 app.use("/excel", apiExcel)
+app.use('/inventory', apiInventory)
 
 if (NODE_ENV !== "test") {
   app.listen(port, () => {

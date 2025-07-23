@@ -1,13 +1,47 @@
 const Stock_Error = require('../model/Stock_Error')
 const Stock_Import = require('../model/Stock_Import')
 const User = require('../model/User')
+const inventoryController = require('./inventoryController')
 
 const errorController = {
-
     listStockImport: async (req, res) => {
         try {
-            const admin = req.userId
-            const imports = await Stock_Import.find({ adminId: admin }).populate('wareId').populate('items.proId')
+            const userId = req.userId;
+            
+            // Lấy thông tin user để xác định vai trò
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ message: 'Không tìm thấy người dùng' });
+            }
+
+            let imports;
+            // Nếu là admin
+            if (!user.adminId) {
+                // Lấy danh sách nhân viên dưới quyền
+                const staffIds = await User.find({ adminId: userId }, '_id');
+                const staffIdList = staffIds.map(staff => staff._id);
+
+                // Lấy phiếu nhập của admin và nhân viên dưới quyền
+                imports = await Stock_Import.find({
+                    $or: [
+                        { staffId: { $in: staffIdList } },
+                        { staffId: userId }
+                    ]
+                })
+                .populate('wareId')
+                .populate('items.proId')
+                .sort({ importDate: -1 });
+            } 
+            // Nếu là nhân viên
+            else {
+                imports = await Stock_Import.find({ 
+                    staffId: userId 
+                })
+                .populate('wareId')
+                .populate('items.proId')
+                .sort({ importDate: -1 });
+            }
+
             const result = imports.map((imp) => ({
                 importId: imp._id,
                 receiptCode: imp.receiptCode,
@@ -19,89 +53,183 @@ const errorController = {
                     quantity: item.quantity
                 })),
                 importDate: imp.importDate
-            }))
-            return res.status(200).json({ data: result })
+            }));
+
+            return res.status(200).json({ 
+                success: true,
+                data: result 
+            });
         } catch (error) {
-            return res.status(500).json(error.message)
+            console.error('List stock import error:', error);
+            return res.status(500).json({ 
+                success: false,
+                message: 'Lỗi khi lấy danh sách phiếu nhập',
+                error: error.message 
+            });
         }
     },
 
     declareErrorStock: async (req, res) => {
         try {
-            const admin = req.userId
-            const { importId, proId, quantity, reason } = req.body
+            const userId = req.userId;
+            const { importId, proId, quantity, reason } = req.body;
+
+            // Validate input
             if (!importId || !proId || !quantity || !reason) {
-                return res.status(400).json({ message: 'Vui lòng nhập đầy đủ các trường' })
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'Vui lòng nhập đầy đủ các trường' 
+                });
             }
 
             if (quantity <= 0) {
-                return res.status(400).json({ message: 'Số lương khai báo phải lớn hơn 0' })
+                return res.status(400).json({ 
+                    success: false,
+                    message: 'Số lượng khai báo phải lớn hơn 0' 
+                });
             }
 
-            const checkExistProduct = await Stock_Error.findOne({importId: importId, proId: proId})
-            if(checkExistProduct){
-                return res.status(400).json({message: 'Sản phẩm đã được khai báo lỗi trước đó'})
+            // Lấy thông tin user
+            const user = await User.findById(userId);
+            if (!user) {
+                return res.status(404).json({ 
+                    success: false,
+                    message: 'Không tìm thấy thông tin người dùng' 
+                });
             }
 
-            const stock_import = await Stock_Import.findOne({ _id: importId, adminId: admin, 'items.proId': proId }).populate('wareId').populate('items.proId')
+            // Kiểm tra sản phẩm đã được khai báo lỗi
+            const checkExistProduct = await Stock_Error.findOne({
+                importId: importId,
+                proId: proId
+            });
+            if (checkExistProduct) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Sản phẩm đã được khai báo lỗi trước đó'
+                });
+            }
+
+            // Kiểm tra quyền truy cập phiếu nhập
+            const stock_import = await Stock_Import.findOne({ 
+                _id: importId,
+                staffId: userId,
+                'items.proId': proId 
+            })
+            .populate('wareId')
+            .populate('items.proId');
+
             if (!stock_import) {
-                return res.status(404).json({ message: 'Không tìm thấy phiếu nhập này' })
+                return res.status(404).json({ 
+                    success: false,
+                    message: 'Không tìm thấy phiếu nhập này hoặc bạn không có quyền truy cập' 
+                });
             }
 
-            let totalInStock = 0
+            // Kiểm tra số lượng tồn kho
+            let totalInStock = 0;
             for (const item of stock_import.items) {
                 if (item.proId._id.toString() === proId) {
-                    totalInStock += item.quantity
+                    totalInStock += item.quantity;
                 }
             }
 
             if (quantity > totalInStock) {
-                return res.status(400).json({ message: `Số lượng khai báo ${quantity} đang lớn hơn số lượng còn lại trong kho ${totalInStock}` })
+                return res.status(400).json({ 
+                    success: false,
+                    message: `Số lượng khai báo ${quantity} đang lớn hơn số lượng còn lại trong kho ${totalInStock}` 
+                });
             }
 
+            // Tạo khai báo lỗi mới
             const newDeclareError = new Stock_Error({
                 importId,
-                wareId: stock_import.wareId,
+                wareId: stock_import.wareId._id,
                 proId,
-                adminId: admin,
+                staffId: userId,
+                adminId: user.adminId || userId,
                 quantity,
                 reason
-            })
-            newDeclareError.save()
-            return res.status(201).json({ data: newDeclareError })
+            });
+            const savedError = await newDeclareError.save();
+
+            // Cập nhật số lượng tồn kho
+            await inventoryController.updateStockError(
+                stock_import.wareId._id,
+                proId,
+                quantity,
+                user.adminId || userId
+            );
+
+            return res.status(201).json({ 
+                success: true,
+                message: 'Khai báo sản phẩm lỗi thành công',
+                data: savedError 
+            });
         } catch (error) {
-            return res.status(500).json(error.message)
+            console.error('Declare error stock error:', error);
+            return res.status(500).json({ 
+                success: false,
+                message: 'Lỗi khi khai báo sản phẩm lỗi',
+                error: error.message 
+            });
         }
     },
 
     listStockError: async (req, res) => {
         try {
-            const userId = req.userId
-            const user = await User.findById(userId)
+            const userId = req.userId;
+            const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ message: 'Không tìm thấy người dùng' })
+                return res.status(404).json({ 
+                    success: false,
+                    message: 'Không tìm thấy người dùng' 
+                });
             }
 
-            let listStockError
+            let listStockError;
 
-            // Vai trof Admin
+            // Vai trò Admin
             if (!user.adminId) {
-                const usersWithSameAdmin = await User.find({ adminId: user._id }, '_id')
-                const userIds = usersWithSameAdmin.map(u => u._id)
+                const staffIds = await User.find({ adminId: userId }, '_id');
+                const staffIdList = staffIds.map(staff => staff._id);
+
                 listStockError = await Stock_Error.find({
-                    adminId: { $in: userIds }
-                }).populate('wareId').populate('proId').populate('adminId')
+                    $or: [
+                        { staffId: { $in: staffIdList } },
+                        { staffId: userId }
+                    ]
+                })
+                .populate('wareId')
+                .populate('proId')
+                .populate('staffId')
+                .populate('adminId')
+                .sort({ createdAt: -1 });
             } else {
                 // Vai trò nhân viên
-                listStockError = await Stock_Error.find({ adminId: userId }).populate('wareId').populate('proId').populate('adminId')
+                listStockError = await Stock_Error.find({ 
+                    staffId: userId 
+                })
+                .populate('wareId')
+                .populate('proId')
+                .populate('staffId')
+                .populate('adminId')
+                .sort({ createdAt: -1 });
             }
-            return res.status(200).json({ data: listStockError })
+
+            return res.status(200).json({ 
+                success: true,
+                data: listStockError 
+            });
         } catch (error) {
-            return res.status(500).json(error.message)
+            console.error('List stock error:', error);
+            return res.status(500).json({ 
+                success: false,
+                message: 'Lỗi khi lấy danh sách sản phẩm lỗi',
+                error: error.message 
+            });
         }
     }
-
 }
-
 
 module.exports = errorController

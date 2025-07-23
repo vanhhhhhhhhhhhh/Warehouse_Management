@@ -3,7 +3,8 @@ const Product = require('../model/Product')
 const Stock_Import = require('../model/Stock_Import')
 const User = require('../model/User')
 const Role = require('../model/Role')
-
+const inventoryController = require('./inventoryController')
+const mongoose = require('mongoose')
 
 const importWarehouseController = {
 
@@ -58,20 +59,28 @@ const importWarehouseController = {
     },
 
     importIntoWarehouse: async(req, res) => {
+        const userId = req.userId
+        const {receiptCode, receiptName, wareId, items} = req.body
+
+        if(!receiptCode || !receiptName || !wareId || !items){
+            return res.status(400).json({message: 'Vui lòng nhập đầy đủ các trường'})
+        }
+
+        const user = await User.findById(userId)
+        if (!user) {
+            return res.status(404).json({message: 'Không tìm thấy thông tin người dùng'})
+        }
+
+        const currentAdminId = user.adminId || user._id
+        const checkCodeIsExist = await Stock_Import.findOne({
+            receiptCode: receiptCode,
+            adminId: currentAdminId
+        })
+        if(checkCodeIsExist){
+            return res.status(400).json({message: 'Mã phiếu đã tồn tại trong hệ thống'})
+        }
+
         try {
-            const adminId = req.userId
-            const {receiptCode, receiptName, wareId, items} = req.body
-
-            if(!receiptCode || !receiptName || !wareId || !items){
-                return res.status(400).json({message: 'Vui lòng nhập đầy đủ các trường'})
-            }
-            
-
-            const checkCodeIsExist = await Stock_Import.findOne({receiptCode})
-            if(checkCodeIsExist){
-                return res.status(400).json({ message: 'Mã phiếu đã tồn tại trong hệ thống' })
-            }
-
             const warehouse = await Warehouse.findById(wareId)
             if(!warehouse){
                 return res.status(404).json({message: 'Kho không tồn tại trong hệ thống'})
@@ -87,7 +96,7 @@ const importWarehouseController = {
 
                 const product = await Product.findById(proId)
                 if(!product){
-                    return res.status(404).json({message: `Sản phẩm ${product.name} không tồn tại`})
+                    return res.status(404).json({message: 'Sản phẩm không tồn tại'})
                 }
                 if(quantity <= 0){
                     return res.status(400).json({message: `Số lượng sản phẩm ${product.name} không được bé hơn hoặc bằng 0`})
@@ -101,19 +110,49 @@ const importWarehouseController = {
                 })
             }
 
+            // Lưu phiếu nhập với thông tin người tạo
             const addNewImport = new Stock_Import({
                 receiptCode,
                 receiptName,
                 wareId,
-                adminId: adminId,
+                staffId: userId,
+                adminId: user.adminId || user._id,
                 items: itemResults
             })
 
-            await addNewImport.save()
-            return res.status(201).json({data: addNewImport})
+            const savedImport = await addNewImport.save()
 
+            // Cập nhật tồn kho cho từng sản phẩm
+            try {
+                const updatePromises = itemResults.map(item => {
+                    const {proId, quantity} = item
+                    return inventoryController.updateStockIn(wareId, proId, quantity, user.adminId || user._id)
+                })
+
+                await Promise.all(updatePromises)
+
+                return res.status(201).json({
+                    success: true,
+                    message: 'Nhập kho thành công',
+                    data: savedImport
+                })
+            } catch (inventoryError) {
+                // Nếu có lỗi khi cập nhật tồn kho, xóa phiếu nhập đã lưu
+                await Stock_Import.findByIdAndDelete(savedImport._id)
+                console.error('Inventory update error:', inventoryError)
+                return res.status(500).json({
+                    success: false,
+                    message: 'Có lỗi xảy ra khi cập nhật tồn kho',
+                    error: inventoryError.message
+                })
+            }
         } catch (error) {
-            return res.status(500).json(error)
+            console.error('Import error:', error)
+            return res.status(500).json({
+                success: false,
+                message: 'Có lỗi xảy ra khi nhập kho',
+                error: error.message
+            })
         }
     },
 
@@ -128,26 +167,45 @@ const importWarehouseController = {
 
             let imports;
 
-            // Vai trò admin
+            // Vai trò admin (không có adminId)
             if (!user.adminId) {
-                const usersWithSameAdmin = await User.find({ adminId: user._id }, '_id');
-                const userIds = usersWithSameAdmin.map(u => u._id);
+                // Lấy danh sách nhân viên dưới quyền admin
+                const staffs = await User.find({ adminId: user._id }, '_id');
+                const staffIds = staffs.map(staff => staff._id);
 
+                // Lấy các phiếu nhập của admin và nhân viên dưới quyền
                 imports = await Stock_Import.find({
-                    adminId: { $in: userIds }
-                }).populate('wareId').populate('adminId').populate('items.proId');
-
-            } else {
-                // Vai trò nhân viên
+                    $or: [
+                        { staffId: { $in: staffIds } },  // Phiếu nhập của nhân viên
+                        { staffId: user._id }            // Phiếu nhập của admin
+                    ]
+                })
+                .populate('wareId')
+                .populate('adminId')
+                .populate('staffId')
+                .populate('items.proId')
+                .sort({ importDate: -1 });  // Sắp xếp theo thời gian mới nhất
+            } 
+            // Vai trò nhân viên (có adminId)
+            else {
                 imports = await Stock_Import.find({
-                    adminId: userId
-                }).populate('wareId').populate('adminId').populate('items.proId');
+                    staffId: userId  // Chỉ lấy phiếu nhập của nhân viên đó
+                })
+                .populate('wareId')
+                .populate('adminId')
+                .populate('staffId')
+                .populate('items.proId')
+                .sort({ importDate: -1 });  // Sắp xếp theo thời gian mới nhất
             }
 
             return res.status(200).json({ data: imports });
 
         } catch (error) {
-            return res.status(500).json(error);
+            console.error('History import error:', error);
+            return res.status(500).json({ 
+                message: 'Có lỗi xảy ra khi lấy lịch sử nhập kho',
+                error: error.message 
+            });
         }
     },
 
