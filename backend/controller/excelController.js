@@ -101,11 +101,11 @@ function convertAndValidate(data, stopOnError = true) {
       rowErrors.push(`Mã sản phẩm không được để trống`);
     }
 
-    if (code.length < 3) {
+    if (code && code.length < 3) {
       rowErrors.push(`Mã sản phẩm phải có ít nhất 3 ký tự`);
     }
 
-    if (code.length > 255) {
+    if (code && code.length > 255) {
       rowErrors.push(`Mã sản phẩm không được vượt quá 255 ký tự`);
     }
 
@@ -114,11 +114,11 @@ function convertAndValidate(data, stopOnError = true) {
       rowErrors.push(`Tên sản phẩm không được để trống`);
     }
 
-    if (name.length < 3) {
+    if (name && name.length < 3) {
       rowErrors.push(`Tên sản phẩm phải có ít nhất 3 ký tự`);
     }
 
-    if (name.length > 255) {
+    if (name && name.length > 255) {
       rowErrors.push(`Tên sản phẩm không được vượt quá 255 ký tự`);
     }
 
@@ -127,11 +127,11 @@ function convertAndValidate(data, stopOnError = true) {
       rowErrors.push(`Tên danh mục không được để trống`);
     }
 
-    if (categoryName.length < 3) {
+    if (categoryName && categoryName.length < 3) {
       rowErrors.push(`Tên danh mục phải có ít nhất 3 ký tự`);
     }
 
-    if (categoryName.length > 255) {
+    if (categoryName && categoryName.length > 255) {
       rowErrors.push(`Tên danh mục không được vượt quá 255 ký tự`);
     }
 
@@ -291,6 +291,7 @@ module.exports = {
       try {
         convertedInfo = convertAndValidate(data, options.stopOnError);
       } catch (e) {
+        console.log(e);
         return failedResponse(res, 400, e.message);
       }
 
