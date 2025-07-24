@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { KTSVG } from '../../../_metronic/helpers'
 import axios from 'axios'
+import { hasPermission } from '../auth/components/PermissionGuard'
 
 const DefectiveProductPage = () => {
     const navigate = useNavigate()
@@ -9,6 +10,9 @@ const DefectiveProductPage = () => {
     const [selectedWarehouse, setSelectedWarehouse] = useState('')
     // const [selectedStatus, setSelectedStatus] = useState('')
     const [stockError, setStockError] = useState([])
+    const [hasCreatePermission] = hasPermission([
+        { module: 'DEFECT_PRODUCTS', action: 'CREATE' }
+    ])
 
 
     const handleNavigateToCreate = () => {
@@ -73,14 +77,16 @@ const DefectiveProductPage = () => {
                         </div>
                         <div className='card-toolbar'>
                             <div className='d-flex justify-content-end'>
-                                <button
-                                    type='button'
-                                    className='btn btn-primary'
-                                    onClick={handleNavigateToCreate}
-                                >
-                                    <i className='ki-duotone ki-plus fs-2'></i>
-                                    Khai báo sản phẩm
-                                </button>
+                                {hasCreatePermission && (
+                                    <button
+                                        type='button'
+                                        className='btn btn-primary'
+                                        onClick={handleNavigateToCreate}
+                                    >
+                                        <i className='ki-duotone ki-plus fs-2'></i>
+                                        Khai báo sản phẩm
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>

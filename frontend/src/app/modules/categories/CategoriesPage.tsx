@@ -9,6 +9,7 @@ import Swal from 'sweetalert2'
 import { KTSVG } from '../../../_metronic/helpers'
 import ProperBadge from '../../reusableWidgets/ProperBadge'
 import { useStatusFilter } from '../../reusableWidgets/useStatusFilter'
+import { hasPermission } from '../auth/components/PermissionGuard'
 
 const columnHelper = createColumnHelper<CategoryListing>()
 
@@ -37,7 +38,11 @@ const CategoriesPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedItems, setSelectedItems] = useState<string[]>([])
   const { statusFilter, statusFilterElement } = useStatusFilter()
-
+  const [hasCreatePermission, hasUpdatePermission] = hasPermission([
+    { module: 'CATEGORIES', action: 'CREATE' },
+    { module: 'CATEGORIES', action: 'UPDATE' }
+  ])
+  
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -148,14 +153,16 @@ const CategoriesPage: React.FC = () => {
               </div>
 
               <div className='card-toolbar'>
-                <button
-                  type='button'
-                  className='btn btn-primary'
-                  onClick={() => navigate('/apps/categories/create')}
-                >
-                  <i className='ki-duotone ki-plus fs-2' />
-                  Thêm danh mục
-                </button>
+                {hasCreatePermission && (
+                  <button
+                    type='button'
+                    className='btn btn-primary'
+                    onClick={() => navigate('/apps/categories/create')}
+                  >
+                    <i className='ki-duotone ki-plus fs-2' />
+                    Thêm danh mục
+                  </button>
+                )}
               </div>
             </div>
 
@@ -172,6 +179,7 @@ const CategoriesPage: React.FC = () => {
                 isLoading={isLoading}
                 columns={columns}
                 selectedItems={selectedItems}
+                readOnly={!hasUpdatePermission}
                 onSelectedItemsChange={setSelectedItems}
                 pagination={{
                   pageIndex,
