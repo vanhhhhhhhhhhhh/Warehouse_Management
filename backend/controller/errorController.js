@@ -2,12 +2,13 @@ const Stock_Error = require('../model/Stock_Error')
 const Stock_Import = require('../model/Stock_Import')
 const User = require('../model/User')
 const inventoryController = require('./inventoryController')
+const { calculateProductRemain } = require('../utils/stockUtils')
 
 const errorController = {
     listStockImport: async (req, res) => {
         try {
             const userId = req.userId;
-            
+
             // Lấy thông tin user để xác định vai trò
             const user = await User.findById(userId);
             if (!user) {
@@ -28,18 +29,18 @@ const errorController = {
                         { staffId: userId }
                     ]
                 })
-                .populate('wareId')
-                .populate('items.proId')
-                .sort({ importDate: -1 });
-            } 
+                    .populate('wareId')
+                    .populate('items.proId')
+                    .sort({ importDate: -1 });
+            }
             // Nếu là nhân viên
             else {
-                imports = await Stock_Import.find({ 
-                    staffId: userId 
+                imports = await Stock_Import.find({
+                    staffId: userId
                 })
-                .populate('wareId')
-                .populate('items.proId')
-                .sort({ importDate: -1 });
+                    .populate('wareId')
+                    .populate('items.proId')
+                    .sort({ importDate: -1 });
             }
 
             const result = imports.map((imp) => ({
@@ -55,16 +56,16 @@ const errorController = {
                 importDate: imp.importDate
             }));
 
-            return res.status(200).json({ 
+            return res.status(200).json({
                 success: true,
-                data: result 
+                data: result
             });
         } catch (error) {
             console.error('List stock import error:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
                 message: 'Lỗi khi lấy danh sách phiếu nhập',
-                error: error.message 
+                error: error.message
             });
         }
     },
@@ -76,25 +77,25 @@ const errorController = {
 
             // Validate input
             if (!importId || !proId || !quantity || !reason) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    message: 'Vui lòng nhập đầy đủ các trường' 
+                    message: 'Vui lòng nhập đầy đủ các trường'
                 });
             }
 
             if (quantity <= 0) {
-                return res.status(400).json({ 
+                return res.status(400).json({
                     success: false,
-                    message: 'Số lượng khai báo phải lớn hơn 0' 
+                    message: 'Số lượng khai báo phải lớn hơn 0'
                 });
             }
 
             // Lấy thông tin user
             const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     success: false,
-                    message: 'Không tìm thấy thông tin người dùng' 
+                    message: 'Không tìm thấy thông tin người dùng'
                 });
             }
 
@@ -111,33 +112,28 @@ const errorController = {
             }
 
             // Kiểm tra quyền truy cập phiếu nhập
-            const stock_import = await Stock_Import.findOne({ 
+            const stock_import = await Stock_Import.findOne({
                 _id: importId,
                 staffId: userId,
-                'items.proId': proId 
+                'items.proId': proId
             })
-            .populate('wareId')
-            .populate('items.proId');
+                .populate('wareId')
+                .populate('items.proId');
 
             if (!stock_import) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     success: false,
-                    message: 'Không tìm thấy phiếu nhập này hoặc bạn không có quyền truy cập' 
+                    message: 'Không tìm thấy phiếu nhập này hoặc bạn không có quyền truy cập'
                 });
             }
 
             // Kiểm tra số lượng tồn kho
-            let totalInStock = 0;
-            for (const item of stock_import.items) {
-                if (item.proId._id.toString() === proId) {
-                    totalInStock += item.quantity;
-                }
-            }
+            const remainingQty = await calculateProductRemain(proId, stock_import.wareId._id);
 
-            if (quantity > totalInStock) {
-                return res.status(400).json({ 
+            if (quantity > remainingQty) {
+                return res.status(400).json({
                     success: false,
-                    message: `Số lượng khai báo ${quantity} đang lớn hơn số lượng còn lại trong kho ${totalInStock}` 
+                    message: `Số lượng khai báo lỗi (${quantity}) vượt quá tồn kho hiện tại (${remainingQty})`
                 });
             }
 
@@ -161,17 +157,17 @@ const errorController = {
                 user.adminId || userId
             );
 
-            return res.status(201).json({ 
+            return res.status(201).json({
                 success: true,
                 message: 'Khai báo sản phẩm lỗi thành công',
-                data: savedError 
+                data: savedError
             });
         } catch (error) {
             console.error('Declare error stock error:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
                 message: 'Lỗi khi khai báo sản phẩm lỗi',
-                error: error.message 
+                error: error.message
             });
         }
     },
@@ -181,9 +177,9 @@ const errorController = {
             const userId = req.userId;
             const user = await User.findById(userId);
             if (!user) {
-                return res.status(404).json({ 
+                return res.status(404).json({
                     success: false,
-                    message: 'Không tìm thấy người dùng' 
+                    message: 'Không tìm thấy người dùng'
                 });
             }
 
@@ -200,33 +196,33 @@ const errorController = {
                         { staffId: userId }
                     ]
                 })
-                .populate('wareId')
-                .populate('proId')
-                .populate('staffId')
-                .populate('adminId')
-                .sort({ createdAt: -1 });
+                    .populate('wareId')
+                    .populate('proId')
+                    .populate('staffId')
+                    .populate('adminId')
+                    .sort({ createdAt: -1 });
             } else {
                 // Vai trò nhân viên
-                listStockError = await Stock_Error.find({ 
-                    staffId: userId 
+                listStockError = await Stock_Error.find({
+                    staffId: userId
                 })
-                .populate('wareId')
-                .populate('proId')
-                .populate('staffId')
-                .populate('adminId')
-                .sort({ createdAt: -1 });
+                    .populate('wareId')
+                    .populate('proId')
+                    .populate('staffId')
+                    .populate('adminId')
+                    .sort({ createdAt: -1 });
             }
 
-            return res.status(200).json({ 
+            return res.status(200).json({
                 success: true,
-                data: listStockError 
+                data: listStockError
             });
         } catch (error) {
             console.error('List stock error:', error);
-            return res.status(500).json({ 
+            return res.status(500).json({
                 success: false,
                 message: 'Lỗi khi lấy danh sách sản phẩm lỗi',
-                error: error.message 
+                error: error.message
             });
         }
     }
