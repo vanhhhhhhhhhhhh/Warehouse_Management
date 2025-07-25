@@ -175,6 +175,20 @@ const inventoryController = {
                 message: 'Lỗi khi lấy báo cáo tồn kho'
             })
         }
+    },
+        getCurrentStock: async (wareId, proId, adminId) => {
+        try {
+            const inventory = await Stock_Inventory.findOne({
+                wareId,
+                proId,
+                adminId
+            })
+
+            return inventory?.currentStock || 0
+        } catch (error) {
+            console.error('Error getting current stock:', error)
+            throw error
+        }
     }
 }
 

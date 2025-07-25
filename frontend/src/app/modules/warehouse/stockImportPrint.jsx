@@ -1,39 +1,44 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const StockImportPrint = () => {
-  const { id } = useParams()
-  const [receipt, setReceipt] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [receipt, setReceipt] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReceipt = async () => {
       try {
-        const res = await axios.get(`http://localhost:9999/import/receipt/${id}`)
-        setReceipt(res.data.data)
+        const res = await axios.get(`http://localhost:9999/import/receipt/${id}`);
+        setReceipt(res.data.data);
       } catch (error) {
-        console.error('Lỗi khi lấy phiếu nhập:', error)
+        console.error('Lỗi khi lấy phiếu nhập:', error);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchReceipt()
-  }, [id])
+    fetchReceipt();
+  }, [id]);
 
-  if (loading) return <div style={{ padding: '20px' }}>Đang tải phiếu nhập...</div>
-  if (!receipt) return <div style={{ padding: '20px' }}>Không tìm thấy phiếu nhập</div>
+  if (loading) return <div style={{ padding: '20px' }}>Đang tải phiếu nhập...</div>;
+  if (!receipt) return <div style={{ padding: '20px' }}>Không tìm thấy phiếu nhập</div>;
 
-  const { receiptCode, receiptName, wareId, adminId, createdAt, items } = receipt
+  const { receiptCode, receiptName, wareId, adminId, createdAt, items } = receipt;
 
   const formatDate = (iso) => {
-    const date = new Date(iso)
-    return date.toLocaleDateString('vi-VN')
-  }
+    const date = new Date(iso);
+    return date.toLocaleDateString('vi-VN');
+  };
 
-  const totalAmount = items.reduce(
-    (sum, item) => sum + item.quantity * item.unitPrice, 0)
+  const totalAmount = items.reduce((sum, item) => {
+    // const quantity = Number(item.quantity) || 0
+    const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
+    return sum + unitPrice;
+  }, 0);
 
   return (
     <>
@@ -66,7 +71,23 @@ const StockImportPrint = () => {
       </style>
 
       <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-        <div className='print-btn' style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+        <div
+          className="print-btn"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}
+        >
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#ddd',
+              border: '1px solid #bbb',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            ← Quay lại
+          </button>
           <button
             onClick={() => window.print()}
             style={{
@@ -76,7 +97,7 @@ const StockImportPrint = () => {
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
           >
             🖨️ In phiếu
@@ -91,11 +112,21 @@ const StockImportPrint = () => {
           <hr style={{ margin: '20px 0' }} />
 
           <div style={{ lineHeight: '1.8', fontSize: '16px' }}>
-            <p><strong>Mã phiếu:</strong> {receiptCode}</p>
-            <p><strong>Tên phiếu:</strong> {receiptName}</p>
-            <p><strong>Ngày lập:</strong> {formatDate(createdAt)}</p>
-            <p><strong>Kho nhập:</strong> {wareId?.name}</p>
-            <p><strong>Người lập phiếu:</strong> {adminId?.fullName}</p>
+            <p>
+              <strong>Mã phiếu:</strong> {receiptCode}
+            </p>
+            <p>
+              <strong>Tên phiếu:</strong> {receiptName}
+            </p>
+            <p>
+              <strong>Ngày lập:</strong> {formatDate(createdAt)}
+            </p>
+            <p>
+              <strong>Kho nhập:</strong> {wareId?.name}
+            </p>
+            <p>
+              <strong>Người lập phiếu:</strong> {adminId?.fullName}
+            </p>
           </div>
 
           <table
@@ -103,7 +134,7 @@ const StockImportPrint = () => {
               width: '100%',
               borderCollapse: 'collapse',
               marginTop: '30px',
-              fontSize: '15px'
+              fontSize: '15px',
             }}
           >
             <thead>
@@ -121,10 +152,8 @@ const StockImportPrint = () => {
                   <td style={tdStyle}>{index + 1}</td>
                   <td style={tdStyle}>{item.proId.name}</td>
                   <td style={tdStyle}>{item.quantity}</td>
-                  <td style={tdStyle}>{item.unitPrice.toLocaleString()}</td>
-                  <td style={tdStyle}>
-                    {(item.unitPrice * item.quantity).toLocaleString()}
-                  </td>
+                  <td style={tdStyle}>{item.proId?.price.toLocaleString()}</td>
+                  <td style={tdStyle}>{totalAmount.toLocaleString()}</td>
                 </tr>
               ))}
               <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold' }}>
@@ -139,31 +168,33 @@ const StockImportPrint = () => {
           <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
             <div>
               <strong>Người lập phiếu</strong>
-              <br /><br />
+              <br />
+              <br />
               <em>(Ký và ghi rõ họ tên)</em>
             </div>
             <div>
               <strong>Thủ kho</strong>
-              <br /><br />
+              <br />
+              <br />
               <em>(Ký và ghi rõ họ tên)</em>
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
 const thStyle = {
   border: '1px solid #ccc',
   padding: '12px 16px',
-  textAlign: 'center'
-}
+  textAlign: 'center',
+};
 
 const tdStyle = {
   border: '1px solid #ddd',
   padding: '10px 14px',
-  textAlign: 'center'
-}
+  textAlign: 'center',
+};
 
-export default StockImportPrint
+export default StockImportPrint;

@@ -1,36 +1,38 @@
-import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
+import { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const StockExportPrint = () => {
-  const { id } = useParams()
-  const [receipt, setReceipt] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [receipt, setReceipt] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchReceipt = async () => {
       try {
-        console.log('Fetching receipt with ID:', id) // Debug log
-        const res = await axios.get(`http://localhost:9999/export/receipt/${id}`)
-        console.log('Receipt data:', res.data) // Debug log
-        setReceipt(res.data.data)
-        setError(null)
+        console.log('Fetching receipt with ID:', id); // Debug log
+        const res = await axios.get(`http://localhost:9999/export/receipt/${id}`);
+        console.log('Receipt data:', res.data); // Debug log
+        setReceipt(res.data.data);
+        setError(null);
       } catch (error) {
-        console.error('Lỗi khi lấy phiếu xuất:', error)
-        setError(error.message)
+        console.error('Lỗi khi lấy phiếu xuất:', error);
+        setError(error.message);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
     if (id) {
-      fetchReceipt()
+      fetchReceipt();
     } else {
-      setLoading(false)
-      setError('Không có ID phiếu xuất')
+      setLoading(false);
+      setError('Không có ID phiếu xuất');
     }
-  }, [id])
+  }, [id]);
 
   // Loading state
   if (loading) {
@@ -38,7 +40,7 @@ const StockExportPrint = () => {
       <div style={{ padding: '20px', textAlign: 'center' }}>
         <div>Đang tải phiếu xuất...</div>
       </div>
-    )
+    );
   }
 
   // Error state
@@ -48,7 +50,7 @@ const StockExportPrint = () => {
         <div>Có lỗi xảy ra: {error}</div>
         <button onClick={() => window.history.back()}>Quay lại</button>
       </div>
-    )
+    );
   }
 
   // No receipt found
@@ -58,7 +60,7 @@ const StockExportPrint = () => {
         <div>Không tìm thấy phiếu xuất</div>
         <button onClick={() => window.history.back()}>Quay lại</button>
       </div>
-    )
+    );
   }
 
   // Destructure with fallbacks
@@ -68,23 +70,23 @@ const StockExportPrint = () => {
     wareId = {},
     adminId = {},
     exportDate = new Date(),
-    items = []
-  } = receipt
+    items = [],
+  } = receipt;
 
   const formatDate = (iso) => {
     try {
-      const date = new Date(iso)
-      return date.toLocaleDateString('vi-VN')
+      const date = new Date(iso);
+      return date.toLocaleDateString('vi-VN');
     } catch (error) {
-      return 'N/A'
+      return 'N/A';
     }
-  }
+  };
 
   const totalAmount = items.reduce((sum, item) => {
-    const quantity = Number(item.quantity) || 0
-    const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0
-    return sum + quantity * unitPrice
-  }, 0)
+    // const quantity = Number(item.quantity) || 0
+    const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
+    return sum + unitPrice;
+  }, 0);
 
   return (
     <>
@@ -116,7 +118,23 @@ const StockExportPrint = () => {
       </style>
 
       <div style={{ padding: '40px', maxWidth: '900px', margin: '0 auto', fontFamily: 'Arial, sans-serif' }}>
-        <div className='print-btn' style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '20px' }}>
+        <div
+          className="print-btn"
+          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}
+        >
+          <button
+            onClick={() => navigate(-1)}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#ddd',
+              border: '1px solid #bbb',
+              borderRadius: '4px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+            }}
+          >
+            ← Quay lại
+          </button>
           <button
             onClick={() => window.print()}
             style={{
@@ -126,7 +144,7 @@ const StockExportPrint = () => {
               border: 'none',
               borderRadius: '5px',
               cursor: 'pointer',
-              fontWeight: 'bold'
+              fontWeight: 'bold',
             }}
           >
             🖨️ In phiếu
@@ -141,11 +159,21 @@ const StockExportPrint = () => {
           <hr style={{ margin: '20px 0' }} />
 
           <div style={{ lineHeight: '1.8', fontSize: '16px' }}>
-            <p><strong>Mã phiếu:</strong> {receiptCode}</p>
-            <p><strong>Tên phiếu:</strong> {receiptName}</p>
-            <p><strong>Ngày xuất:</strong> {formatDate(exportDate)}</p>
-            <p><strong>Kho xuất:</strong> {wareId?.name || 'N/A'}</p>
-            <p><strong>Người lập phiếu:</strong> {adminId?.fullName || 'N/A'}</p>
+            <p>
+              <strong>Mã phiếu:</strong> {receiptCode}
+            </p>
+            <p>
+              <strong>Tên phiếu:</strong> {receiptName}
+            </p>
+            <p>
+              <strong>Ngày xuất:</strong> {formatDate(exportDate)}
+            </p>
+            <p>
+              <strong>Kho xuất:</strong> {wareId?.name || 'N/A'}
+            </p>
+            <p>
+              <strong>Người lập phiếu:</strong> {adminId?.fullName || 'N/A'}
+            </p>
           </div>
 
           <table
@@ -153,7 +181,7 @@ const StockExportPrint = () => {
               width: '100%',
               borderCollapse: 'collapse',
               marginTop: '30px',
-              fontSize: '15px'
+              fontSize: '15px',
             }}
           >
             <thead>
@@ -168,9 +196,7 @@ const StockExportPrint = () => {
             <tbody>
               {items.length > 0 ? (
                 items.map((item, index) => {
-                  const quantity = Number(item.quantity) || 0
-                  const unitPrice = Number(item.unitPrice) || 0
-                  const total = quantity * unitPrice
+                  const quantity = Number(item.quantity) || 0;
 
                   return (
                     <tr key={item.proId?._id || index}>
@@ -180,7 +206,7 @@ const StockExportPrint = () => {
                       <td style={tdStyle}>{item.proId?.price.toLocaleString()}</td>
                       <td style={tdStyle}>{totalAmount.toLocaleString()}</td>
                     </tr>
-                  )
+                  );
                 })
               ) : (
                 <tr>
@@ -189,7 +215,7 @@ const StockExportPrint = () => {
                   </td>
                 </tr>
               )}
-              
+
               {items.length > 0 && (
                 <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold' }}>
                   <td colSpan="4" style={{ ...tdStyle, textAlign: 'right' }}>
@@ -204,31 +230,33 @@ const StockExportPrint = () => {
           <div style={{ marginTop: '60px', display: 'flex', justifyContent: 'space-between' }}>
             <div>
               <strong>Người lập phiếu</strong>
-              <br /><br />
+              <br />
+              <br />
               <em>(Ký và ghi rõ họ tên)</em>
             </div>
             <div>
               <strong>Thủ kho</strong>
-              <br /><br />
+              <br />
+              <br />
               <em>(Ký và ghi rõ họ tên)</em>
             </div>
           </div>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
 const thStyle = {
   border: '1px solid #ccc',
   padding: '12px 16px',
-  textAlign: 'center'
-}
+  textAlign: 'center',
+};
 
 const tdStyle = {
   border: '1px solid #ddd',
   padding: '10px 14px',
-  textAlign: 'center'
-}
+  textAlign: 'center',
+};
 
-export default StockExportPrint
+export default StockExportPrint;

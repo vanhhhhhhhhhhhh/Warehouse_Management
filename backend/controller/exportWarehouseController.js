@@ -1,4 +1,3 @@
-
 const Export = require('../model/Stock_Export')
 const Product = require('../model/Product') 
 const Warehouse = require('../model/Warehouse')
@@ -49,6 +48,23 @@ exports.createExport = async (req, res) => {
       const product = await Product.findById(proId)
       if (!product) {
         return res.status(404).json({ message: 'Sản phẩm không tồn tại' })
+      }
+
+      // Kiểm tra số lượng tồn kho thực tế
+      try {
+        const currentStock = await inventoryController.getCurrentStock(wareId, proId, user.adminId || user._id)
+        
+        if (currentStock < quantity) {
+          return res.status(400).json({ 
+            message: `Không đủ hàng trong kho cho sản phẩm "${product.name}". Tồn kho hiện tại: ${currentStock}, yêu cầu xuất: ${quantity}` 
+          })
+        }
+      } catch (stockError) {
+        console.error('Stock check error:', stockError)
+        return res.status(500).json({ 
+          message: `Không thể kiểm tra tồn kho cho sản phẩm "${product.name}"`,
+          error: stockError.message 
+        })
       }
 
       const unitPrice = product.price * quantity

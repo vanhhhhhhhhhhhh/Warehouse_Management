@@ -3,8 +3,10 @@ import { Content } from '../../../_metronic/layout/components/content'
 import { Link } from 'react-router-dom'
 import axios from 'axios'
 import Swal from 'sweetalert2'
+import { useNavigate } from 'react-router-dom'
 
 const StockOutHistory = () => {
+  const navigate = useNavigate()
   const [stockExports, setStockExports] = useState([])
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedWarehouse, setSelectedWarehouse] = useState('')
@@ -360,36 +362,13 @@ const StockOutHistory = () => {
                             </span>
                           </td>
                           <td>
-                            <div className='d-flex gap-2'>
-                              <button
-                                className='btn btn-icon btn-light-info btn-sm'
-                                title='Xem chi tiết'
-                                onClick={() => {
-                                  // Handle view details
-                                  console.log('View details:', exportItem)
-                                }}
-                              >
-                                <i className='ki-duotone ki-eye fs-2'>
-                                  <span className='path1'></span>
-                                  <span className='path2'></span>
-                                  <span className='path3'></span>
-                                </i>
-                              </button>
-                              <button
-                                className='btn btn-icon btn-light-danger btn-sm'
-                                title='Xóa'
-                                onClick={() => handleDeleteExport(exportItem._id)}
-                              >
-                                <i className='ki-duotone ki-trash fs-2'>
-                                  <span className='path1'></span>
-                                  <span className='path2'></span>
-                                  <span className='path3'></span>
-                                  <span className='path4'></span>
-                                  <span className='path5'></span>
-                                </i>
-                              </button>
-                            </div>
-                          </td>
+                      <button
+                        onClick={() => navigate(`/apps/stockOut/print/${exportItem._id}`)}
+                        className='btn btn-icon btn-bg-light btn-active-color-success btn-sm ms-5'
+                      >
+                        <i className='fas fa-print'></i>
+                      </button>
+                    </td>
                         </tr>
                       ))
                     )}
