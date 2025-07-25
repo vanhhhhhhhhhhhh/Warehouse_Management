@@ -156,8 +156,8 @@ const StockImportPrint = () => {
                     <td style={tdStyle}>{index + 1}</td>
                     <td style={tdStyle}>{item.proId.name}</td>
                     <td style={tdStyle}>{quantity}</td>
+                    <td style={tdStyle}>{item.proId?.price.toLocaleString()}</td>
                     <td style={tdStyle}>{unitPrice.toLocaleString()}</td>
-                    <td style={tdStyle}>{amount.toLocaleString()}</td>
                   </tr>
                 );
               })}
