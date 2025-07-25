@@ -9,6 +9,7 @@ const categorySchemaRequest = Yup.object().shape({
     .required('Tên danh mục là bắt buộc')
     .min(3, 'Tên danh mục phải có ít nhất 3 ký tự')
     .max(255, 'Tên danh mục không được vượt quá 255 ký tự')
+    .trim(),
 });
 
 export type CategoryFormRequest = Yup.InferType<typeof categorySchemaRequest>;

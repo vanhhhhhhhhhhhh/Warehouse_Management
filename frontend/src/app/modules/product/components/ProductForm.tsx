@@ -6,18 +6,22 @@ import { useQuery } from 'react-query';
 import { getCategories, getCategory } from '../../../apiClient/categories';
 import { useNavigate, NavigateFunction } from 'react-router-dom';
 
+
 const productSchemaRequest = Yup.object().shape({
   code: Yup.string()
     .required('Mã sản phẩm là bắt buộc')
     .min(3, 'Mã sản phẩm phải có ít nhất 3 ký tự')
-    .max(255, 'Mã sản phẩm không được vượt quá 255 ký tự'),
+    .max(255, 'Mã sản phẩm không được vượt quá 255 ký tự')
+    .trim(),
   name: Yup.string()
     .required('Tên sản phẩm là bắt buộc')
     .min(3, 'Tên sản phẩm phải có ít nhất 3 ký tự')
-    .max(255, 'Tên sản phẩm không được vượt quá 255 ký tự'),
+    .max(255, 'Tên sản phẩm không được vượt quá 255 ký tự')
+    .trim(),
   description: Yup.string()
     .max(1000, 'Mô tả không được vượt quá 1000 ký tự')
-    .default(''),
+    .default('')
+    .trim(),
   price: Yup.number()
     .min(0, 'Giá không được nhỏ hơn 0')
     .required('Giá là bắt buộc'),
@@ -26,10 +30,12 @@ const productSchemaRequest = Yup.object().shape({
       Yup.object().shape({
         name: Yup.string()
           .required('Tên thuộc tính là bắt buộc')
-          .max(255, 'Tên thuộc tính không được vượt quá 255 ký tự'),
+          .max(255, 'Tên thuộc tính không được vượt quá 255 ký tự')
+          .trim(),
         value: Yup.string()
           .required('Giá trị thuộc tính là bắt buộc')
-          .max(255, 'Giá trị thuộc tính không được vượt quá 255 ký tự'),
+          .max(255, 'Giá trị thuộc tính không được vượt quá 255 ký tự')
+          .trim(),
       }),
     )
     .default([]),
