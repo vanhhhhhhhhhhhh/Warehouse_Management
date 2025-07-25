@@ -16,6 +16,11 @@ const initialValues = {
 
 const registrationSchema = Yup.object().shape({
   fullName: Yup.string()
+  .test(
+    'not-only-spaces',
+      'Họ tên không được chỉ chứa khoảng trắng',
+      value => !!value && value.trim().length > 0
+    )
     .min(3, 'Tối thiểu 3 ký tự')
     .max(50, 'Tối đa 50 ký tự')
     .required('Vui lòng nhập họ tên'),

@@ -127,7 +127,7 @@ export default function CreateStockOutPage() {
   }
 
 const handleSubmitExport = async () => {
-  if (!code || !name || !wareId || selectedProducts.length === 0) {
+  if (!code.trim() || !name.trim() || !wareId || selectedProducts.length === 0) {
     Swal.fire({
       icon: 'error',
       title: 'Lỗi!',
