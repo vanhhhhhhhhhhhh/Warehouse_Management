@@ -320,13 +320,10 @@ export default function CreateStockOutPage() {
 
               <div className="row mb-6">
                 <div className="col-md-12">
-                  <div className="input-group mb-5">
-                    <input type="text" className="form-control" placeholder="Tìm sản phẩm trong kho" />
-                    <button className="btn btn-primary" type="button" onClick={handleSearch}>
-                      <KTSVG path="/media/icons/duotune/general/gen021.svg" className="svg-icon-2" />
-                      Tìm kiếm
-                    </button>
-                  </div>
+                  <button className="btn btn-primary" type="button" onClick={handleSearch}>
+                    <KTSVG path="/media/icons/duotune/general/gen021.svg" className="svg-icon-2" />
+                    Chọn sản phẩm
+                  </button>
                 </div>
               </div>
 
