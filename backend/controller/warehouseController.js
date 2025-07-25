@@ -90,6 +90,7 @@ const createWarehouse = async (req, res) => {
         // Kiểm tra kho đã tồn tại
         const existingWarehouse = await Warehouse.findOne({ 
             name,
+            adminId,
             isDelete: false 
         })
 
