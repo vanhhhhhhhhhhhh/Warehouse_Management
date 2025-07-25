@@ -48,9 +48,14 @@ const StockOutPage = () => {
 
   function calculateTotalValue(exp) {
     if (!exp || !exp.items || exp.items.length === 0) return 0;
-    const firstItem = exp.items[0];
-    return firstItem.unitPrice;  // Return just the unitPrice without multiplying
+
+    return exp.items.reduce((total, item) => {
+      const quantity = item.quantity || 0;
+      const unitPrice = item.unitPrice || 0;
+      return total + quantity * unitPrice;
+    }, 0);
   }
+
 
   function formatCurrency(value) {
     return new Intl.NumberFormat('vi-VN', {

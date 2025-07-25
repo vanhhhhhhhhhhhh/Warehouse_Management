@@ -35,7 +35,6 @@ const StockImportPrint = () => {
   };
 
   const totalAmount = items.reduce((sum, item) => {
-    // const quantity = Number(item.quantity) || 0
     const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
     return sum + unitPrice;
   }, 0);
@@ -147,15 +146,22 @@ const StockImportPrint = () => {
               </tr>
             </thead>
             <tbody>
-              {items.map((item, index) => (
-                <tr key={item.proId._id}>
-                  <td style={tdStyle}>{index + 1}</td>
-                  <td style={tdStyle}>{item.proId.name}</td>
-                  <td style={tdStyle}>{item.quantity}</td>
-                  <td style={tdStyle}>{item.proId?.price.toLocaleString()}</td>
-                  <td style={tdStyle}>{totalAmount.toLocaleString()}</td>
-                </tr>
-              ))}
+              {items.map((item, index) => {
+                const quantity = Number(item.quantity) || 0;
+                const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
+                const amount = quantity * unitPrice;
+
+                return (
+                  <tr key={item.proId._id}>
+                    <td style={tdStyle}>{index + 1}</td>
+                    <td style={tdStyle}>{item.proId.name}</td>
+                    <td style={tdStyle}>{quantity}</td>
+                    <td style={tdStyle}>{unitPrice.toLocaleString()}</td>
+                    <td style={tdStyle}>{amount.toLocaleString()}</td>
+                  </tr>
+                );
+              })}
+
               <tr style={{ backgroundColor: '#f9f9f9', fontWeight: 'bold' }}>
                 <td colSpan="4" style={{ ...tdStyle, textAlign: 'right' }}>
                   Tổng cộng:

@@ -83,10 +83,11 @@ const StockExportPrint = () => {
   };
 
   const totalAmount = items.reduce((sum, item) => {
-    // const quantity = Number(item.quantity) || 0
+    const quantity = Number(item.quantity) || 0;
     const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
-    return sum + unitPrice;
+    return sum + quantity * unitPrice;
   }, 0);
+
 
   return (
     <>
@@ -197,17 +198,20 @@ const StockExportPrint = () => {
               {items.length > 0 ? (
                 items.map((item, index) => {
                   const quantity = Number(item.quantity) || 0;
+                  const unitPrice = Number(item.unitPrice) || Number(item.proId?.price) || 0;
+                  const amount = quantity * unitPrice;
 
                   return (
                     <tr key={item.proId?._id || index}>
                       <td style={tdStyle}>{index + 1}</td>
                       <td style={tdStyle}>{item.proId?.name || 'N/A'}</td>
                       <td style={tdStyle}>{quantity}</td>
-                      <td style={tdStyle}>{item.proId?.price.toLocaleString()}</td>
-                      <td style={tdStyle}>{totalAmount.toLocaleString()}</td>
+                      <td style={tdStyle}>{unitPrice.toLocaleString()}</td>
+                      <td style={tdStyle}>{amount.toLocaleString()}</td>
                     </tr>
                   );
                 })
+
               ) : (
                 <tr>
                   <td colSpan="5" style={{ ...tdStyle, textAlign: 'center', fontStyle: 'italic' }}>
