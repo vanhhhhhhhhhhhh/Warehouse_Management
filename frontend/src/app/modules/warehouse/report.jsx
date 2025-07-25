@@ -2,7 +2,31 @@ import { useState, useEffect } from 'react'
 import { Content } from '../../../_metronic/layout/components/content'
 import axios from 'axios'
 import Swal from 'sweetalert2'
-import '../../../_metronic/assets/sass/exportPage.scss';
+import '../../../_metronic/assets/sass/exportPage.scss'
+
+// Thêm script pdfmake từ CDN
+const loadPdfMake = () => {
+  return new Promise((resolve) => {
+    if (window.pdfMake) {
+      resolve(window.pdfMake);
+    } else {
+      const script1 = document.createElement('script');
+      const script2 = document.createElement('script');
+      
+      script1.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js';
+      script2.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js';
+      
+      script1.onload = () => {
+        script2.onload = () => {
+          resolve(window.pdfMake);
+        };
+        document.body.appendChild(script2);
+      };
+      
+      document.body.appendChild(script1);
+    }
+  });
+};
 
 const InventoryReport = () => {
   const [timeRange, setTimeRange] = useState({
@@ -41,6 +65,10 @@ const InventoryReport = () => {
       const exports = exportsResponse.data.data || []
       const defective = defectiveResponse.data.data || []
 
+      console.log('Import data:', imports)
+      console.log('Export data:', exports)
+      console.log('Defective data:', defective)
+
       setStockImports(imports)
       setStockExports(exports)
       setDefectiveProducts(defective)
@@ -52,6 +80,7 @@ const InventoryReport = () => {
       defective.forEach(item => warehouseSet.add(JSON.stringify({ id: item.wareId._id, name: item.wareId.name })))
       
       const uniqueWarehouses = Array.from(warehouseSet).map(item => JSON.parse(item))
+      console.log('Unique warehouses:', uniqueWarehouses)
       setWarehouses(uniqueWarehouses)
 
       // Extract unique products from all data
@@ -258,6 +287,177 @@ const InventoryReport = () => {
     setSelectedProduct('')
   }
 
+  const exportToPDF = async () => {
+    try {
+      console.log('Starting PDF export...')
+      
+      const pdfMake = await loadPdfMake();
+
+      // Hàm format số
+      const formatNumber = (num) => {
+        if (!num) return '0'
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      }
+      
+      // Định nghĩa font tiếng Việt
+      pdfMake.fonts = {
+        Roboto: {
+          normal: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Regular.ttf',
+          bold: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Medium.ttf',
+          italics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-Italic.ttf',
+          bolditalics: 'https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/fonts/Roboto/Roboto-MediumItalic.ttf'
+        }
+      };
+
+      const today = new Date();
+
+      const docDefinition = {
+        pageOrientation: 'landscape',
+        pageMargins: [40, 40, 40, 40],  // Tăng margin để giống mẫu
+        defaultStyle: {
+          font: 'Roboto',
+          fontSize: 10  // Điều chỉnh font size mặc định
+        },
+        content: [
+          {
+            text: 'Metronic Warehouse Management System',
+            alignment: 'right',
+            fontSize: 11,
+            margin: [0, 0, 0, 20]  // Thêm margin bottom
+          },
+          {
+            text: 'BÁO CÁO NHẬP XUẤT TỒN KHO',
+            alignment: 'center',
+            fontSize: 16,  // Tăng font size
+            bold: true,
+            margin: [0, 0, 0, 20]  // Thêm margin bottom
+          },
+          {
+            table: {
+              headerRows: 1,
+              widths: [
+                '5%',      // STT
+                '15%',     // KHO
+                '15%',     // SẢN PHẨM (thu hẹp từ 20%)
+                '10%',     // ĐƠN GIÁ
+                '10%',     // NHẬP KHO (tăng từ 8%)
+                '10%',     // XUẤT KHO (tăng từ 8%)
+                '12%',     // SP HỎNG/LỖI (tăng từ 10%)
+                '10%',     // TỒN KHO (tăng từ 8%)
+                '13%'      // GIÁ TRỊ TỒN (thu hẹp từ 16%)
+              ],
+              body: [
+                [
+                  { text: 'STT', alignment: 'center', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'KHO', alignment: 'left', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'SẢN PHẨM', alignment: 'left', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'ĐƠN GIÁ', alignment: 'right', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'NHẬP KHO', alignment: 'center', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'XUẤT KHO', alignment: 'center', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'SP HỎNG/LỖI', alignment: 'center', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'TỒN KHO', alignment: 'center', bold: true, fillColor: '#f2f2f2' },
+                  { text: 'GIÁ TRỊ TỒN', alignment: 'right', bold: true, fillColor: '#f2f2f2' }
+                ],
+                ...reportData.map((item, index) => [
+                  { text: (index + 1).toString(), alignment: 'center' },
+                  { text: item.warehouseName || '', alignment: 'left' },
+                  { text: item.productName || '', alignment: 'left' },
+                  { text: formatNumber(item.productPrice), alignment: 'right' },
+                  { text: item.totalIn?.toString() || '0', alignment: 'center' },
+                  { text: item.totalOut?.toString() || '0', alignment: 'center' },
+                  { text: item.totalDamaged?.toString() || '0', alignment: 'center' },
+                  { text: item.pendingOut?.toString() || '0', alignment: 'center' },
+                  { text: formatNumber(item.pendingOutValue), alignment: 'right' }
+                ]),
+                [
+                  { text: '', colSpan: 2 },
+                  {},
+                  { text: 'Tổng cộng:', bold: true },  // Bỏ border: [false, false, false, false]
+                  { text: '' },
+                  { text: totals.totalIn?.toString() || '0', alignment: 'center', bold: true },
+                  { text: totals.totalOut?.toString() || '0', alignment: 'center', bold: true },
+                  { text: totals.totalDamaged?.toString() || '0', alignment: 'center', bold: true },
+                  { text: totals.pendingOut?.toString() || '0', alignment: 'center', bold: true },
+                  { text: formatNumber(totals.pendingOutValue), alignment: 'right', bold: true }
+                ]
+              ]
+            },
+            layout: {
+              hLineWidth: function(i, node) {
+                return (i === 0 || i === 1 || i === node.table.body.length - 1) ? 1 : 0.5;
+              },
+              vLineWidth: function(i, node) {
+                return (i === 0 || i === node.table.widths.length) ? 1 : 0.5;
+              },
+              hLineColor: function(i, node) {
+                return (i === 0 || i === 1) ? '#aaaaaa' : '#dddddd';
+              },
+              vLineColor: function(i, node) {
+                return '#dddddd';
+              },
+              fillColor: function(rowIndex, node, columnIndex) {
+                return (rowIndex === 0) ? '#f2f2f2' : null;
+              },
+              paddingLeft: function(i, node) { return 8; },
+              paddingRight: function(i, node) { return 8; },
+              paddingTop: function(i, node) { return 8; },
+              paddingBottom: function(i, node) { return 8; }
+            }
+          },
+          {
+            columns: [
+              { width: '*', text: '' },
+              {
+                width: '*',
+                text: `Ngày ${today.getDate()} tháng ${today.getMonth() + 1} năm ${today.getFullYear()}`,
+                alignment: 'center',
+                margin: [0, 30, 0, 30]
+              }
+            ]
+          },
+          {
+            columns: [
+              {
+                width: '*',
+                text: [
+                  { text: 'Nhân Viên Kho\n', alignment: 'center', margin: [0, 0, 0, 5] },
+                  { text: '(Chữ ký, họ tên)', fontSize: 9, italics: true }
+                ],
+                alignment: 'center'
+              },
+              {
+                width: '*',
+                text: [
+                  { text: 'Chủ Kho\n', alignment: 'center', margin: [0, 0, 0, 5] },
+                  { text: '(Chữ ký, họ tên, đóng dấu)', fontSize: 9, italics: true }
+                ],
+                alignment: 'center'
+              }
+            ]
+          }
+        ]
+      };
+
+      pdfMake.createPdf(docDefinition).download('bao-cao-xuat-nhap-ton-kho.pdf');
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Thành công!',
+        text: 'Đã xuất báo cáo PDF',
+        confirmButtonText: 'OK'
+      });
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      Swal.fire({
+        icon: 'error',
+        title: 'Lỗi!',
+        text: 'Không thể tạo file PDF. Vui lòng thử lại sau.',
+        confirmButtonText: 'OK'
+      });
+    }
+  };
+  
+
   return (
     <Content>
       <div className='card'>
@@ -266,6 +466,20 @@ const InventoryReport = () => {
             <h3 className='card-title align-items-start flex-column'>
               <span className='card-label fw-bold fs-3 mb-1'>Báo cáo xuất nhập kho</span>
             </h3>
+          </div>
+          <div className='card-toolbar'>
+            <button
+              type='button'
+              className='btn btn-light-primary'
+              onClick={exportToPDF}
+              disabled={loading || reportData.length === 0}
+            >
+              <i className='ki-duotone ki-file-down fs-2'>
+                <span className='path1'></span>
+                <span className='path2'></span>
+              </i>
+              Xuất PDF
+            </button>
           </div>
         </div>
 
