@@ -14,6 +14,10 @@ const authController = {
                 return res.status(400).json({ message: 'Vui lòng điền đầy đủ tất cả các trường' })
             }
 
+            if(fullName.startsWith(' ')){
+                return res.status(400).json({message: 'Họ tên không được bắt đầu bằng khoảng trắng'})
+            }
+
             if (fullName.length < 3 || fullName.length > 50) {
                 return res.status(400).json({ message: 'Họ tên phải từ 3 đến 50 ký tự' })
             }
@@ -26,6 +30,10 @@ const authController = {
             const existingUser = await User.findOne({ email })
             if (existingUser) {
                 return res.status(400).json({ message: 'Email đã tồn tại' })
+            }
+
+            if(password.startsWith(' ') || password.endsWith(' ')){
+                return res.status(400).json({message: 'Mật khẩu không được bắt đầu hoặc kết thúc bằng khoảng trắng'})
             }
 
             if(password.length < 6){

@@ -77,11 +77,31 @@ const CreateStockInPage = () => {
     }
 
     const handleSubmitImport = async() => {
-        if(!code || !name || !wareId || selectedProducts.length === 0){
+        if(!code || !name|| !wareId || selectedProducts.length === 0){
             Swal.fire({
                 icon: 'error',
                 title: 'Lỗi!',
                 text: 'Vui lòng nhập đầy đủ thông tin và chọn ít nhất một sản phẩm',
+                confirmButtonText: 'Đóng'
+            })
+            return
+        }
+
+        if(!code.trim()){
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Mã phiếu không được bắt đầu bằng khoảng trắng',
+                confirmButtonText: 'Đóng'
+            })
+            return
+        }
+
+         if(!name.trim()){
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Tên phiếu không được bắt đầu bằng khoảng trắng',
                 confirmButtonText: 'Đóng'
             })
             return
