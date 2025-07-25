@@ -87,6 +87,26 @@ const CreateStockInPage = () => {
             return
         }
 
+        if(!code.trim()){
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Mã phiếu không được bắt đầu bằng khoảng trắng',
+                confirmButtonText: 'Đóng'
+            })
+            return
+        }
+
+         if(!name.trim()){
+            Swal.fire({
+                icon: 'error',
+                title: 'Lỗi!',
+                text: 'Tên phiếu không được bắt đầu bằng khoảng trắng',
+                confirmButtonText: 'Đóng'
+            })
+            return
+        }
+
         try {
             setLoading(true)
             const items = selectedProducts.map((item) => ({

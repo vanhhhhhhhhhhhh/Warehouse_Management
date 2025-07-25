@@ -9,6 +9,9 @@ interface ProductToolbarProps {
   onShowImportModal: () => void
   onExportFile: () => void
   onAddProduct: () => void
+  showImport?: boolean
+  showExport?: boolean
+  showAddProduct?: boolean
 }
 
 export const ProductToolbar: React.FC<ProductToolbarProps> = ({
@@ -17,7 +20,10 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
   onStatusChange,
   onExportFile,
   onShowImportModal,
-  onAddProduct
+  onAddProduct,
+  showImport = true,
+  showExport = true,
+  showAddProduct = true
 }) => {
   const {statusFilter, statusFilterElement} = useStatusFilter()
   const [exporting, setExporting] = useState(false)
@@ -57,6 +63,7 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
 
       <div className='card-toolbar'>
         <div className='d-flex justify-content-end gap-2'>
+          {showImport && (
           <button
             type='button'
             className='btn btn-light-success'
@@ -65,6 +72,8 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
             <i className='bi bi-file-earmark-arrow-up fs-2'></i>
             Nhập Excel
           </button>
+          )}
+          {showExport && (
           <button
             type='button'
             className='btn btn-light-success'
@@ -80,6 +89,8 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
               </>
             )}
           </button>
+          )}
+          {showAddProduct && (
           <button
             type='button'
             className='btn btn-primary'
@@ -88,6 +99,7 @@ export const ProductToolbar: React.FC<ProductToolbarProps> = ({
             <i className='ki-duotone ki-plus fs-2'></i>
             Thêm sản phẩm
           </button>
+          )}
         </div>
       </div>
     </div>

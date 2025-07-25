@@ -291,6 +291,7 @@ module.exports = {
       try {
         convertedInfo = convertAndValidate(data, options.stopOnError);
       } catch (e) {
+        console.log(e);
         return failedResponse(res, 400, e.message);
       }
 

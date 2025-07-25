@@ -1,7 +1,7 @@
 sequenceDiagram
     actor S as Product Manage Staff
     participant EIV as :ExcelImportView
-    participant PC as :ProductController
+    participant EIC as :ExcelController
     participant PM as :ProductModel
 
     activate S
@@ -13,32 +13,40 @@ sequenceDiagram
     S->>EIV: Select file
     activate EIV
 
-    EIV->>PC: Upload file
-    activate PC
-    PC->>PC: Parse file
+    EIV->>EIC: Upload file
+    activate EIC
+    EIC->>EIC: Parse file
+    opt if file is not valid (type, size)
+        EIC-->>EIV: Return error
+        EIV-->>S: Show error message
+    end
+
     loop for each row in file
-        PC->>PC: Validate row
+        EIC->>EIC: Validate row
 
         alt row is valid
-            PC->>PM: Save product
+            EIC->>PM: Save product
             activate PM
-            PM-->>PC: Return status
+            PM-->>EIC: Return status
             deactivate PM
-        else row is not valid
-            PC->>PM: Delete previous products
-            activate PM
-            PM-->>PC: Return status
-            deactivate PM
-            PC-->>EIV: Quit and return error
+        else row is not valid & stop on error
+            EIC->>EIC: Log error and stop
+            EIC-->>EIV: Return error
             EIV-->>S: Show error message
+        else row is not valid & continue on error
+            EIC->>EIC: Log error and continue
         end
     end
 
-    opt if no error
-        PC-->>EIV: Return success status
+    alt if no error
+        EIC-->>EIV: Return success status
         EIV-->>S: Show success message
+    else if errors exist
+        EIC-->>EIV: Return error message
+        EIV-->>S: Show error message
     end
-    deactivate PC
+
+    deactivate EIC
 
     deactivate EIV
     deactivate S
