@@ -168,36 +168,38 @@ const CRUDTable: CRUDTableComponent = ({
         ),
       },
       ...columns,
-      columnHelper.display({
+      ...(readOnly ? [] : [columnHelper.display({
         id: "actions",
         header: intl.formatMessage({ id: "TABLE.ACTIONS" }),
-        cell: (info) => (
-          <div>
-            {showEdit && (
-              <button
-                className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
-                onClick={() => onEdit?.(info.row.original)}
-              >
-                <KTSVG
-                  path="/media/icons/duotune/art/art005.svg"
-                  className="svg-icon-3"
-                />
-              </button>
-            )}
-            {showDelete && (
-              <button
-                className="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
-                onClick={() => onDelete?.(info.row.original)}
-              >
-                <KTSVG
-                  path="/media/icons/duotune/general/gen027.svg"
-                  className="svg-icon-3"
-                />
-              </button>
-            )}
-          </div>
-        ),
-      }),
+        cell: (info) => {
+          return (
+            <div>
+              {showEdit && (
+                <button
+                  className="btn btn-icon btn-bg-light btn-active-color-primary btn-sm me-1"
+                  onClick={() => onEdit?.(info.row.original)}
+                >
+                  <KTSVG
+                    path="/media/icons/duotune/art/art005.svg"
+                    className="svg-icon-3"
+                  />
+                </button>
+              )}
+              {showDelete && (
+                <button
+                  className="btn btn-icon btn-bg-light btn-active-color-danger btn-sm"
+                  onClick={() => onDelete?.(info.row.original)}
+                >
+                  <KTSVG
+                    path="/media/icons/duotune/general/gen027.svg"
+                    className="svg-icon-3"
+                  />
+                </button>
+              )}
+            </div>
+          );
+        },
+      })]),
     ],
     [columns, showEdit, showDelete, onEdit, onDelete, intl, columnHelper],
   );

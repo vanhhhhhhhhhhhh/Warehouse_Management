@@ -20,6 +20,7 @@ import { StatusFilterValue, useStatusFilter } from "../../reusableWidgets/useSta
 import { exportFile, importFile } from "../../apiClient/excel";
 import { format } from "path";
 import { FileParsingOptions } from "./components/ImportModal";
+import { hasPermission } from "../auth/components/PermissionGuard";
 
 const columnHelper = createColumnHelper<ProductListing>();
 
@@ -66,6 +67,10 @@ const ProductsPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [showImportModal, setShowImportModal] = useState(false);
   const [status, setStatus] = useState<StatusFilterValue>('active');
+  const [hasCreatePermission, hasUpdatePermission] = hasPermission([
+    { module: 'PRODUCTS', action: 'CREATE' },
+    { module: 'PRODUCTS', action: 'UPDATE' }
+  ]);
 
   const queryClient = useQueryClient();
   const { data: products, isLoading } = useQuery({
@@ -142,15 +147,7 @@ const ProductsPage: React.FC = () => {
         key: "activate",
         label: "Kích hoạt",
         onExecute: () => activateProductMutation(selectedItems),
-      },
-      {
-        key: "import_to_warehouse",
-        label: "Nhập kho",
-        onExecute: () =>
-          wait(1000).then(() => {
-            console.log("Nhập kho sản phẩm", selectedItems);
-          }),
-      },
+      }
     ],
     [selectedItems, deactivateProductMutation, activateProductMutation],
   );
@@ -231,6 +228,8 @@ const ProductsPage: React.FC = () => {
               searchTerm={searchTerm}
               onSearchChange={setSearchTerm}
               onStatusChange={setStatus}
+              showImport={hasCreatePermission}
+              showAddProduct={hasCreatePermission}
               onExportFile={async () => {
                 try {
                   await exportFile();
@@ -262,6 +261,7 @@ const ProductsPage: React.FC = () => {
                 columns={columns}
                 selectedItems={selectedItems}
                 onSelectedItemsChange={setSelectedItems}
+                readOnly={!hasUpdatePermission}
                 pagination={{
                   pageIndex,
                   totalPages: products.totalPages,
