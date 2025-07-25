@@ -9,7 +9,6 @@ export default function CreateStockOutPage() {
   const [code, setCode] = useState('')
   const [name, setName] = useState('')
   const [wareId, setWareId] = useState('')
-  const [reason, setReason] = useState('')
   const [warehouses, setWarehouses] = useState([])
   const [stockProducts, setStockProducts] = useState([])
   const [selectedProducts, setSelectedProducts] = useState([])
@@ -137,6 +136,26 @@ const handleSubmitExport = async () => {
     return;
   }
 
+  if(!code.trim()){
+    Swal.fire({
+      icon: 'error',
+      title: 'Lỗi!',
+      text: 'Mã phiếu không được bắt đầu bằng khoảng trắng',
+      confirmButtonText: 'Đóng'
+    });
+    return;
+  }
+
+  if(!name.trim()){
+    Swal.fire({
+      icon: 'error',
+      title: 'Lỗi!',
+      text: 'Tên phiếu không được bắt đầu bằng khoảng trắng',
+      confirmButtonText: 'Đóng'
+    });
+    return;
+  }
+
   try {
     const token = localStorage.getItem('token');
     const items = selectedProducts.map(item => ({
@@ -145,7 +164,7 @@ const handleSubmitExport = async () => {
       unitPrice: item.price || 0  // Thêm đơn giá
     }));
 
-    const response = await axios.post('http://localhost:9999/export/fromWarehouse', {
+    await axios.post('http://localhost:9999/export/fromWarehouse', {
       receiptCode: code,
       receiptName: name,
       wareId,

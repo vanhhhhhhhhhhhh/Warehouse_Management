@@ -16,6 +16,9 @@ const initialValues = {
 
 const registrationSchema = Yup.object().shape({
   fullName: Yup.string()
+    .test('no-leading-space', 'Họ tên không được bắt đầu bằng khoảng trắng', (value) =>
+      value ? !value.startsWith(' ') : false
+    )
     .min(3, 'Tối thiểu 3 ký tự')
     .max(50, 'Tối đa 50 ký tự')
     .required('Vui lòng nhập họ tên'),
@@ -28,6 +31,11 @@ const registrationSchema = Yup.object().shape({
     .email('Email không hợp lệ')
     .required('Vui lòng nhập email'),
   password: Yup.string()
+    .test(
+      'no-trim',
+      'Mật khẩu không được bắt đầu hoặc kết thúc bằng khoảng trắng',
+      value => value === value?.trim()
+    )
     .min(6, 'Mật khẩu phải có ít nhất 6 ký tự')
     .required('Vui lòng nhập mật khẩu'),
   confirmPassword: Yup.string()
@@ -86,9 +94,6 @@ export function Registration() {
         setLoading(false)
       }
     }
-
-
-    ,
   })
 
   return (
